@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Opsworks | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://Tim-B.github.io/hipsterdevblog.com/blog/categories/opsworks/atom.xml" rel="self"/>
   <link href="http://Tim-B.github.io/hipsterdevblog.com/"/>
-  <updated>2014-06-22T21:26:38+10:00</updated>
+  <updated>2014-06-22T21:30:55+10:00</updated>
   <id>http://Tim-B.github.io/hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -33,6 +33,7 @@
 </p>
 
 
+<!-- more -->
 
 
 <h2>Adding AWS cookbook via Berkshelf</h2>
