@@ -21,7 +21,7 @@ categories:
     as part of a custom recipe. In my case I wanted to have a dynamically generated (by a separate system)
     vhost configuration file which could be deployed to a stack using a simple recipe.
 </p>
-
+<!-- more -->
 <h2>Adding AWS cookbook via Berkshelf</h2>
 
 <p>

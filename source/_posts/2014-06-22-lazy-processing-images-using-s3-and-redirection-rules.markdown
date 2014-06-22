@@ -22,6 +22,7 @@ categories:
      possible to use S3 <a href="http://docs.aws.amazon.com/AmazonS3/latest/dev/HowDoIWebsiteConfiguration.html">S3
      routing rules</a> to achieve a similar function.
 </p>
+<!-- more -->
 <h2>Overview</h2>
 <p>
     Using routing rules it's possible to return a 302 redirect whenever a 404 error occurs, this 302 redirect can then
