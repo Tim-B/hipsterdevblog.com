@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  
+  <url>
+    <loc>http://hipsterdevblog.com/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules/</loc>
+    <lastmod>2014-06-22T19:14:44+10:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>http://hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/</loc>
+    <lastmod>2014-06-22T17:44:02+10:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  
+  <url>
+    <loc>http://hipsterdevblog.com/</loc>
+    <lastmod>2014-06-22T20:54:40+10:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <url>
+    <loc>http://hipsterdevblog.com/blog/archives/</loc>
+    <lastmod>2014-06-22T20:54:40+10:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  
+</urlset>
