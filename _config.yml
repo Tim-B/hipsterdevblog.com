@@ -91,7 +91,7 @@ delicious_user:
 delicious_count: 3
 
 # Disqus Comments
-disqus_short_name: "Hipster Dev Blog"
+disqus_short_name: "hipsterdevblog"
 disqus_show_comment_count: false
 
 # Google Analytics
