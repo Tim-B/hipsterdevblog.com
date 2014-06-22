@@ -4,7 +4,7 @@
   <title><![CDATA[:HIPSTER_DEV_BLOG]]></title>
   <link href="http://Tim-B.github.io/hipsterdevblog.com/atom.xml" rel="self"/>
   <link href="http://Tim-B.github.io/hipsterdevblog.com/"/>
-  <updated>2014-06-22T21:22:19+10:00</updated>
+  <updated>2014-06-22T21:26:38+10:00</updated>
   <id>http://Tim-B.github.io/hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -62,7 +62,7 @@
 
 <p>
     When receiving a request <code>process.mydomain.com</code> should resize the image (most likely after obtaining the
-    image from another private bucket for originals), resize it, serve that image to the visitor then save it back to
+    image from another private bucket for originals), serve that image to the visitor then save it back to
     the <code>images.mydomain.com</code> bucket.
 </p>
 
