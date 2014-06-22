@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Aws | :HIPSTER_DEV_BLOG]]></title>
-  <link href="http://Tim-B.github.io/hipsterdevblog/blog/categories/aws/atom.xml" rel="self"/>
-  <link href="http://Tim-B.github.io/hipsterdevblog/"/>
-  <updated>2014-06-22T21:09:45+10:00</updated>
-  <id>http://Tim-B.github.io/hipsterdevblog/</id>
+  <link href="http://Tim-B.github.io/hipsterdevblog.com/blog/categories/aws/atom.xml" rel="self"/>
+  <link href="http://Tim-B.github.io/hipsterdevblog.com/"/>
+  <updated>2014-06-22T21:13:43+10:00</updated>
+  <id>http://Tim-B.github.io/hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Lazy Processing Images Using S3 and Redirection Rules]]></title>
-    <link href="http://Tim-B.github.io/hipsterdevblog/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules/"/>
+    <link href="http://Tim-B.github.io/hipsterdevblog.com/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules/"/>
     <updated>2014-06-22T19:14:44+10:00</updated>
-    <id>http://Tim-B.github.io/hipsterdevblog/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules</id>
+    <id>http://Tim-B.github.io/hipsterdevblog.com/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules</id>
     <content type="html"><![CDATA[<p>
     In a system dealing with user generated images it's common to have to resize images before they can be served to the web.
     Storing and serving large quantities of user generated images can also be a challenge – that is unless you're using
@@ -158,9 +158,9 @@
   
   <entry>
     <title type="html"><![CDATA[Retrieving Files From S3 Using Chef on OpsWorks]]></title>
-    <link href="http://Tim-B.github.io/hipsterdevblog/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/"/>
+    <link href="http://Tim-B.github.io/hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/"/>
     <updated>2014-06-22T17:44:02+10:00</updated>
-    <id>http://Tim-B.github.io/hipsterdevblog/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks</id>
+    <id>http://Tim-B.github.io/hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks</id>
     <content type="html"><![CDATA[<p>
     Say you wanted to manage some configuration file in your OpsWorks stack – typically you'd create a custom Chef recipe,
     make your configuration file a template and store it within your custom cookbook repository. This approach works well

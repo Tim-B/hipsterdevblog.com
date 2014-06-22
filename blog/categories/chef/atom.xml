@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Chef | :HIPSTER_DEV_BLOG]]></title>
-  <link href="http://Tim-B.github.io/hipsterdevblog/blog/categories/chef/atom.xml" rel="self"/>
-  <link href="http://Tim-B.github.io/hipsterdevblog/"/>
-  <updated>2014-06-22T21:09:45+10:00</updated>
-  <id>http://Tim-B.github.io/hipsterdevblog/</id>
+  <link href="http://Tim-B.github.io/hipsterdevblog.com/blog/categories/chef/atom.xml" rel="self"/>
+  <link href="http://Tim-B.github.io/hipsterdevblog.com/"/>
+  <updated>2014-06-22T21:13:43+10:00</updated>
+  <id>http://Tim-B.github.io/hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Retrieving Files From S3 Using Chef on OpsWorks]]></title>
-    <link href="http://Tim-B.github.io/hipsterdevblog/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/"/>
+    <link href="http://Tim-B.github.io/hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/"/>
     <updated>2014-06-22T17:44:02+10:00</updated>
-    <id>http://Tim-B.github.io/hipsterdevblog/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks</id>
+    <id>http://Tim-B.github.io/hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks</id>
     <content type="html"><![CDATA[<p>
     Say you wanted to manage some configuration file in your OpsWorks stack – typically you'd create a custom Chef recipe,
     make your configuration file a template and store it within your custom cookbook repository. This approach works well
