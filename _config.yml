@@ -2,10 +2,10 @@
 #      Main Configs       #
 # ----------------------- #
 
-url: http://yoursite.com
-title: My Octopress Blog
-subtitle: A blogging framework for hackers.
-author: Your Name
+url: http://hipsterdevblog.com
+title: Hipster Dev Blog
+subtitle: Another Octopress blog about programming and infrastructure.
+author: Tim B.
 simple_search: https://www.google.com/search
 description:
 
@@ -91,11 +91,11 @@ delicious_user:
 delicious_count: 3
 
 # Disqus Comments
-disqus_short_name:
+disqus_short_name: "Hipster Dev Blog"
 disqus_show_comment_count: false
 
 # Google Analytics
-google_analytics_tracking_id:
+google_analytics_tracking_id: "UA-52141399-1"
 
 # Facebook Like
-facebook_like: false
+facebook_like: true
