@@ -3,7 +3,7 @@
 # ----------------------- #
 
 url: http://hipsterdevblog.com
-title: Hipster Dev Blog
+title: :HIPSTER_DEV_BLOG
 subtitle: Another Octopress blog about programming and infrastructure.
 author: Tim B.
 simple_search: https://www.google.com/search
