@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[:HIPSTER_DEV_BLOG]]></title>
-  <link href="http://Tim-B.github.io/hipsterdevblog.com/atom.xml" rel="self"/>
-  <link href="http://Tim-B.github.io/hipsterdevblog.com/"/>
-  <updated>2014-06-22T21:30:55+10:00</updated>
-  <id>http://Tim-B.github.io/hipsterdevblog.com/</id>
+  <link href="http://hipsterdevblog.com/atom.xml" rel="self"/>
+  <link href="http://hipsterdevblog.com/"/>
+  <updated>2014-06-22T21:42:30+10:00</updated>
+  <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Lazy Processing Images Using S3 and Redirection Rules]]></title>
-    <link href="http://Tim-B.github.io/hipsterdevblog.com/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules/"/>
+    <link href="http://hipsterdevblog.com/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules/"/>
     <updated>2014-06-22T19:14:44+10:00</updated>
-    <id>http://Tim-B.github.io/hipsterdevblog.com/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules</id>
+    <id>http://hipsterdevblog.com/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules</id>
     <content type="html"><![CDATA[<p>
     In a system dealing with user generated images it&#8217;s common to have to resize images before they can be served to the web.
     Storing and serving large quantities of user generated images can also be a challenge – that is unless you&#8217;re using
@@ -50,7 +50,7 @@
 </p>
 
 
-<p><img class="left" src="http://Tim-B.github.io/hipsterdevblog.com/images/posts/s3_lazy_process/s3_route.png"></p>
+<p><img class="left" src="http://hipsterdevblog.com/images/posts/s3_lazy_process/s3_route.png"></p>
 
 <h2>Implementation</h2>
 
@@ -102,7 +102,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p><img src="http://Tim-B.github.io/hipsterdevblog.com/images/posts/s3_lazy_process/bucket_config.png"></p>
+<p><img src="http://hipsterdevblog.com/images/posts/s3_lazy_process/bucket_config.png"></p>
 
 <p>
     You now have lazy image processing!
@@ -153,9 +153,9 @@
   
   <entry>
     <title type="html"><![CDATA[Retrieving Files From S3 Using Chef on OpsWorks]]></title>
-    <link href="http://Tim-B.github.io/hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/"/>
+    <link href="http://hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/"/>
     <updated>2014-06-22T17:44:02+10:00</updated>
-    <id>http://Tim-B.github.io/hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks</id>
+    <id>http://hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks</id>
     <content type="html"><![CDATA[<p>
     Say you wanted to manage some configuration file in your OpsWorks stack – typically you&#8217;d create a custom Chef recipe,
     make your configuration file a template and store it within your custom cookbook repository. This approach works well
@@ -213,7 +213,7 @@
 </p>
 
 
-<p> <img src="http://Tim-B.github.io/hipsterdevblog.com/images/posts/s3_chef_opsworks/bucket.png"></p>
+<p> <img src="http://hipsterdevblog.com/images/posts/s3_chef_opsworks/bucket.png"></p>
 
 <p>
     Next you&#8217;ll need some AWS credentials for Chef to use while downloading the file. You can use your root account
@@ -279,7 +279,7 @@
 </span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
-<p><img src="http://Tim-B.github.io/hipsterdevblog.com/images/posts/s3_chef_opsworks/edit_stack.png"></p>
+<p><img src="http://hipsterdevblog.com/images/posts/s3_chef_opsworks/edit_stack.png"></p>
 
 <h2>Creating your custom recipe</h2>
 
@@ -366,13 +366,13 @@
 <p>Go to your stack and click &#8216;Run Command&#8217;, select &#8216;Update Custom Cookbooks&#8217;:</p>
 
 
-<p><img src="http://Tim-B.github.io/hipsterdevblog.com/images/posts/s3_chef_opsworks/update_cookbook.png"></p>
+<p><img src="http://hipsterdevblog.com/images/posts/s3_chef_opsworks/update_cookbook.png"></p>
 
 <p>Once OpsWorks has finished updating your custom cookbooks go back to &#8216;Run Command&#8217; and select &#8216;Execute Recipes&#8217;.
 Enter the name of your recipe into the &#8216;Recipes to execute&#8217; field:</p>
 
 
-<p><img src="http://Tim-B.github.io/hipsterdevblog.com/images/posts/s3_chef_opsworks/deploy_file.png"></p>
+<p><img src="http://hipsterdevblog.com/images/posts/s3_chef_opsworks/deploy_file.png"></p>
 
 <p>Alternatively you can add your recipe to a layer life-cycle event (such as setup) and execute that life-cycle event
 instead</p>

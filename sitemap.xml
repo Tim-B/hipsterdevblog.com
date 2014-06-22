@@ -3,28 +3,28 @@
   
   
   <url>
-    <loc>http://Tim-B.github.io/hipsterdevblog.com/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules/</loc>
+    <loc>http://hipsterdevblog.com/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules/</loc>
     <lastmod>2014-06-22T19:14:44+10:00</lastmod>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>http://Tim-B.github.io/hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/</loc>
+    <loc>http://hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/</loc>
     <lastmod>2014-06-22T17:44:02+10:00</lastmod>
     <priority>0.8</priority>
   </url>
   
   
   <url>
-    <loc>http://Tim-B.github.io/hipsterdevblog.com/</loc>
-    <lastmod>2014-06-22T21:30:55+10:00</lastmod>
+    <loc>http://hipsterdevblog.com/</loc>
+    <lastmod>2014-06-22T21:42:30+10:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   
   <url>
-    <loc>http://Tim-B.github.io/hipsterdevblog.com/blog/archives/</loc>
-    <lastmod>2014-06-22T21:30:55+10:00</lastmod>
+    <loc>http://hipsterdevblog.com/blog/archives/</loc>
+    <lastmod>2014-06-22T21:42:30+10:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
