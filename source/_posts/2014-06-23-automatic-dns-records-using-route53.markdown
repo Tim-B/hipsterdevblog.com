@@ -108,6 +108,7 @@ route53_record "create a record" do
   name  node[:opsworks][:instance][:hostname] + '.example.com'
   value Net::HTTP.get(URI.parse('http://169.254.169.254/latest/meta-data/public-ipv4'))
   type  "A"
+  ttl   60
   zone_id               node[:dns_zone_id]
   aws_access_key_id     node[:custom_access_key]
   aws_secret_access_key node[:custom_secret_key]
@@ -134,6 +135,5 @@ end
 </p>
 {% img /images/posts/route53_dns/add_recipe.png %}
 <p>
-    Now when the run the configure event you should see a new DNS A record being added in Route53! You may wish to
-    customise the recipe by adding a lower TTL for example.
+    Now when the run the configure event you should see a new DNS A record being added in Route53!
 </p>
