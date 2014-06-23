@@ -58,7 +58,7 @@ categories:
 </p>
 {% codeblock lang:json Custom JSON %}
 {
-  "dns_zone_id"      : "<insert hosted zone ID>"
+  "dns_zone_id"      : "<insert hosted zone ID>",
   "custom_access_key": "<insert access key>",
   "custom_secret_key": "<insert secret key>"
 }
