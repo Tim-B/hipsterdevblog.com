@@ -9,7 +9,7 @@
   <meta name="author" content="Tim B.">
 
   
-  <meta name="description" content="In a system dealing with user generated images it&#8217;s common to have to resize images before they can be served to the web. Storing and serving &hellip;">
+  <meta name="description" content="Lets say you have a load balanced web application managed with OpsWorks – your application traffic will be addressed to the load balancer, but &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -84,6 +84,65 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2014/06/23/automatic-dns-records-using-route53/">Automatic DNS Records Using Route53 on OpsWorks</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-06-23T18:28:23+10:00" pubdate data-updated="true">Jun 23<sup>rd</sup>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>
+    Lets say you have a load balanced web application managed with OpsWorks – your application traffic will be addressed
+    to the load balancer, but sometimes it&#8217;s still handy to address your application nodes directly for testing
+    purposes or perhaps so each node has a unique SNS endpoint for HTTP notifications. You could just  use their IP,
+    but unless you use an EIP that IP address may change. You could create a DNS record, which would be easier to remember
+    and allows the IP to change – but managing this manually would be a pain.
+</p>
+
+
+
+
+<p>
+    Fortunately this process of managing DNS records can be automated using Chef, Route53 and the EC2 instance
+    metadata functionality to obtain the public IP. Each instance will automatically create an A record for
+    <code>[instance name].example.com</code> on setup using their OpsWorks instance name.
+</p>
+
+
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/06/23/automatic-dns-records-using-route53/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules/">Lazy Processing Images Using S3 and Redirection Rules</a></h1>
     
     
@@ -121,7 +180,7 @@
      One solution is to automatically resize images the first time they&#8217;re requested
      using dimensions provided in the image URL, this way the application requesting the image can choose an appropriate
      size. While S3 doesn&#8217;t provide functionality to transparently proxy image misses to your image processor, it is
-     possible to use S3 <a href="http://docs.aws.amazon.com/AmazonS3/latest/dev/HowDoIWebsiteConfiguration.html">S3
+     possible to use S3 <a target="_blank" href="http://docs.aws.amazon.com/AmazonS3/latest/dev/HowDoIWebsiteConfiguration.html">S3
      routing rules</a> to achieve a similar function.
 </p>
 
@@ -202,6 +261,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/06/23/automatic-dns-records-using-route53/">Automatic DNS Records Using Route53 on OpsWorks</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules/">Lazy Processing Images Using S3 and Redirection Rules</a>

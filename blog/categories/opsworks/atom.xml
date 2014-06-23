@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Opsworks | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/opsworks/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2014-06-22T21:42:30+10:00</updated>
+  <updated>2014-06-23T20:56:32+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -12,6 +12,225 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Automatic DNS Records Using Route53 on OpsWorks]]></title>
+    <link href="http://hipsterdevblog.com/blog/2014/06/23/automatic-dns-records-using-route53/"/>
+    <updated>2014-06-23T18:28:23+10:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/06/23/automatic-dns-records-using-route53</id>
+    <content type="html"><![CDATA[<p>
+    Lets say you have a load balanced web application managed with OpsWorks – your application traffic will be addressed
+    to the load balancer, but sometimes it's still handy to address your application nodes directly for testing
+    purposes or perhaps so each node has a unique SNS endpoint for HTTP notifications. You could just  use their IP,
+    but unless you use an EIP that IP address may change. You could create a DNS record, which would be easier to remember
+    and allows the IP to change – but managing this manually would be a pain.
+</p>
+
+
+
+
+<p>
+    Fortunately this process of managing DNS records can be automated using Chef, Route53 and the EC2 instance
+    metadata functionality to obtain the public IP. Each instance will automatically create an A record for
+    <code>[instance name].example.com</code> on setup using their OpsWorks instance name.
+</p>
+
+
+
+
+<!-- more -->
+
+
+
+
+<h2>Getting started</h2>
+
+
+<p>
+    Firstly, I'll assume you have a Route53 zone created – in my case the zone will be called <code>example.com</code>.
+    You'll also need a set of AWS access keys, I recommend creating an IAM user restricted to managing your hosted zone.
+    You can use the following IAM user policy:
+</p>
+
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>IAM User Policy </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;Version&amp;rdquo;:</span> <span class="err">&amp;ldquo;2012-10-17&amp;rdquo;,</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;Statement&amp;rdquo;:</span> <span class="err">[&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;pre&gt;&lt;code&gt;{</span>
+</span><span class='line'>  <span class="nt">&quot;Sid&quot;</span><span class="p">:</span> <span class="s2">&quot;Stmt1403515694000&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;Effect&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;Action&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class='line'>    <span class="s2">&quot;route53:ChangeResourceRecordSets&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;route53:GetHostedZone&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;route53:ListResourceRecordSets&quot;</span>
+</span><span class='line'>  <span class="p">],</span>
+</span><span class='line'>  <span class="nt">&quot;Resource&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class='line'>    <span class="s2">&quot;arn:aws:route53:::hostedzone/&amp;lt;insert your hosted zone ID&amp;gt;&quot;</span>
+</span><span class='line'>  <span class="p">]</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="err">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;p&gt;</span>  <span class="err">]</span>
+</span><span class='line'><span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>
+    Next add your AWS credentials and zone ID as custom JSON variables in your OpsWorks stack:
+</p>
+
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Custom JSON </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;dns_zone_id&amp;rdquo;</span>      <span class="err">:</span> <span class="err">&amp;ldquo;&lt;insert</span> <span class="err">hosted</span> <span class="err">zone</span> <span class="err">ID&gt;&amp;rdquo;</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;custom_access_key&amp;rdquo;:</span> <span class="err">&amp;ldquo;&lt;insert</span> <span class="err">access</span> <span class="err">key&gt;&amp;rdquo;,</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;custom_secret_key&amp;rdquo;:</span> <span class="err">&amp;ldquo;&lt;insert</span> <span class="err">secret</span> <span class="err">key&gt;&amp;rdquo;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>
+ Adding custom JSON to your stack is covered in more detail in
+ <a target="_blank" href="http://hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/">Retrieving Files From S3 Using Chef on OpsWorks</a>.
+</p>
+
+
+<p>
+    Finally, add the <a target="_blank" href="http://community.opscode.com/cookbooks/route53">route53 cookbook</a>
+    to your Berksfile. If you're not using Berkshelf you'll have to clone the whole cookbook into your custom cookbook
+    repository.
+</p>
+
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Berksfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">source</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;https://api.berkshelf.com&quot;</span><span class="o">&gt;</span><span class="ss">https</span><span class="p">:</span><span class="sr">//</span><span class="n">api</span><span class="o">.</span><span class="n">berkshelf</span><span class="o">.</span><span class="n">com</span><span class="o">&lt;</span><span class="sr">/a&gt;&amp;rdquo;&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="n">cookbook</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">route53</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;,</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&gt;=</span> <span class="mi">0</span><span class="o">.</span><span class="mi">3</span><span class="o">.</span><span class="mi">4</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<h2>Creating your recipes</h2>
+
+
+<p>
+    Next, we need to create a custom cookbook and recipes – in this example the cookbook is called <code>dnsupdate</code>.
+     Create the following file structure and files in your custom cookbook repository:
+</p>
+
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>File Structure </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dnsupdate/metadata.rb
+</span><span class='line'>dnsupdate/recipes/add.rb</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>metadata.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="nb">name</span>        <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">dnsupdate</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
+</span><span class='line'><span class="n">description</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="no">Update</span> <span class="no">Route53</span> <span class="no">Zone</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
+</span><span class='line'><span class="n">maintainer</span>  <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="no">Dilbert</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
+</span><span class='line'><span class="n">license</span>     <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="no">Apache</span> <span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
+</span><span class='line'><span class="n">version</span>     <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="mi">1</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;depends &amp;ldquo;route53&amp;rdquo;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>recipes/add.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="nb">require</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">net</span><span class="o">/</span><span class="n">http</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'><span class="n">include_recipe</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">route53</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;route53_record &amp;ldquo;create a record&amp;rdquo; do</span>
+</span><span class='line'><span class="sr">  name  node[:opsworks][:instance][:hostname] + &amp;lsquo;.example.com&amp;rsquo;</span>
+</span><span class='line'><span class="sr">  value Net::HTTP.get(URI.parse(&amp;lsquo;&lt;a href=&quot;http:/</span><span class="o">/</span><span class="mi">169</span><span class="o">.</span><span class="mi">254</span><span class="o">.</span><span class="mi">169</span><span class="o">.</span><span class="mi">254</span><span class="o">/</span><span class="n">latest</span><span class="o">/</span><span class="n">meta</span><span class="o">-</span><span class="n">data</span><span class="o">/</span><span class="kp">public</span><span class="o">-</span><span class="n">ipv4</span><span class="s2">&quot;&gt;http://169.254.169.254/latest/meta-data/public-ipv4&lt;/a&gt;&amp;rsquo;))</span>
+</span><span class='line'><span class="s2">  type  &amp;ldquo;A&amp;rdquo;</span>
+</span><span class='line'><span class="s2">  zone_id               node[:dns_zone_id]</span>
+</span><span class='line'><span class="s2">  aws_access_key_id     node[:custom_access_key]</span>
+</span><span class='line'><span class="s2">  aws_secret_access_key node[:custom_secret_key]</span>
+</span><span class='line'><span class="s2">  overwrite true</span>
+</span><span class='line'><span class="s2">  action :create</span>
+</span><span class='line'><span class="s2">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>
+    Substitute <code>.example.com</code> with your own domain. <code>Net::HTTP.get(URI.parse('http://169.254.169.254/latest/meta-data/public-ipv4'))</code>
+    is using the <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AESDG-chapter-instancedata.html">instance data API</a> to obtain the public IP
+      – use the IP above any instance.
+</p>
+
+
+
+
+<h2>Adding recipe to life cycle event</h2>
+
+
+<p>
+    Once you've committed and pushed the new recipe to your custom cookbook repository you're ready to add the recipe
+    to the configure life cycle event. First update your custom cookbooks, by going to your stack > Run Command > and
+    selecting 'Update Custom Cookbooks' from the command select box.
+</p>
+
+
+<p>
+    Finally, navigate to a layer in OpsWorks > Edit > Recipes > add 'dnsupdate::add' to the configure
+    event and save.
+</p>
+
+
+<p><img src="/images/posts/route53_dns/add_recipe.png"></p>
+
+<p>
+    Now when the run the configure event you should see a new DNS A record being added in Route53! You may wish to
+    customise the recipe by adding a lower TTL for example.
+</p>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Retrieving Files From S3 Using Chef on OpsWorks]]></title>
@@ -42,7 +261,7 @@
 
 
 <p>
-    The first thing you'll need to do is add the OpsCode <a href="http://community.opscode.com/cookbooks/aws">AWS
+    The first thing you'll need to do is add the OpsCode <a target="_blank" href="http://community.opscode.com/cookbooks/aws">AWS
     cookbook</a> to your Berkfile. Note that Berkshelf is only supported on Chef 11.10 or higher on OpsWorks, so if your
     OpsWorks stack has an older version selected you'll have to either upgrade or include the whole AWS cookbook in your
     custom cookbook repository.
@@ -59,9 +278,10 @@
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>source &ldquo;&lt;a href="https://api.berkshelf.com">https://api.berkshelf.com&lt;/a>&rdquo;&lt;/p>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">source</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;https://api.berkshelf.com&quot;</span><span class="o">&gt;</span><span class="ss">https</span><span class="p">:</span><span class="sr">//</span><span class="n">api</span><span class="o">.</span><span class="n">berkshelf</span><span class="o">.</span><span class="n">com</span><span class="o">&lt;</span><span class="sr">/a&gt;&amp;rdquo;&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
 </span><span class='line'>
-</span><span class='line'>&lt;p>cookbook &ldquo;aws&rdquo;, &ldquo;>= 2.2.2&rdquo;</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="n">cookbook</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">aws</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;,</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&gt;=</span> <span class="mi">2</span><span class="o">.</span><span class="mi">2</span><span class="o">.</span><span class="mi">2</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <h2>Creating an S3 bucket and a user which can access it</h2>
 
@@ -101,24 +321,25 @@
 <span class='line-number'>16</span>
 <span class='line-number'>17</span>
 <span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>{
-</span><span class='line'>  &ldquo;Version&rdquo;: &ldquo;2012-10-17&rdquo;,
-</span><span class='line'>  &ldquo;Statement&rdquo;: [&lt;/p>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;Version&amp;rdquo;:</span> <span class="err">&amp;ldquo;2012-10-17&amp;rdquo;,</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;Statement&amp;rdquo;:</span> <span class="err">[&lt;/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'>&lt;pre>&lt;code>{
-</span><span class='line'>  "Sid": "Stmt1403407152000",
-</span><span class='line'>  "Effect": "Allow",
-</span><span class='line'>  "Action": [
-</span><span class='line'>    "s3:GetObject"
-</span><span class='line'>  ],
-</span><span class='line'>  "Resource": [
-</span><span class='line'>    "arn:aws:s3:::test-site-config/*"
-</span><span class='line'>  ]
-</span><span class='line'>}
-</span><span class='line'>&lt;/code>&lt;/pre>
+</span><span class='line'><span class="err">&lt;pre&gt;&lt;code&gt;{</span>
+</span><span class='line'>  <span class="nt">&quot;Sid&quot;</span><span class="p">:</span> <span class="s2">&quot;Stmt1403407152000&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;Effect&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;Action&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class='line'>    <span class="s2">&quot;s3:GetObject&quot;</span>
+</span><span class='line'>  <span class="p">],</span>
+</span><span class='line'>  <span class="nt">&quot;Resource&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class='line'>    <span class="s2">&quot;arn:aws:s3:::test-site-config/*&quot;</span>
+</span><span class='line'>  <span class="p">]</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="err">&lt;/code&gt;&lt;/pre&gt;</span>
 </span><span class='line'>
-</span><span class='line'>&lt;p>  ]
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span><span class='line'><span class="err">&lt;p&gt;</span>  <span class="err">]</span>
+</span><span class='line'><span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <h2>Passing AWS credentials via custom JSON</h2>
 
@@ -135,10 +356,11 @@
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>{
-</span><span class='line'>  &ldquo;custom_access_key&rdquo;: &ldquo;&lt;insert access key>&rdquo;,
-</span><span class='line'>  &ldquo;custom_secret_key&rdquo;: &ldquo;&lt;insert secret key>&rdquo;
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure></notextile></div>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;custom_access_key&amp;rdquo;:</span> <span class="err">&amp;ldquo;&lt;insert</span> <span class="err">access</span> <span class="err">key&gt;&amp;rdquo;,</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;custom_secret_key&amp;rdquo;:</span> <span class="err">&amp;ldquo;&lt;insert</span> <span class="err">secret</span> <span class="err">key&gt;&amp;rdquo;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
 <img src="/images/posts/s3_chef_opsworks/edit_stack.png"></p>
 
 <h2>Creating your custom recipe</h2>
@@ -199,7 +421,7 @@
 
 <p>
     Substitute <code>/etc/apache2/vhost.map</code> with the destination on your nodes, the bucket name and the remote
-    path as required. You can also use other attributes belonging to the <a href="http://docs.opscode.com/resource_file.html">Chef
+    path as required. You can also use other attributes belonging to the <a target="_blank" href="http://docs.opscode.com/resource_file.html">Chef
     file resource</a>.
 </p>
 
