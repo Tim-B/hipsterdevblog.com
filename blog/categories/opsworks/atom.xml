@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Opsworks | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/opsworks/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2014-06-23T20:58:55+10:00</updated>
+  <updated>2014-06-23T21:02:07+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -182,6 +182,7 @@
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
 <span class='line-number'>13</span>
+<span class='line-number'>14</span>
 </pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="nb">require</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">net</span><span class="o">/</span><span class="n">http</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
 </span><span class='line'><span class="n">include_recipe</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">route53</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
 </span><span class='line'>
@@ -189,6 +190,7 @@
 </span><span class='line'><span class="sr">  name  node[:opsworks][:instance][:hostname] + &amp;lsquo;.example.com&amp;rsquo;</span>
 </span><span class='line'><span class="sr">  value Net::HTTP.get(URI.parse(&amp;lsquo;&lt;a href=&quot;http:/</span><span class="o">/</span><span class="mi">169</span><span class="o">.</span><span class="mi">254</span><span class="o">.</span><span class="mi">169</span><span class="o">.</span><span class="mi">254</span><span class="o">/</span><span class="n">latest</span><span class="o">/</span><span class="n">meta</span><span class="o">-</span><span class="n">data</span><span class="o">/</span><span class="kp">public</span><span class="o">-</span><span class="n">ipv4</span><span class="s2">&quot;&gt;http://169.254.169.254/latest/meta-data/public-ipv4&lt;/a&gt;&amp;rsquo;))</span>
 </span><span class='line'><span class="s2">  type  &amp;ldquo;A&amp;rdquo;</span>
+</span><span class='line'><span class="s2">  ttl   60</span>
 </span><span class='line'><span class="s2">  zone_id               node[:dns_zone_id]</span>
 </span><span class='line'><span class="s2">  aws_access_key_id     node[:custom_access_key]</span>
 </span><span class='line'><span class="s2">  aws_secret_access_key node[:custom_secret_key]</span>
@@ -225,8 +227,7 @@
 <p><img src="/images/posts/route53_dns/add_recipe.png"></p>
 
 <p>
-    Now when the run the configure event you should see a new DNS A record being added in Route53! You may wish to
-    customise the recipe by adding a lower TTL for example.
+    Now when the run the configure event you should see a new DNS A record being added in Route53!
 </p>
 
 ]]></content>

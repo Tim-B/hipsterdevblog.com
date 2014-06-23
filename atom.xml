@@ -4,7 +4,7 @@
   <title><![CDATA[:HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2014-06-23T20:58:55+10:00</updated>
+  <updated>2014-06-23T21:02:07+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -193,6 +193,7 @@
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
 <span class='line-number'>13</span>
+<span class='line-number'>14</span>
 </pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="nb">require</span> <span class="s1">&#39;net/http&#39;</span>
 </span><span class='line'><span class="n">include_recipe</span> <span class="s1">&#39;route53&#39;</span>
 </span><span class='line'>
@@ -200,6 +201,7 @@
 </span><span class='line'>  <span class="nb">name</span>  <span class="n">node</span><span class="o">[</span><span class="ss">:opsworks</span><span class="o">][</span><span class="ss">:instance</span><span class="o">][</span><span class="ss">:hostname</span><span class="o">]</span> <span class="o">+</span> <span class="s1">&#39;.example.com&#39;</span>
 </span><span class='line'>  <span class="n">value</span> <span class="no">Net</span><span class="o">::</span><span class="no">HTTP</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="no">URI</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;http://169.254.169.254/latest/meta-data/public-ipv4&#39;</span><span class="p">))</span>
 </span><span class='line'>  <span class="n">type</span>  <span class="s2">&quot;A&quot;</span>
+</span><span class='line'>  <span class="n">ttl</span>   <span class="mi">60</span>
 </span><span class='line'>  <span class="n">zone_id</span>               <span class="n">node</span><span class="o">[</span><span class="ss">:dns_zone_id</span><span class="o">]</span>
 </span><span class='line'>  <span class="n">aws_access_key_id</span>     <span class="n">node</span><span class="o">[</span><span class="ss">:custom_access_key</span><span class="o">]</span>
 </span><span class='line'>  <span class="n">aws_secret_access_key</span> <span class="n">node</span><span class="o">[</span><span class="ss">:custom_secret_key</span><span class="o">]</span>
@@ -239,8 +241,7 @@
 <p><img src="http://hipsterdevblog.com/images/posts/route53_dns/add_recipe.png"></p>
 
 <p>
-    Now when the run the configure event you should see a new DNS A record being added in Route53! You may wish to
-    customise the recipe by adding a lower TTL for example.
+    Now when the run the configure event you should see a new DNS A record being added in Route53!
 </p>
 
 ]]></content>
