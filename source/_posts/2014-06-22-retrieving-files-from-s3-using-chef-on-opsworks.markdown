@@ -25,7 +25,7 @@ categories:
 <h2>Adding AWS cookbook via Berkshelf</h2>
 
 <p>
-    The first thing you'll need to do is add the OpsCode <a href="http://community.opscode.com/cookbooks/aws">AWS
+    The first thing you'll need to do is add the OpsCode <a target="_blank" href="http://community.opscode.com/cookbooks/aws">AWS
     cookbook</a> to your Berkfile. Note that Berkshelf is only supported on Chef 11.10 or higher on OpsWorks, so if your
     OpsWorks stack has an older version selected you'll have to either upgrade or include the whole AWS cookbook in your
     custom cookbook repository.
@@ -34,7 +34,7 @@ categories:
     If you don't already have a Berkfile you'll need to create one in your custom cookbook repository, otherwise simply
     add the AWS cookbook. Your Berkfile should look something like this:
 </p>
-{% codeblock Berksfile %}
+{% codeblock lang:ruby Berksfile %}
 source "https://api.berkshelf.com"
 
 cookbook "aws", ">= 2.2.2"
@@ -52,7 +52,7 @@ cookbook "aws", ">= 2.2.2"
     use the following policy which will only permit reading objects from the specified S3 bucket (obviously replace
     'test-site-config' with your own bucket name:
 </p>
-{% codeblock IAM policy %}
+{% codeblock lang:json IAM policy %}
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -76,7 +76,7 @@ cookbook "aws", ">= 2.2.2"
     field to include variables for your access and secret key. If you already have custom JSON values then you'll
     need to merge the new values with your existing JSON, otherwise you can use the code below:
 </p>
-{% codeblock Custom JSON %}
+{% codeblock lang:json Custom JSON %}
 {
   "custom_access_key": "<insert access key>",
   "custom_secret_key": "<insert secret key>"
@@ -120,7 +120,7 @@ end
 
 <p>
     Substitute <code>/etc/apache2/vhost.map</code> with the destination on your nodes, the bucket name and the remote
-    path as required. You can also use other attributes belonging to the <a href="http://docs.opscode.com/resource_file.html">Chef
+    path as required. You can also use other attributes belonging to the <a target="_blank" href="http://docs.opscode.com/resource_file.html">Chef
     file resource</a>.
 </p>
 

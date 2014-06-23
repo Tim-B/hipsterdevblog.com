@@ -19,7 +19,7 @@ categories:
      One solution is to automatically resize images the first time they're requested
      using dimensions provided in the image URL, this way the application requesting the image can choose an appropriate
      size. While S3 doesn't provide functionality to transparently proxy image misses to your image processor, it is
-     possible to use S3 <a href="http://docs.aws.amazon.com/AmazonS3/latest/dev/HowDoIWebsiteConfiguration.html">S3
+     possible to use S3 <a target="_blank" href="http://docs.aws.amazon.com/AmazonS3/latest/dev/HowDoIWebsiteConfiguration.html">S3
      routing rules</a> to achieve a similar function.
 </p>
 <!-- more -->
@@ -46,7 +46,7 @@ categories:
     Next – go to the bucket in the S3 console, go to the bucket properties and enter the following routing rules
     in the 'Enable website hosting' accordion menu:
 </p>
-{% codeblock Routing.xml %}
+{% codeblock lang:xml Routing rules %}
 <RoutingRules>
     <RoutingRule>
         <Condition>
