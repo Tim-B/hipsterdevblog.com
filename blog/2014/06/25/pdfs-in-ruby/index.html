@@ -1,0 +1,288 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>PDF's in Ruby - :HIPSTER_DEV_BLOG</title>
+  <meta name="author" content="Tim B.">
+
+  
+  <meta name="description" content="Avoid using PDF&rsquo;s in your application. There are no great solutions to PDF generation in general, and Ruby does not have any perfect options. &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://hipsterdevblog.com/blog/2014/06/25/pdfs-in-ruby">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title=":HIPSTER_DEV_BLOG" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-52141399-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">:HIPSTER_DEV_BLOG</a></h1>
+  
+    <h2>Another Octopress blog about programming and infrastructure.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:hipsterdevblog.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">PDF's in Ruby</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-06-25T21:18:36+10:00" pubdate data-updated="true">Jun 25<sup>th</sup>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Avoid using PDF&rsquo;s in your application. There are no great solutions to PDF generation in general, and Ruby does not have any perfect options. If you really need PDF&rsquo;s, this is the landscape of options, and my suggestion.</p>
+
+<!-- more -->
+
+
+<h2>HTML to PDF</h2>
+
+<p>PDF generation in Ruby, and in general, comes down to libraries that turn HTML + CSS into PDF&rsquo;s, and libraries that abstract the PDF standard into programmatic creation of documents.</p>
+
+<p>The gold standard of HTML to PDF is <a href="http://www.princexml.com/">PrinceXML</a>. By all accounts this is a great product, used by big corporates and universities. However if the XML in the title didn&rsquo;t give it away, this is very much an &lsquo;enterprise&rsquo; product, starting at $3800 for a single license!</p>
+
+<p>The open source alternative is <a href="http://wkhtmltopdf.org/">wkhtmltopdf</a>. Two gems that leverage this library are <a href="https://github.com/pdfkit/pdfkit">PDFKit</a> and <a href="https://github.com/mileszs/wicked_pdf">Wicked PDF</a>.</p>
+
+<p>At first these libraries seem great, code in what you know, leverage existing controllers and even views. Ultimately though its a fairly bad abstraction, and PDF rendering can be slow and unreliable. This is not a problem unique to Ruby and I suspect it&rsquo;s why PrinceXML can still get away with their pricing.</p>
+
+<p>The Ruby alternative is <a href="http://prawnpdf.org/api-docs/">Prawn</a>, a gem with a DSL for building documents.</p>
+
+<h2>Go the raw Prawn</h2>
+
+<p>Prawn does have a learning curve, but it performs well, doesn&rsquo;t rely on external binaries and gives full access to layout and paging. The prawn DSL is described fairly well in the <a href="http://prawnpdf.org/manual.pdf">manual</a> (generated of course in Prawn). Be careful using code examples on Github and older blog posts, Prawn has had some major API changes over time and a lot of old code examples floating around wont work.</p>
+
+<p>For example Prawn has template functionality, that lets you use an existing PDF as a template. However when template PDF&rsquo;s are too large this feature crashes silently rendering a blank PDF.</p>
+
+<p>If you stick to the methods used in the manual and learn the DSL Prawn is a flexible and reliable solution. The Prawn way of building documents makes a lot of sense and the simplicity of having no external requirements makes integrating into all kinds of Ruby projects easy.</p>
+
+<h2>General PDF Weirdness</h2>
+
+<p>Some things to watch out for</p>
+
+<ul>
+<li>Merging PDF&rsquo;s &ndash; there are absolutely no Ruby gems capable of doing this reliably, shelling out to something like <a href="http://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/">PDFtk</a> does work but is far from ideal.</li>
+<li>Google Chrome PDF Viewer Issue &ndash; This is a really odd issue that I eventually found in a google support ticket. The PDF viewer in chrome cant copy any text containing a line ending in &lsquo;&ndash;&rsquo; (and possibly some other characters). This issue doesn&rsquo;t exist in any other PDF viewer and is unlikely to effect most applications, but its a good example of the fun world of PDF&rsquo;s!</li>
+<li>Editing existing PDF&rsquo;s &ndash; don&rsquo;t even try, as mentioned previously Prawn claims to do this but it doesn&rsquo;t work very well</li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Michael B</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-06-25T21:18:36+10:00" pubdate data-updated="true">Jun 25<sup>th</sup>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://hipsterdevblog.com/blog/2014/06/25/pdfs-in-ruby/" data-via="" data-counturl="http://hipsterdevblog.com/blog/2014/06/25/pdfs-in-ruby/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/06/23/automatic-dns-records-using-route53/" title="Previous Post: Automatic DNS records using Route53 on OpsWorks">&laquo; Automatic DNS records using Route53 on OpsWorks</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/06/25/pdfs-in-ruby/">PDF's in Ruby</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/06/23/automatic-dns-records-using-route53/">Automatic DNS Records Using Route53 on OpsWorks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules/">Lazy Processing Images Using S3 and Redirection Rules</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/">Retrieving Files From S3 Using Chef on OpsWorks</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014.
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> and
+    <a href="https://github.com/vladigleba/readify">Readify</a></span>.
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'hipsterdevblog';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://hipsterdevblog.com/blog/2014/06/25/pdfs-in-ruby/';
+        var disqus_url = 'http://hipsterdevblog.com/blog/2014/06/25/pdfs-in-ruby/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

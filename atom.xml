@@ -4,7 +4,7 @@
   <title><![CDATA[:HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2014-06-23T21:02:07+10:00</updated>
+  <updated>2014-06-26T18:20:32+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -12,6 +12,49 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[PDF's in Ruby]]></title>
+    <link href="http://hipsterdevblog.com/blog/2014/06/25/pdfs-in-ruby/"/>
+    <updated>2014-06-25T21:18:36+10:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/06/25/pdfs-in-ruby</id>
+    <content type="html"><![CDATA[<p>Avoid using PDF&rsquo;s in your application. There are no great solutions to PDF generation in general, and Ruby does not have any perfect options. If you really need PDF&rsquo;s, this is the landscape of options, and my suggestion.</p>
+
+<!-- more -->
+
+
+<h2>HTML to PDF</h2>
+
+<p>PDF generation in Ruby, and in general, comes down to libraries that turn HTML + CSS into PDF&rsquo;s, and libraries that abstract the PDF standard into programmatic creation of documents.</p>
+
+<p>The gold standard of HTML to PDF is <a href="http://www.princexml.com/">PrinceXML</a>. By all accounts this is a great product, used by big corporates and universities. However if the XML in the title didn&rsquo;t give it away, this is very much an &lsquo;enterprise&rsquo; product, starting at $3800 for a single license!</p>
+
+<p>The open source alternative is <a href="http://wkhtmltopdf.org/">wkhtmltopdf</a>. Two gems that leverage this library are <a href="https://github.com/pdfkit/pdfkit">PDFKit</a> and <a href="https://github.com/mileszs/wicked_pdf">Wicked PDF</a>.</p>
+
+<p>At first these libraries seem great, code in what you know, leverage existing controllers and even views. Ultimately though its a fairly bad abstraction, and PDF rendering can be slow and unreliable. This is not a problem unique to Ruby and I suspect it&rsquo;s why PrinceXML can still get away with their pricing.</p>
+
+<p>The Ruby alternative is <a href="http://prawnpdf.org/api-docs/">Prawn</a>, a gem with a DSL for building documents.</p>
+
+<h2>Go the raw Prawn</h2>
+
+<p>Prawn does have a learning curve, but it performs well, doesn&rsquo;t rely on external binaries and gives full access to layout and paging. The prawn DSL is described fairly well in the <a href="http://prawnpdf.org/manual.pdf">manual</a> (generated of course in Prawn). Be careful using code examples on Github and older blog posts, Prawn has had some major API changes over time and a lot of old code examples floating around wont work.</p>
+
+<p>For example Prawn has template functionality, that lets you use an existing PDF as a template. However when template PDF&rsquo;s are too large this feature crashes silently rendering a blank PDF.</p>
+
+<p>If you stick to the methods used in the manual and learn the DSL Prawn is a flexible and reliable solution. The Prawn way of building documents makes a lot of sense and the simplicity of having no external requirements makes integrating into all kinds of Ruby projects easy.</p>
+
+<h2>General PDF Weirdness</h2>
+
+<p>Some things to watch out for</p>
+
+<ul>
+<li>Merging PDF&rsquo;s &ndash; there are absolutely no Ruby gems capable of doing this reliably, shelling out to something like <a href="http://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/">PDFtk</a> does work but is far from ideal.</li>
+<li>Google Chrome PDF Viewer Issue &ndash; This is a really odd issue that I eventually found in a google support ticket. The PDF viewer in chrome cant copy any text containing a line ending in &lsquo;&ndash;&rsquo; (and possibly some other characters). This issue doesn&rsquo;t exist in any other PDF viewer and is unlikely to effect most applications, but its a good example of the fun world of PDF&rsquo;s!</li>
+<li>Editing existing PDF&rsquo;s &ndash; don&rsquo;t even try, as mentioned previously Prawn claims to do this but it doesn&rsquo;t work very well</li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Automatic DNS Records Using Route53 on OpsWorks]]></title>
