@@ -6,7 +6,7 @@ comments: true
 author: Michael B
 categories: 
 ---
-Recently a massive dataset of [NYC Taxi Data](http://chriswhong.com/open-data/foil_nyc_taxi/) was made public. There are torrents available but at 19gb the data can be quite unwieldy to manage on a home machine. /r/BigQuery have [uploaded](http://chriswhong.com/open-data/foil_nyc_taxi/) the dataset to Google's BigQuery service.
+Recently a massive dataset of [NYC Taxi Data](http://chriswhong.com/open-data/foil_nyc_taxi/) was made public. There are torrents available but at 19gb the data can be quite unwieldy to manage on a home machine. /r/BigQuery have [uploaded](http://www.reddit.com/r/bigquery/comments/28ialf/173_million_2013_nyc_taxi_rides_shared_on_bigquery/) the dataset to Google's BigQuery service.
 
 BQ provides a simple way to get insights out of this dataset without tearing through your internet usage or waiting for your home machine to query 173 million records. For example on reddit they have already discovered some [anonymization issues](https://medium.com/@vijayp/of-taxis-and-rainbows-f6bc289679a1).
 
@@ -34,7 +34,7 @@ ORDER BY 1
 
 {% endcodeblock %}
 
-##Average Tip Over Month.
+##Average Speed Over Hour.
 
 
 <div>
@@ -60,7 +60,7 @@ ORDER BY
 
 {% endcodeblock %}
 
-##Average Trip Speed over Hour.
+##Average Tip Over Month.
 
 
 <div>
