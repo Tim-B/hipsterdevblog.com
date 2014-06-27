@@ -22,20 +22,20 @@
   </head>
   <body >
     
-    <div id = 'chart16f573026d1' class = 'rChart nvd3'></div>    
+    <div id = 'chart16f2a9dde70' class = 'rChart nvd3'></div>    
     <script type='text/javascript'>
  $(document).ready(function(){
-      drawchart16f573026d1()
+      drawchart16f2a9dde70()
     });
-    function drawchart16f573026d1(){  
+    function drawchart16f2a9dde70(){  
       var opts = {
- "dom": "chart16f573026d1",
+ "dom": "chart16f2a9dde70",
 "width":    800,
 "height":    400,
 "x": "tip_pct",
 "y": "trips",
-"type": "multiBarChart",
-"id": "chart16f573026d1" 
+"type": "multiLineChart",
+"id": "chart16f2a9dde70" 
 },
         data = [
  {
