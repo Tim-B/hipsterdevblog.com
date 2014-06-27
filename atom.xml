@@ -4,7 +4,7 @@
   <title><![CDATA[:HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2014-06-26T18:20:32+10:00</updated>
+  <updated>2014-06-27T17:27:24+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -12,6 +12,675 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[NY Taxi Data Visualized]]></title>
+    <link href="http://hipsterdevblog.com/blog/2014/06/27/ny-taxi-data-visualized/"/>
+    <updated>2014-06-27T11:58:54+10:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/06/27/ny-taxi-data-visualized</id>
+    <content type="html"><![CDATA[<p>Recently a massive dataset of <a href="http://chriswhong.com/open-data/foil_nyc_taxi/">NYC Taxi Data</a> was made public. There are torrents available but at 19gb the data can be quite unwieldy to manage on a home machine. /r/BigQuery have <a href="http://www.reddit.com/r/bigquery/comments/28ialf/173_million_2013_nyc_taxi_rides_shared_on_bigquery/">uploaded</a> the dataset to Google&rsquo;s BigQuery service.</p>
+
+<p>BQ provides a simple way to get insights out of this dataset without tearing through your internet usage or waiting for your home machine to query 173 million records. For example on reddit they have already discovered some <a href="https://medium.com/@vijayp/of-taxis-and-rainbows-f6bc289679a1">anonymization issues</a>.</p>
+
+<p>I&rsquo;ve taken some of the popular Queries and charted them.</p>
+
+<!-- more -->
+
+
+<h2>Histogram of tips as a % of fare.</h2>
+
+<div>
+
+<!doctype HTML>
+<meta charset = 'utf-8'>
+<html>
+  <head>
+    <link rel='stylesheet' href='http://nvd3.org/assets/css/nv.d3.css'>
+    
+    <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js' type='text/javascript'></script>
+    <script src='http://d3js.org/d3.v3.min.js' type='text/javascript'></script>
+    <script src='http://timelyportfolio.github.io/rCharts_nvd3_tests/libraries/widgets/nvd3/js/nv.d3.min-new.js' type='text/javascript'></script>
+    <script src='http://nvd3.org/assets/lib/fisheye.js' type='text/javascript'></script>
+    
+    <style>
+    .rChart {
+      display: block;
+      margin-left: auto; 
+      margin-right: auto;
+      width: 800px;
+      height: 400px;
+    }  
+    </style>
+    
+  </head>
+  <body >
+    
+    <div id = 'chart16f573026d1' class = 'rChart nvd3'></div>    
+    <script type='text/javascript'>
+ $(document).ready(function(){
+      drawchart16f573026d1()
+    });
+    function drawchart16f573026d1(){  
+      var opts = {
+ "dom": "chart16f573026d1",
+"width":    800,
+"height":    400,
+"x": "tip_pct",
+"y": "trips",
+"type": "multiBarChart",
+"id": "chart16f573026d1" 
+},
+        data = [
+ {
+ "tip_pct": "0%",
+"trips": 3227816 
+},
+{
+ "tip_pct": "1%",
+"trips": 78606 
+},
+{
+ "tip_pct": "2%",
+"trips": 57945 
+},
+{
+ "tip_pct": "3%",
+"trips": 75351 
+},
+{
+ "tip_pct": "4%",
+"trips": 199571 
+},
+{
+ "tip_pct": "5%",
+"trips": 394763 
+},
+{
+ "tip_pct": "6%",
+"trips": 732748 
+},
+{
+ "tip_pct": "7%",
+"trips": 1001344 
+},
+{
+ "tip_pct": "8%",
+"trips": 1395657 
+},
+{
+ "tip_pct": "9%",
+"trips": 1516062 
+},
+{
+ "tip_pct": "10%",
+"trips": 2296492 
+},
+{
+ "tip_pct": "11%",
+"trips": 2813566 
+},
+{
+ "tip_pct": "12%",
+"trips": 2020426 
+},
+{
+ "tip_pct": "13%",
+"trips": 3641555 
+},
+{
+ "tip_pct": "14%",
+"trips": 2638662 
+},
+{
+ "tip_pct": "15%",
+"trips": 2659690 
+},
+{
+ "tip_pct": "16%",
+"trips": 1182530 
+},
+{
+ "tip_pct": "17%",
+"trips": 2604529 
+},
+{
+ "tip_pct": "18%",
+"trips": 2105279 
+},
+{
+ "tip_pct": "19%",
+"trips": 1140029 
+},
+{
+ "tip_pct": "20%",
+"trips": 14690183 
+},
+{
+ "tip_pct": "21%",
+"trips": 16606601 
+},
+{
+ "tip_pct": "22%",
+"trips": 9957665 
+},
+{
+ "tip_pct": "23%",
+"trips": 4688858 
+},
+{
+ "tip_pct": "24%",
+"trips": 2721643 
+},
+{
+ "tip_pct": "25%",
+"trips": 4876902 
+},
+{
+ "tip_pct": "26%",
+"trips": 3453940 
+},
+{
+ "tip_pct": "27%",
+"trips": 2587272 
+},
+{
+ "tip_pct": "28%",
+"trips": 1356344 
+},
+{
+ "tip_pct": "29%",
+"trips": 1217443 
+},
+{
+ "tip_pct": "30%",
+"trips": 1729572 
+},
+{
+ "tip_pct": "31%",
+"trips": 1186658 
+},
+{
+ "tip_pct": "32%",
+"trips": 1011215 
+},
+{
+ "tip_pct": "33%",
+"trips": 969247 
+},
+{
+ "tip_pct": "34%",
+"trips": 341499 
+},
+{
+ "tip_pct": "35%",
+"trips": 307730 
+},
+{
+ "tip_pct": "36%",
+"trips": 300208 
+},
+{
+ "tip_pct": "37%",
+"trips": 89795 
+},
+{
+ "tip_pct": "38%",
+"trips": 171289 
+},
+{
+ "tip_pct": "39%",
+"trips": 41494 
+} 
+]
+  
+      if(!(opts.type==="pieChart" || opts.type==="sparklinePlus" || opts.type==="bulletChart")) {
+        var data = d3.nest()
+          .key(function(d){
+            //return opts.group === undefined ? 'main' : d[opts.group]
+            //instead of main would think a better default is opts.x
+            return opts.group === undefined ? opts.y : d[opts.group];
+          })
+          .entries(data);
+      }
+      
+      if (opts.disabled != undefined){
+        data.map(function(d, i){
+          d.disabled = opts.disabled[i]
+        })
+      }
+      
+      nv.addGraph(function() {
+        var chart = nv.models[opts.type]()
+          .width(opts.width)
+          .height(opts.height)
+          
+        if (opts.type != "bulletChart"){
+          chart
+            .x(function(d) { return d[opts.x] })
+            .y(function(d) { return d[opts.y] })
+        }
+          
+         
+        
+          
+        
+ 
+        
+        
+        
+      
+       d3.select("#" + opts.id)
+        .append('svg')
+        .datum(data)
+        .transition().duration(500)
+        .call(chart);
+ 
+       nv.utils.windowResize(chart.update);
+       return chart;
+      });
+    };
+</script>
+    
+    <script></script>    
+  </body>
+</html>
+
+
+</div>
+
+
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="nb">INTEGER</span><span class="p">(</span><span class="n">ROUND</span><span class="p">(</span><span class="nb">FLOAT</span><span class="p">(</span><span class="n">tip_amount</span><span class="p">)</span> <span class="o">/</span> <span class="nb">FLOAT</span><span class="p">(</span><span class="n">fare_amount</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span> <span class="n">tip_pct</span><span class="p">,</span>
+</span><span class='line'>  <span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="n">trips</span>
+</span><span class='line'><span class="k">FROM</span> <span class="p">[</span><span class="mi">833682135931</span><span class="p">:</span><span class="n">nyctaxi</span><span class="p">.</span><span class="n">trip_fare</span><span class="p">]</span>
+</span><span class='line'><span class="k">WHERE</span> <span class="n">payment_type</span><span class="o">=</span><span class="s1">&#39;CRD&#39;</span> <span class="k">and</span> <span class="nb">float</span><span class="p">(</span><span class="n">fare_amount</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">.</span><span class="mi">00</span>
+</span><span class='line'><span class="k">GROUP</span> <span class="k">BY</span> <span class="mi">1</span>
+</span><span class='line'><span class="k">ORDER</span> <span class="k">BY</span> <span class="mi">1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Average Speed Over Hour.</h2>
+
+<div>
+
+<!doctype HTML>
+<meta charset = 'utf-8'>
+<html>
+  <head>
+    <link rel='stylesheet' href='http://nvd3.org/assets/css/nv.d3.css'>
+    
+    <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js' type='text/javascript'></script>
+    <script src='http://d3js.org/d3.v3.min.js' type='text/javascript'></script>
+    <script src='http://timelyportfolio.github.io/rCharts_nvd3_tests/libraries/widgets/nvd3/js/nv.d3.min-new.js' type='text/javascript'></script>
+    <script src='http://nvd3.org/assets/lib/fisheye.js' type='text/javascript'></script>
+    
+    <style>
+    .rChart {
+      display: block;
+      margin-left: auto; 
+      margin-right: auto;
+      width: 800px;
+      height: 400px;
+    }  
+    </style>
+    
+  </head>
+  <body >
+    
+    <div id = 'chart7708516d29c5' class = 'rChart nvd3'></div>    
+    <script type='text/javascript'>
+ $(document).ready(function(){
+      drawchart7708516d29c5()
+    });
+    function drawchart7708516d29c5(){  
+      var opts = {
+ "dom": "chart7708516d29c5",
+"width":    800,
+"height":    400,
+"x": "hour",
+"y": "speed",
+"type": "lineChart",
+"id": "chart7708516d29c5" 
+},
+        data = [
+ {
+ "hour": 0,
+"speed":             16 
+},
+{
+ "hour": 1,
+"speed":             17 
+},
+{
+ "hour": 2,
+"speed":             17 
+},
+{
+ "hour": 3,
+"speed":             18 
+},
+{
+ "hour": 4,
+"speed":             20 
+},
+{
+ "hour": 5,
+"speed":             22 
+},
+{
+ "hour": 6,
+"speed":             18 
+},
+{
+ "hour": 7,
+"speed":             14 
+},
+{
+ "hour": 8,
+"speed":             12 
+},
+{
+ "hour": 9,
+"speed":             11 
+},
+{
+ "hour": 10,
+"speed":             12 
+},
+{
+ "hour": 11,
+"speed":             11 
+},
+{
+ "hour": 12,
+"speed":             11 
+},
+{
+ "hour": 13,
+"speed":             11 
+},
+{
+ "hour": 14,
+"speed":             11 
+},
+{
+ "hour": 15,
+"speed":             11 
+},
+{
+ "hour": 16,
+"speed":             12 
+},
+{
+ "hour": 17,
+"speed":             12 
+},
+{
+ "hour": 18,
+"speed":             12 
+},
+{
+ "hour": 19,
+"speed":             12 
+},
+{
+ "hour": 20,
+"speed":             14 
+},
+{
+ "hour": 21,
+"speed":             14 
+},
+{
+ "hour": 22,
+"speed":             15 
+},
+{
+ "hour": 23,
+"speed":             15 
+} 
+]
+  
+      if(!(opts.type==="pieChart" || opts.type==="sparklinePlus" || opts.type==="bulletChart")) {
+        var data = d3.nest()
+          .key(function(d){
+            //return opts.group === undefined ? 'main' : d[opts.group]
+            //instead of main would think a better default is opts.x
+            return opts.group === undefined ? opts.y : d[opts.group];
+          })
+          .entries(data);
+      }
+      
+      if (opts.disabled != undefined){
+        data.map(function(d, i){
+          d.disabled = opts.disabled[i]
+        })
+      }
+      
+      nv.addGraph(function() {
+        var chart = nv.models[opts.type]()
+          .width(opts.width)
+          .height(opts.height)
+          
+        if (opts.type != "bulletChart"){
+          chart
+            .x(function(d) { return d[opts.x] })
+            .y(function(d) { return d[opts.y] })
+        }
+          
+         
+        
+          
+        
+ 
+        
+        
+        
+      
+       d3.select("#" + opts.id)
+        .append('svg')
+        .datum(data)
+        .transition().duration(500)
+        .call(chart);
+ 
+       nv.utils.windowResize(chart.update);
+       return chart;
+      });
+    };
+</script>
+    
+    <script></script>    
+  </body>
+</html>
+
+
+</div>
+
+
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span>
+</span><span class='line'>  <span class="n">HOUR</span><span class="p">(</span><span class="k">TIMESTAMP</span><span class="p">(</span><span class="n">pickup_datetime</span><span class="p">))</span> <span class="k">as</span> <span class="n">hour</span><span class="p">,</span>
+</span><span class='line'>  <span class="n">ROUND</span><span class="p">(</span><span class="k">AVG</span><span class="p">(</span><span class="nb">FLOAT</span><span class="p">(</span><span class="n">trip_distance</span><span class="p">)</span><span class="o">/</span><span class="nb">FLOAT</span><span class="p">(</span><span class="n">trip_time_in_secs</span><span class="p">)</span><span class="o">*</span><span class="mi">60</span><span class="o">*</span><span class="mi">60</span><span class="p">))</span> <span class="k">AS</span> <span class="n">speed</span>
+</span><span class='line'><span class="k">FROM</span>
+</span><span class='line'>  <span class="p">[</span><span class="mi">833682135931</span><span class="p">:</span><span class="n">nyctaxi</span><span class="p">.</span><span class="n">trip_data</span><span class="p">]</span>
+</span><span class='line'><span class="k">WHERE</span>
+</span><span class='line'>  <span class="nb">INTEGER</span><span class="p">(</span><span class="n">trip_time_in_secs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10</span>
+</span><span class='line'>  <span class="k">AND</span> <span class="nb">FLOAT</span><span class="p">(</span><span class="n">trip_distance</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">90</span>
+</span><span class='line'><span class="k">GROUP</span> <span class="k">BY</span>
+</span><span class='line'>  <span class="n">hour</span>
+</span><span class='line'><span class="k">ORDER</span> <span class="k">BY</span>
+</span><span class='line'>  <span class="n">hour</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Average Tip Over Month.</h2>
+
+<div>
+
+
+  <body >
+    
+    <div id = 'chart77081e63288d' class = 'rChart nvd3'></div>    
+    <script type='text/javascript'>
+ $(document).ready(function(){
+      drawchart77081e63288d()
+    });
+    function drawchart77081e63288d(){  
+      var opts = {
+ "dom": "chart77081e63288d",
+"width":    800,
+"height":    400,
+"x": "month",
+"y": "avg_tip",
+"type": "lineChart",
+"id": "chart77081e63288d" 
+},
+        data = [
+ {
+ "avg_tip":           2.41,
+"month": 1 
+},
+{
+ "avg_tip":            2.4,
+"month": 2 
+},
+{
+ "avg_tip":           2.46,
+"month": 3 
+},
+{
+ "avg_tip":            2.5,
+"month": 4 
+},
+{
+ "avg_tip":           2.55,
+"month": 5 
+},
+{
+ "avg_tip":           2.56,
+"month": 6 
+},
+{
+ "avg_tip":            2.5,
+"month": 7 
+},
+{
+ "avg_tip":           2.53,
+"month": 8 
+},
+{
+ "avg_tip":           2.58,
+"month": 9 
+},
+{
+ "avg_tip":           2.59,
+"month": 10 
+},
+{
+ "avg_tip":           2.55,
+"month": 11 
+},
+{
+ "avg_tip":           2.63,
+"month": 12 
+} 
+]
+  
+      if(!(opts.type==="pieChart" || opts.type==="sparklinePlus" || opts.type==="bulletChart")) {
+        var data = d3.nest()
+          .key(function(d){
+            //return opts.group === undefined ? 'main' : d[opts.group]
+            //instead of main would think a better default is opts.x
+            return opts.group === undefined ? opts.y : d[opts.group];
+          })
+          .entries(data);
+      }
+      
+      if (opts.disabled != undefined){
+        data.map(function(d, i){
+          d.disabled = opts.disabled[i]
+        })
+      }
+      
+      nv.addGraph(function() {
+        var chart = nv.models[opts.type]()
+          .width(opts.width)
+          .height(opts.height)
+          
+        if (opts.type != "bulletChart"){
+          chart
+            .x(function(d) { return d[opts.x] })
+            .y(function(d) { return d[opts.y] })
+        }
+          
+         
+        
+          
+        
+ 
+        
+        
+        
+      
+       d3.select("#" + opts.id)
+        .append('svg')
+        .datum(data)
+        .transition().duration(500)
+        .call(chart);
+ 
+       nv.utils.windowResize(chart.update);
+       return chart;
+      });
+    };
+</script>
+    
+    <script></script>    
+  </body>
+
+
+</div>
+
+
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="nb">INTEGER</span><span class="p">(</span><span class="k">AVG</span><span class="p">(</span><span class="n">tip_amount</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span><span class="o">/</span><span class="mi">100</span> <span class="n">avg_tip</span><span class="p">,</span>
+</span><span class='line'>  <span class="n">REGEXP_EXTRACT</span><span class="p">(</span><span class="n">pickup_datetime</span><span class="p">,</span> <span class="ss">&quot;2013-([0-9]*)&quot;</span><span class="p">)</span> <span class="k">month</span>
+</span><span class='line'><span class="k">FROM</span> <span class="p">[</span><span class="mi">833682135931</span><span class="p">:</span><span class="n">nyctaxi</span><span class="p">.</span><span class="n">trip_fare</span><span class="p">]</span>
+</span><span class='line'><span class="k">WHERE</span> <span class="n">payment_type</span><span class="o">=</span><span class="s1">&#39;CRD&#39;</span>
+</span><span class='line'><span class="k">GROUP</span> <span class="k">BY</span> <span class="mi">2</span>
+</span><span class='line'><span class="k">ORDER</span> <span class="k">BY</span> <span class="mi">2</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[PDF's in Ruby]]></title>
