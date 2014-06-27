@@ -1,0 +1,253 @@
+<!doctype HTML>
+<meta charset = 'utf-8'>
+<html>
+  <head>
+    <link rel='stylesheet' href='http://nvd3.org/assets/css/nv.d3.css'>
+    
+    <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js' type='text/javascript'></script>
+    <script src='http://d3js.org/d3.v3.min.js' type='text/javascript'></script>
+    <script src='http://timelyportfolio.github.io/rCharts_nvd3_tests/libraries/widgets/nvd3/js/nv.d3.min-new.js' type='text/javascript'></script>
+    <script src='http://nvd3.org/assets/lib/fisheye.js' type='text/javascript'></script>
+    
+    <style>
+    .rChart {
+      display: block;
+      margin-left: auto; 
+      margin-right: auto;
+      width: 800px;
+      height: 400px;
+    }  
+    </style>
+    
+  </head>
+  <body >
+    
+    <div id = 'chart16f2a9dde70' class = 'rChart nvd3'></div>    
+    <script type='text/javascript'>
+ $(document).ready(function(){
+      drawchart16f2a9dde70()
+    });
+    function drawchart16f2a9dde70(){  
+      var opts = {
+ "dom": "chart16f2a9dde70",
+"width":    800,
+"height":    400,
+"x": "tip_pct",
+"y": "trips",
+"type": "multiLineChart",
+"id": "chart16f2a9dde70" 
+},
+        data = [
+ {
+ "tip_pct": "0%",
+"trips": 3227816 
+},
+{
+ "tip_pct": "1%",
+"trips": 78606 
+},
+{
+ "tip_pct": "2%",
+"trips": 57945 
+},
+{
+ "tip_pct": "3%",
+"trips": 75351 
+},
+{
+ "tip_pct": "4%",
+"trips": 199571 
+},
+{
+ "tip_pct": "5%",
+"trips": 394763 
+},
+{
+ "tip_pct": "6%",
+"trips": 732748 
+},
+{
+ "tip_pct": "7%",
+"trips": 1001344 
+},
+{
+ "tip_pct": "8%",
+"trips": 1395657 
+},
+{
+ "tip_pct": "9%",
+"trips": 1516062 
+},
+{
+ "tip_pct": "10%",
+"trips": 2296492 
+},
+{
+ "tip_pct": "11%",
+"trips": 2813566 
+},
+{
+ "tip_pct": "12%",
+"trips": 2020426 
+},
+{
+ "tip_pct": "13%",
+"trips": 3641555 
+},
+{
+ "tip_pct": "14%",
+"trips": 2638662 
+},
+{
+ "tip_pct": "15%",
+"trips": 2659690 
+},
+{
+ "tip_pct": "16%",
+"trips": 1182530 
+},
+{
+ "tip_pct": "17%",
+"trips": 2604529 
+},
+{
+ "tip_pct": "18%",
+"trips": 2105279 
+},
+{
+ "tip_pct": "19%",
+"trips": 1140029 
+},
+{
+ "tip_pct": "20%",
+"trips": 14690183 
+},
+{
+ "tip_pct": "21%",
+"trips": 16606601 
+},
+{
+ "tip_pct": "22%",
+"trips": 9957665 
+},
+{
+ "tip_pct": "23%",
+"trips": 4688858 
+},
+{
+ "tip_pct": "24%",
+"trips": 2721643 
+},
+{
+ "tip_pct": "25%",
+"trips": 4876902 
+},
+{
+ "tip_pct": "26%",
+"trips": 3453940 
+},
+{
+ "tip_pct": "27%",
+"trips": 2587272 
+},
+{
+ "tip_pct": "28%",
+"trips": 1356344 
+},
+{
+ "tip_pct": "29%",
+"trips": 1217443 
+},
+{
+ "tip_pct": "30%",
+"trips": 1729572 
+},
+{
+ "tip_pct": "31%",
+"trips": 1186658 
+},
+{
+ "tip_pct": "32%",
+"trips": 1011215 
+},
+{
+ "tip_pct": "33%",
+"trips": 969247 
+},
+{
+ "tip_pct": "34%",
+"trips": 341499 
+},
+{
+ "tip_pct": "35%",
+"trips": 307730 
+},
+{
+ "tip_pct": "36%",
+"trips": 300208 
+},
+{
+ "tip_pct": "37%",
+"trips": 89795 
+},
+{
+ "tip_pct": "38%",
+"trips": 171289 
+},
+{
+ "tip_pct": "39%",
+"trips": 41494 
+} 
+]
+  
+      if(!(opts.type==="pieChart" || opts.type==="sparklinePlus" || opts.type==="bulletChart")) {
+        var data = d3.nest()
+          .key(function(d){
+            //return opts.group === undefined ? 'main' : d[opts.group]
+            //instead of main would think a better default is opts.x
+            return opts.group === undefined ? opts.y : d[opts.group];
+          })
+          .entries(data);
+      }
+      
+      if (opts.disabled != undefined){
+        data.map(function(d, i){
+          d.disabled = opts.disabled[i]
+        })
+      }
+      
+      nv.addGraph(function() {
+        var chart = nv.models[opts.type]()
+          .width(opts.width)
+          .height(opts.height)
+          
+        if (opts.type != "bulletChart"){
+          chart
+            .x(function(d) { return d[opts.x] })
+            .y(function(d) { return d[opts.y] })
+        }
+          
+         
+        
+          
+        
+ 
+        
+        
+        
+      
+       d3.select("#" + opts.id)
+        .append('svg')
+        .datum(data)
+        .transition().duration(500)
+        .call(chart);
+ 
+       nv.utils.windowResize(chart.update);
+       return chart;
+      });
+    };
+</script>
+    
+    <script></script>    
+  </body>
+</html>
