@@ -1,0 +1,53 @@
+<!doctype HTML>
+<meta charset = 'utf-8'>
+<html>
+  <head>
+    
+    <script src='http://ramnathv.github.io/rCharts/libraries/widgets/polycharts/js/polychart2.standalone.js' type='text/javascript'></script>
+    
+    <style>
+    .rChart {
+      display: block;
+      margin-left: auto; 
+      margin-right: auto;
+      width: 800px;
+      height: 400px;
+    }  
+    </style>
+    
+  </head>
+  <body >
+    
+    <div id = 'chart518d6f58fb4' class = 'rChart polycharts'></div>    
+    <script type='text/javascript'>
+    var chartParams = {
+ "dom": "chart518d6f58fb4",
+"width":    800,
+"height":    400,
+"layers": [
+ {
+ "x": "tip_pct",
+"y": "trips",
+"data": {
+ "tip_pct": [ "0%", "1%", "2%", "3%", "4%", "5%", "6%", "7%", "8%", "9%", "10%", "11%", "12%", "13%", "14%", "15%", "16%", "17%", "18%", "19%", "20%", "21%", "22%", "23%", "24%", "25%", "26%", "27%", "28%", "29%", "30%", "31%", "32%", "33%", "34%", "35%", "36%", "37%", "38%", "39%" ],
+"trips": [ 3227816, 78606, 57945, 75351, 199571, 394763, 732748, 1001344, 1395657, 1516062, 2296492, 2813566, 2020426, 3641555, 2638662, 2659690, 1182530, 2604529, 2105279, 1140029, 14690183, 16606601, 9957665, 4688858, 2721643, 4876902, 3453940, 2587272, 1356344, 1217443, 1729572, 1186658, 1011215, 969247, 341499, 307730, 300208, 89795, 171289, 41494 ] 
+},
+"facet": null,
+"color": "tip_pct",
+"type": "bar" 
+} 
+],
+"facet": [],
+"guides": [],
+"coord": [],
+"id": "chart518d6f58fb4" 
+}
+    _.each(chartParams.layers, function(el){
+        el.data = polyjs.data(el.data)
+    })
+    var graph_chart518d6f58fb4 = polyjs.chart(chartParams);
+</script>
+    
+    <script></script>    
+  </body>
+</html>
