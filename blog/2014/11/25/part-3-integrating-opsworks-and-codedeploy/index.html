@@ -1,0 +1,364 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Part 3: Integrating OpsWorks and CodeDeploy - :HIPSTER_DEV_BLOG</title>
+  <meta name="author" content="Tim B.">
+
+  
+  <meta name="description" content="This is part 3 of integrating OpsWorks and CodeDeploy. This section covers creating the CodeDeploy deployment, deploying it to the configured &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://hipsterdevblog.com/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title=":HIPSTER_DEV_BLOG" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-52141399-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">:HIPSTER_DEV_BLOG</a></h1>
+  
+    <h2>Another Octopress blog about programming and infrastructure.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:hipsterdevblog.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Part 3: Integrating OpsWorks and CodeDeploy</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-25T11:43:36+10:00" pubdate data-updated="true">Nov 25<sup>th</sup>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>This is part 3 of <a href="/blog/categories/integrating-opsworks-and-codedeploy/">integrating OpsWorks and CodeDeploy</a>.</p>
+
+<p>This section covers creating the CodeDeploy deployment, deploying it to the configured OpsWorks stack and demonstrating the results of the integration.
+ <a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Click here</a> for Part 1.</p>
+
+<!-- more -->
+
+
+<h1>Setting bucket policy and uploading deployment package</h1>
+
+<p>Now we&rsquo;re ready to deploy a package from CodeDeploy.</p>
+
+<p>For the purposes of this example the package will contain two files:</p>
+
+<figure class='code'><figcaption><span>File Structure </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>appspec.yml
+</span><span class='line'>app/index.php</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <a href="http://docs.aws.amazon.com/codedeploy/latest/userguide/app-spec-ref.html">AppSpec</a> specifies that the contents of the
+ App directory should be copied to the location of the placeholder OpsWorks deployment.</p>
+
+<figure class='code'><figcaption><span>appspec.yml </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">version</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">0.0</span>
+</span><span class='line'><span class="l-Scalar-Plain">os</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">linux</span>
+</span><span class='line'><span class="l-Scalar-Plain">files</span><span class="p-Indicator">:</span>
+</span><span class='line'>   <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">source</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">app</span>
+</span><span class='line'>     <span class="l-Scalar-Plain">destination</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/srv/www/my_app/public</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span>app/index.php </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="o">&lt;</span><span class="nx">h1</span><span class="o">&gt;</span><span class="nx">Hello</span> <span class="nx">from</span> <span class="nx">CodeDeploy</span><span class="o">&lt;/</span><span class="nx">h1</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Zip this up and upload it to your S3 bucket where you&rsquo;ll store your deployment packages.</p>
+
+<p>If you haven&rsquo;t already done so, you will also need to apply the S3 bucket policy provided <a href="http://docs.aws.amazon.com/codedeploy/latest/userguide/how-to-deploy-revision.html">here</a>
+ to allow the CodeDeploy role access to objects in this bucket:</p>
+
+<p><img src="/images/posts/opsworks_codedeploy/bucket_policy.png"></p>
+
+<p>One important note is that you must also include the role ARN for your OpsWorks instances as above.</p>
+
+<p>You can find the stack profile in the security settings of the layer:</p>
+
+<p><img src="/images/posts/opsworks_codedeploy/instanceprofile.png"></p>
+
+<p>Then get the role ARN from your IAM console:</p>
+
+<p><img src="/images/posts/opsworks_codedeploy/iaminstanceprofile.png"></p>
+
+<h1>Running CodeDeploy deployment</h1>
+
+<p>We&rsquo;re now ready to deploy our application with CodeDeploy, head back to the CodeDeploy application you created earlier
+ and create a new deployment from the zip you uploaded.</p>
+
+<p><img src="/images/posts/opsworks_codedeploy/codedeploy_deployment.png"></p>
+
+<p>Click &ldquo;Deploy Now&rdquo; and wait for the deployment to conclude.</p>
+
+<p>Should your deployment fail, click &ldquo;View All Instances&rdquo; > &ldquo;View Events&rdquo; beside an instance and click &ldquo;View Logs&rdquo; beside the failed step.</p>
+
+<h2>Viewing your application</h2>
+
+<p>Your application should now successfully be deployed to your OpsWorks instances. If you view the application in your
+ browser you should see your deployment.</p>
+
+<p><img src="/images/posts/opsworks_codedeploy/complete.png"></p>
+
+<h2>Caveats &ndash; Launching a new instance</h2>
+
+<p>Unfortunately it seems CodeDeploy currently only supports automatic deployments for new instances when they&rsquo;re in
+ an autoscaling group. OpsWorks only supports its own load and time based instance functionality rather than
+ using autoscaling groups, and therefore you&rsquo;ll have to manually trigger a deployment after a new instance comes online
+ and before you place it under your load-balancer. You may wish for your recipes to cause the load-balancer health
+ check to fail by default, then have a separate recipe which enables the health check to pass which you can run manually
+ once you&rsquo;ve run a deployment after a new instance has been launched.</p>
+
+<p>Alternatively you could use your configure recipe to trigger a deployment automatically using the CodeDeploy API,
+ however you would need to know which specific applications are relevant to the instance.</p>
+
+<h2>Integrating OpsWorks and CodeDeploy</h2>
+
+<ul>
+<li><a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Part 1</a> &ndash; Introduction and getting started.</li>
+<li><a href="/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/">Part 2</a> &ndash; OpsWorks configuration and recipes.</li>
+<li><a href="/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/">Part 3</a> &ndash; Deployment and results.</li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Tim B.</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-25T11:43:36+10:00" pubdate data-updated="true">Nov 25<sup>th</sup>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/aws/'>aws</a>, <a class='category' href='/blog/categories/chef/'>chef</a>, <a class='category' href='/blog/categories/codedeploy/'>codedeploy</a>, <a class='category' href='/blog/categories/ec2/'>ec2</a>, <a class='category' href='/blog/categories/integrating-opsworks-and-codedeploy/'>integrating opsworks and codedeploy</a>, <a class='category' href='/blog/categories/opsworks/'>opsworks</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://hipsterdevblog.com/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/" data-via="" data-counturl="http://hipsterdevblog.com/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/" title="Previous Post: Part 2: Integrating OpsWorks and CodeDeploy">&laquo; Part 2: Integrating OpsWorks and CodeDeploy</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/">Part 3: Integrating OpsWorks and CodeDeploy</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/">Part 2: Integrating OpsWorks and CodeDeploy</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Part 1: Integrating OpsWorks and CodeDeploy</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/06/27/ny-taxi-data-visualized/">NY Taxi Data Visualized</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/06/25/pdfs-in-ruby/">PDF's in Ruby</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014.
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> and
+    <a href="https://github.com/vladigleba/readify">Readify</a></span>.
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'hipsterdevblog';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://hipsterdevblog.com/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/';
+        var disqus_url = 'http://hipsterdevblog.com/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

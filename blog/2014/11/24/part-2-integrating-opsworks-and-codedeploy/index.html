@@ -1,0 +1,522 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Part 2: Integrating OpsWorks and CodeDeploy - :HIPSTER_DEV_BLOG</title>
+  <meta name="author" content="Tim B.">
+
+  
+  <meta name="description" content="This is part 2 of integrating OpsWorks and CodeDeploy. This section covers creating the OpsWorks Chef recipes to deploy your application via &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://hipsterdevblog.com/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title=":HIPSTER_DEV_BLOG" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-52141399-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">:HIPSTER_DEV_BLOG</a></h1>
+  
+    <h2>Another Octopress blog about programming and infrastructure.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:hipsterdevblog.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Part 2: Integrating OpsWorks and CodeDeploy</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-24T11:43:29+10:00" pubdate data-updated="true">Nov 24<sup>th</sup>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>This is part 2 of <a href="/blog/categories/integrating-opsworks-and-codedeploy/">integrating OpsWorks and CodeDeploy</a>.</p>
+
+<p>This section covers creating the OpsWorks Chef recipes to deploy your application via CodeDeploy.
+ <a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Click here</a> for Part 1.</p>
+
+<!-- more -->
+
+
+<h1>Installing CodeDeploy agent via Chef</h1>
+
+<p>Next we need to write a custom chef recipe to install the CodeDeploy agent and perform our desired configuration.</p>
+
+<p>Checkout your cookbooks repository and create the following files:</p>
+
+<figure class='code'><figcaption><span>File Structure </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Berksfile
+</span><span class='line'>myrecipe/metadata.rb
+</span><span class='line'>myrecipe/recipes/agent-install.rb
+</span><span class='line'>myrecipe/recipes/vhost.rb
+</span><span class='line'>myrecipe/templates/default/myapp_vhost.erb</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Populate these files with the following:</p>
+
+<figure class='code'><figcaption><span>Berksfile </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">source</span> <span class="s2">&quot;https://supermarket.getchef.com&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>(We won&rsquo;t be using <a href="http://docs.aws.amazon.com/opsworks/latest/userguide/cookbooks-101-opsworks-berkshelf.html">Berkshelf</a>
+ in this tutorial, however you&rsquo;ll probably want to create this file any way if you&rsquo;re planning to extend this tutorial
+  with your own configuration)</p>
+
+<figure class='code'><figcaption><span>myrecipe/metadata.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">name</span> <span class="s1">&#39;myrecipe&#39;</span>
+</span><span class='line'><span class="n">recipe</span> <span class="s1">&#39;myrecipe::agent-install&#39;</span><span class="p">,</span> <span class="s1">&#39;Fetches, installs, and starts the AWS CodeDeploy host agent&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is the code which downloads, installs and starts the CodeDeploy agent service:</p>
+
+<figure class='code'><figcaption><span>myrecipe/recipes/agent-install.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">remote_file</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="no">Chef</span><span class="o">::</span><span class="no">Config</span><span class="o">[</span><span class="ss">:file_cache_path</span><span class="o">]</span><span class="si">}</span><span class="s2">/codedeploy-install.sh&quot;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">source</span> <span class="s2">&quot;https://s3.amazonaws.com/aws-codedeploy-us-east-1/latest/install&quot;</span>
+</span><span class='line'>    <span class="n">mode</span> <span class="s2">&quot;0744&quot;</span>
+</span><span class='line'>    <span class="n">owner</span> <span class="s2">&quot;root&quot;</span>
+</span><span class='line'>    <span class="n">group</span> <span class="s2">&quot;root&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">execute</span> <span class="s2">&quot;install_codedeploy_agent&quot;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">command</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="no">Chef</span><span class="o">::</span><span class="no">Config</span><span class="o">[</span><span class="ss">:file_cache_path</span><span class="o">]</span><span class="si">}</span><span class="s2">/codedeploy-install.sh auto&quot;</span>
+</span><span class='line'>  <span class="n">user</span> <span class="s2">&quot;root&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">service</span> <span class="s2">&quot;codedeploy-agent&quot;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">action</span> <span class="o">[</span><span class="ss">:enable</span><span class="p">,</span> <span class="ss">:start</span><span class="o">]</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This code creates a directory for the CodeDeploy to deploy to, creates the vhost and enables it.</p>
+
+<figure class='code'><figcaption><span>myrecipe/recipes/vhost.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">directory</span> <span class="s1">&#39;/srv/www/my_app/public/&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">owner</span> <span class="s1">&#39;deploy&#39;</span>
+</span><span class='line'>  <span class="n">group</span> <span class="s1">&#39;www-data&#39;</span>
+</span><span class='line'>  <span class="n">recursive</span> <span class="kp">true</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">directory</span> <span class="s1">&#39;/etc/apache2/sites-available/my_app.conf.d/&#39;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">owner</span> <span class="s1">&#39;root&#39;</span>
+</span><span class='line'>    <span class="n">group</span> <span class="s1">&#39;root&#39;</span>
+</span><span class='line'>    <span class="n">mode</span> <span class="mo">0644</span>
+</span><span class='line'>    <span class="n">recursive</span> <span class="kp">true</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">template</span> <span class="s1">&#39;myapp_vhost&#39;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">path</span>  <span class="s1">&#39;/etc/apache2/sites-available/my_app.conf&#39;</span>
+</span><span class='line'>    <span class="n">owner</span> <span class="s1">&#39;root&#39;</span>
+</span><span class='line'>    <span class="n">group</span> <span class="s1">&#39;root&#39;</span>
+</span><span class='line'>    <span class="n">mode</span> <span class="mo">0644</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">link</span> <span class="s2">&quot;/etc/apache2/sites-enabled/my_app.conf&quot;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">to</span> <span class="s2">&quot;/etc/apache2/sites-available/my_app.conf&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is a standard Apache vhost configuration based on the default OpsWorks template:</p>
+
+<figure class='code'><figcaption><span>myrecipe/templates/default/myapp_vhost.erb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class='apacheconf'><span class='line'><span class="nt">&lt;VirtualHost</span> <span class="s">*:80</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nb">ServerName</span> myapp.com
+</span><span class='line'>  <span class="nb">DocumentRoot</span> <span class="sx">/srv/www/my_app/public/</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;Directory</span> <span class="s">/srv/www/my_app/public/</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nb">Options</span> FollowSymLinks
+</span><span class='line'>    <span class="nb">AllowOverride</span> <span class="k">All</span>
+</span><span class='line'>    <span class="nb">Order</span> allow,deny
+</span><span class='line'>    <span class="nb">Allow</span> from <span class="k">all</span>
+</span><span class='line'>  <span class="nt">&lt;/Directory&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;Directory</span> <span class="s">~ &quot;\.svn&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nb">Order</span> allow,deny
+</span><span class='line'>    <span class="nb">Deny</span> from <span class="k">all</span>
+</span><span class='line'>  <span class="nt">&lt;/Directory&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;Directory</span> <span class="s">~ &quot;\.git&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nb">Order</span> allow,deny
+</span><span class='line'>    <span class="nb">Deny</span> from <span class="k">all</span>
+</span><span class='line'>  <span class="nt">&lt;/Directory&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nb">LogLevel</span> <span class="k">info</span>
+</span><span class='line'>  <span class="nb">ErrorLog</span> <span class="sx">/var/log/apache2/my_app-error.log</span>
+</span><span class='line'>  <span class="nb">CustomLog</span> <span class="sx">/var/log/apache2/my_app-access.log</span> combined
+</span><span class='line'>  <span class="nb">CustomLog</span> <span class="sx">/var/log/apache2/my_app-ganglia.log</span> ganglia
+</span><span class='line'>
+</span><span class='line'>  <span class="nb">FileETag</span> <span class="k">none</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nb">RewriteEngine</span> <span class="k">On</span>
+</span><span class='line'>  <span class="nb">IncludeOptional</span> <span class="sx">/etc/apache2/sites-available/my_app.conf.d/rewrite</span>*
+</span><span class='line'>
+</span><span class='line'>  <span class="nb">IncludeOptional</span> <span class="sx">/etc/apache2/sites-available/my_app.conf.d/local</span>*
+</span><span class='line'><span class="nt">&lt;/VirtualHost&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In this step you may also like to create additional recipes for other configuration tasks, such as installing dependencies
+or configuring your HTTP server.</p>
+
+<h1>Adding recipes and packages to layer via OpsWorks</h1>
+
+<p>Once you&rsquo;ve committed and pushed your recipes, go to OpsWorks and add the agent recipe to the configure lifecycle event
+of your application server layer. Also add <code>ruby2.0</code> and <code>awscli</code> to the OS packages.</p>
+
+<p> <img src="/images/posts/opsworks_codedeploy/recipes.png"></p>
+
+<h1>Creating placeholder deployment</h1>
+
+<p>Because OpsWorks doesn&rsquo;t perform certain default configuration tasks (such as creating a www-data group) until
+ a deployment occurs it&rsquo;s easiest to create a placeholder OpsWorks deployment with a holding page which will be replaced
+ by CodeDeploy. You could of course skip this step and manually configure everything via custom recipes.</p>
+
+<p>In this instance we&rsquo;ll create a new repository for the placeholder which contains nothing but an index.php file containing
+ a placeholder message.</p>
+
+<figure class='code'><figcaption><span>index.php </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="o">&lt;</span><span class="nx">h1</span><span class="o">&gt;</span><span class="k">This</span> <span class="nx">server</span> <span class="nx">is</span> <span class="nx">undergoing</span> <span class="nx">maintenance</span><span class="p">,</span> <span class="nx">please</span> <span class="k">try</span> <span class="nx">reloading</span> <span class="nx">the</span> <span class="nx">page</span><span class="o">&lt;/</span><span class="nx">h1</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Create this deployment in OpsWorks:</p>
+
+<p><img src="/images/posts/opsworks_codedeploy/opsworksdeploy.png"></p>
+
+<h1>Starting an instance</h1>
+
+<p>You can now start an instance in OpsWorks. It usually takes at least 20 minutes to boot and execute the setup and configure
+ recipes. After this has complete your instance should have a status of online:</p>
+
+<p><img src="/images/posts/opsworks_codedeploy/online.png"></p>
+
+<p>You should also see the placeholder message when you visit the IP in a browser:</p>
+
+<p><img src="/images/posts/opsworks_codedeploy/holding.png"></p>
+
+<p>This should also have installed and started the CodeDeploy agent.</p>
+
+<h2>Integrating OpsWorks and CodeDeploy</h2>
+
+<ul>
+<li><a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Part 1</a> &ndash; Introduction and getting started.</li>
+<li><a href="/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/">Part 2</a> &ndash; OpsWorks configuration and recipes.</li>
+<li><a href="/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/">Part 3</a> &ndash; Deployment and results.</li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Tim B.</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-24T11:43:29+10:00" pubdate data-updated="true">Nov 24<sup>th</sup>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/aws/'>aws</a>, <a class='category' href='/blog/categories/chef/'>chef</a>, <a class='category' href='/blog/categories/codedeploy/'>codedeploy</a>, <a class='category' href='/blog/categories/ec2/'>ec2</a>, <a class='category' href='/blog/categories/integrating-opsworks-and-codedeploy/'>integrating opsworks and codedeploy</a>, <a class='category' href='/blog/categories/opsworks/'>opsworks</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://hipsterdevblog.com/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/" data-via="" data-counturl="http://hipsterdevblog.com/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/" title="Previous Post: Part 1: Integrating OpsWorks and CodeDeploy">&laquo; Part 1: Integrating OpsWorks and CodeDeploy</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/" title="Next Post: Part 3: Integrating OpsWorks and CodeDeploy">Part 3: Integrating OpsWorks and CodeDeploy &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/">Part 3: Integrating OpsWorks and CodeDeploy</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/">Part 2: Integrating OpsWorks and CodeDeploy</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Part 1: Integrating OpsWorks and CodeDeploy</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/06/27/ny-taxi-data-visualized/">NY Taxi Data Visualized</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/06/25/pdfs-in-ruby/">PDF's in Ruby</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014.
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> and
+    <a href="https://github.com/vladigleba/readify">Readify</a></span>.
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'hipsterdevblog';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://hipsterdevblog.com/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/';
+        var disqus_url = 'http://hipsterdevblog.com/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

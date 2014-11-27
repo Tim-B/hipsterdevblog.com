@@ -3,6 +3,24 @@
   
   
   <url>
+    <loc>http://hipsterdevblog.com/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/</loc>
+    <lastmod>2014-11-25T11:43:36+10:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>http://hipsterdevblog.com/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/</loc>
+    <lastmod>2014-11-24T11:43:29+10:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>http://hipsterdevblog.com/blog/2014/11/23/integrating-opsworks-and-codedeploy/</loc>
+    <lastmod>2014-11-23T11:09:28+10:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
     <loc>http://hipsterdevblog.com/blog/2014/06/27/ny-taxi-data-visualized/</loc>
     <lastmod>2014-06-27T11:58:54+10:00</lastmod>
     <priority>0.8</priority>
@@ -35,14 +53,14 @@
   
   <url>
     <loc>http://hipsterdevblog.com/</loc>
-    <lastmod>2014-06-27T17:27:24+10:00</lastmod>
+    <lastmod>2014-11-27T20:52:50+10:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   
   <url>
     <loc>http://hipsterdevblog.com/blog/archives/</loc>
-    <lastmod>2014-06-27T17:27:24+10:00</lastmod>
+    <lastmod>2014-11-27T20:52:50+10:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
