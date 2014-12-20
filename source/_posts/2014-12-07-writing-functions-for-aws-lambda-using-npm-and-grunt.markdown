@@ -54,7 +54,7 @@ Your package.json should looks something like the following.
   "private": "true",
   "devDependencies": {
       "grunt": "0.4.*",
-      "grunt-aws-lambda": "0.2.0"
+      "grunt-aws-lambda": "0.3.0"
   },
   "author": "",
   "license": "BSD"
@@ -154,7 +154,7 @@ Update your package.json file with the following:
 },
 "devDependencies": {
     "grunt": "0.4.*",
-    "grunt-aws-lambda": "0.2.0",
+    "grunt-aws-lambda": "0.3.0",
     "aws-sdk": "2.0.23"
 },
 "bundledDependencies": [
@@ -176,7 +176,7 @@ Now we can actually develop the Lambda function in index.js, below is an example
  the page provided in the webpage attribute of the event, extract all the links, convert them to absolute URLs, then
  generate a list of these links from a mustache template and upload it to S3.
 
-Update your index.js with the following:
+Update your index.js with the following, don't forget to replace `mybucket` with your actual destination bucket:
 
 {% codeblock lang:javascript index.js %}
 var cheerio = require('cheerio');
