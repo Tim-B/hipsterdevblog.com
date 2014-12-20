@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Elb | :HIPSTER_DEV_BLOG]]></title>
+  <link href="http://hipsterdevblog.com/blog/categories/elb/atom.xml" rel="self"/>
+  <link href="http://hipsterdevblog.com/"/>
+  <updated>2014-12-20T20:16:28+10:00</updated>
+  <id>http://hipsterdevblog.com/</id>
+  <author>
+    <name><![CDATA[Tim B.]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[How Far Can You Go With HAProxy and a t2.micro]]></title>
+    <link href="http://hipsterdevblog.com/blog/2014/12/19/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro/"/>
+    <updated>2014-12-19T09:56:13+10:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/12/19/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro</id>
+    <content type="html"><![CDATA[<p>Load balancing is critical to any scalable and highly available cloud application. The obvious choice for load balancing
+ on AWS is <a href="http://aws.amazon.com/elasticloadbalancing/">ELB</a>, but unfortunately if you require features such as a static
+ IP or URL based request routing then ELB isn&rsquo;t an option.</p>
+
+<p><a href="http://www.haproxy.org/">HAProxy</a> is a great solution that performs extremely well even on small EC2 instance types. It
+ is also a supported layer type in <a href="http://docs.aws.amazon.com/opsworks/latest/userguide/workinglayers-load.html">OpsWorks</a>
+ which makes it the obvious choice for OpsWorks users.</p>
+
+<p>It&rsquo;s well known that several large application servers can be served by just a single small HAProxy server, but what is
+the definition of small? How about the smallest EC2 instance on offer &ndash; the <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/t2-instances.html">t2.micro</a>?
+ This blog post puts HAProxy on a t2.micro to the test using <a href="https://loader.io/">loader.io</a> to determine just how many requests/second it
+ can handle and whether CPU or network is the limiting factor.</p>
+
+<!-- more -->
+
+
+<h1>Method</h1>
+
+<p>To create a test environment I set up an OpsWorks stack with a HAProxy and PHP layer.
+I then deployed the following file:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>index.php </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="o">&amp;</span><span class="nx">lt</span><span class="p">;</span><span class="o">?</span><span class="nx">php</span><span class="o">&lt;/</span><span class="nx">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="nb">usleep</span><span class="p">(</span><span class="mi">300000</span><span class="p">);</span><span class="o">&lt;/</span><span class="nx">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;?&gt;&lt;/</span><span class="nx">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="nx">Lorem</span> <span class="nx">ipsum</span> <span class="nx">dolor</span> <span class="nx">sit</span> <span class="nx">amet</span><span class="p">,</span> <span class="nx">consectetur</span> <span class="o">&amp;</span><span class="nx">hellip</span><span class="p">;</span> <span class="p">[</span><span class="nx">continues</span> <span class="k">for</span> <span class="o">~</span><span class="mi">50</span><span class="nx">kb</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>This is intended to emulate a fairly typical application request from the perspective of the load balancer
+(ie. takes about 300ms to generate and the resulting document is about 50kb in size). Having a fixed page generation
+time is convenient as any increase in the overall response time can be assumed to be due to the load balancer.</p>
+
+<p>I also created a <code>status.php</code> which does nothing but return a 200 response to serve as the health check.</p>
+
+<p>I then launched the following instances:</p>
+
+<ul>
+<li>1 x t2.micro to the HAProxy layer</li>
+<li>4 x c3.large to the PHP App Server layer</li>
+</ul>
+
+
+<p>At no time during my testing did the application servers show any signs of excessive load, however I wanted to ensure
+ that there was ample excess capacity and that the load balancer would be the bottleneck in my tests.</p>
+
+<p>The only changes I made to the standard OpsWorks configuration was to install NewRelic, and raise the <code>node[:haproxy][:maxcon_factor_php_app]</code> value to 50.</p>
+
+<p>I used <a href="https://loader.io/">loader.io</a> to generate the load and produce these nice graphs.</p>
+
+<h1>Results</h1>
+
+<h2>100 req/sec over 5 minutes</h2>
+
+<h3>Loader.io</h3>
+
+<p><img src="/images/posts/haproxybench/100persecloader.png"></p>
+
+<h3>NewRelic</h3>
+
+<p><img src="/images/posts/haproxybench/100nrcpu.jpg"></p>
+
+<p><img src="/images/posts/haproxybench/100nrnetwork.png"></p>
+
+<p>As you can see, at 100 req/second CPU load is less than 2%, although combined network throughput is ~75Mb/s.
+  No requests timeout and response times are stable.</p>
+
+<h2>1000 req/sec over 5 minutes</h2>
+
+<h3>Loader.io</h3>
+
+<p><img src="/images/posts/haproxybench/1000loader.png"></p>
+
+<p>As you can see, at 1000 req/second performance has definitely degraded. 10521 requests timeout while 157726 succeed and there is
+ significant fluctuation in response times.</p>
+
+<h3>HAProxy stats</h3>
+
+<p><img src="/images/posts/haproxybench/1000haproxystats.png"></p>
+
+<p>The HAProxy stats suggests requests aren&rsquo;t being queued by HAProxy, and the application servers are barely at 5% CPU.</p>
+
+<h3>NewRelic</h3>
+
+<p><img src="/images/posts/haproxybench/1000nrcpu.jpg"></p>
+
+<p><img src="/images/posts/haproxybench/1000nrnetwork.jpg"></p>
+
+<p>This time CPU is higher, but still only ~7% &ndash; however combined network throughput is close to 40k packets/second and 400 MB/s.</p>
+
+<p>Clearly network capacity is the limiting factor.</p>
+
+<h2>Finding the limit</h2>
+
+<p>Using the previous result it seems conservatively the outbound network capacity limit is about 180 Mb/s. If we assume each
+request is about 50 kB the approximate limit should be <code>(180 * 1024 * 1024) / (50 * 1024 * 8) = 460 req/second</code>.</p>
+
+<h3>460 req/second</h3>
+
+<p><img src="/images/posts/haproxybench/460loader.png"></p>
+
+<p>At 460 req/second response times are mostly a flat ~300 ms, except for two spikes. I attribute this to TCP congestion avoidance
+ as the traffic approaches the limit and packets start to get dropped. After dropped packets are detected the clients reduce their
+ transmission rate, but eventually the transmission rate stabilizes again just under the limit. Only 1739 requests timeout and 134918 succeed.</p>
+
+<h3>400 req/second</h3>
+
+<p><img src="/images/posts/haproxybench/loader400.png"></p>
+
+<p>Testing again at 400 req/second which should be well within the limit we can see stable response times with no spikes or timeouts.</p>
+
+<h1>A note about t2 instances and CPU credits</h1>
+
+<p>t2-type instances have <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/t2-instances.html">variable CPU performance</a>, limited by CPU credits which allow the instance to have increased CPU
+ usage for a limited period of time. The t2.micro instance type can use up to 10% CPU consistently without consuming CPU credits.</p>
+
+<p>Ordinarily variable CPU performance wouldn&rsquo;t be desirable for a load balancer, however HAProxy is very efficient in terms
+ of CPU and these tests show that CPU usage rarely exceeds 10% before being limited by network capacity.</p>
+
+<p>Below is a graph of CPU credit usage and balance over the course of my tests:</p>
+
+<p><img src="/images/posts/haproxybench/cpucredit.png"></p>
+
+<p>As you can see the trend is generally positive, so if you&rsquo;re not running at the limit of your capacity the whole time
+ you&rsquo;d probably never run out of CPU credits.</p>
+
+<h1>What about small responses?</h1>
+
+<p>Previously I was trying to emulate a relatively large response body, such as a full HTML page. But what if you&rsquo;re
+ trying to load balance something like an API which only returns short JSON strings, would networking still be the limiting factor?</p>
+
+<p>I also ran some tests using this scenario:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>api.php </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="o">&amp;</span><span class="nx">lt</span><span class="p">;</span><span class="o">?</span><span class="nx">php</span><span class="o">&lt;/</span><span class="nx">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="nb">usleep</span><span class="p">(</span><span class="mi">100000</span><span class="p">);</span><span class="o">&lt;/</span><span class="nx">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;?&gt;</span>
+</span><span class='line'><span class="p">{</span><span class="o">&amp;</span><span class="nx">ldquo</span><span class="p">;</span><span class="nx">hello</span><span class="o">&amp;</span><span class="nx">rdquo</span><span class="p">;</span><span class="o">:</span> <span class="o">&amp;</span><span class="nx">ldquo</span><span class="p">;</span><span class="nx">world</span><span class="o">&amp;</span><span class="nx">rdquo</span><span class="p">;}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>When I tested this with 1000 req/sec HAProxy health checks began to fail on the app servers even though CPU
+ usage was low, this caused response times to jump and fluctuate:</p>
+
+<p><img src="/images/posts/haproxybench/haproxystats1ksmall.png"></p>
+
+<p>Given that my aim is to benchmark HAProxy rather than the app servers I didn&rsquo;t bother to debug this and added two additional
+ app servers instead.</p>
+
+<p>After adding the servers I was still experiencing wild fluctuations and timeouts:</p>
+
+<p><img src="/images/posts/haproxybench/1k6instances.png"></p>
+
+<p>Having said that, at 460 req/second it does seem significantly more stable than the larger response size:</p>
+
+<p><img src="/images/posts/haproxybench/460small.png"></p>
+
+<p>It seems that the limit of the t2.micro is around 500 req/second even for small responses.</p>
+
+<h1>What about a c3.large HAProxy instance?</h1>
+
+<p>While the focus of this blog post is on the t2.micro, I couldn&rsquo;t help my curiosity and decided to try a c3.large HAProxy instance
+ with 1000 req/second. As you can see there&rsquo;s no such problems:</p>
+
+<p><img src="/images/posts/haproxybench/c3large1000.png"></p>
+
+<p>I did see some timeouts at 1500 req/second, although I didn&rsquo;t bother to create a HVM instance with enhanced networking enabled.
+ The networking performance of the c3.large is described as &ldquo;moderate&rdquo; as oppose to &ldquo;low&rdquo; in the case of the t2, so an increase of
+ more than double between low and moderate without enhanced networking isn&rsquo;t bad.</p>
+
+<h1>Conclusion</h1>
+
+<p>You should be safe to run a t2.micro for your HAProxy instance if you&rsquo;re performing less than 400 req/second and 180 Mb/second.
+ If you&rsquo;re likely to be running close to this limit most of the time you may want to consider running a larger t2 instance to avoid running
+ out of CPU credits.</p>
+
+<p>If you need to go larger then a c3.large should be good for 1k/second, although I suspect an m3.medium would probably perform similarly too.</p>
+
+<p>In any case, you&rsquo;re probably going to run out of network capacity before you hit CPU limits regardless of what instance you choose.</p>
+]]></content>
+  </entry>
+  
+</feed>

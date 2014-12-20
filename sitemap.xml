@@ -3,6 +3,12 @@
   
   
   <url>
+    <loc>http://hipsterdevblog.com/blog/2014/12/19/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro/</loc>
+    <lastmod>2014-12-19T09:56:13+10:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
     <loc>http://hipsterdevblog.com/blog/2014/12/07/writing-functions-for-aws-lambda-using-npm-and-grunt/</loc>
     <lastmod>2014-12-07T11:51:16+10:00</lastmod>
     <priority>0.8</priority>
@@ -59,14 +65,14 @@
   
   <url>
     <loc>http://hipsterdevblog.com/</loc>
-    <lastmod>2014-12-07T17:15:57+10:00</lastmod>
+    <lastmod>2014-12-20T20:16:28+10:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   
   <url>
     <loc>http://hipsterdevblog.com/blog/archives/</loc>
-    <lastmod>2014-12-07T17:15:57+10:00</lastmod>
+    <lastmod>2014-12-20T20:16:28+10:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
