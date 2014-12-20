@@ -4,7 +4,7 @@
   <title><![CDATA[:HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2014-12-20T20:16:28+10:00</updated>
+  <updated>2014-12-21T09:17:00+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -101,7 +101,7 @@ time is convenient as any increase in the overall response time can be assumed t
 
 <p><img src="http://hipsterdevblog.com/images/posts/haproxybench/1000loader.png"></p>
 
-<p>As you can see, at 1000 req/second performance has definitely degraded. 10521 requests timeout while 157726 succeed and there is
+<p>At 1000 req/second performance has definitely degraded. 10521 requests timeout while 157726 succeed and there is
  significant fluctuation in response times.</p>
 
 <h3>HAProxy stats</h3>
@@ -279,7 +279,7 @@ request is about 50 kB the approximate limit should be <code>(180 * 1024 * 1024)
 </span><span class='line'>  <span class="nt">&quot;private&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
 </span><span class='line'>  <span class="nt">&quot;devDependencies&quot;</span><span class="p">:</span> <span class="p">{</span>
 </span><span class='line'>      <span class="nt">&quot;grunt&quot;</span><span class="p">:</span> <span class="s2">&quot;0.4.*&quot;</span><span class="p">,</span>
-</span><span class='line'>      <span class="nt">&quot;grunt-aws-lambda&quot;</span><span class="p">:</span> <span class="s2">&quot;0.2.0&quot;</span>
+</span><span class='line'>      <span class="nt">&quot;grunt-aws-lambda&quot;</span><span class="p">:</span> <span class="s2">&quot;0.3.0&quot;</span>
 </span><span class='line'>  <span class="p">},</span>
 </span><span class='line'>  <span class="nt">&quot;author&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
 </span><span class='line'>  <span class="nt">&quot;license&quot;</span><span class="p">:</span> <span class="s2">&quot;BSD&quot;</span>
@@ -449,7 +449,7 @@ request is about 50 kB the approximate limit should be <code>(180 * 1024 * 1024)
 </span><span class='line'><span class="p">}</span><span class="err">,</span>
 </span><span class='line'><span class="s2">&quot;devDependencies&quot;</span><span class="err">:</span> <span class="p">{</span>
 </span><span class='line'>    <span class="nt">&quot;grunt&quot;</span><span class="p">:</span> <span class="s2">&quot;0.4.*&quot;</span><span class="p">,</span>
-</span><span class='line'>    <span class="nt">&quot;grunt-aws-lambda&quot;</span><span class="p">:</span> <span class="s2">&quot;0.2.0&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;grunt-aws-lambda&quot;</span><span class="p">:</span> <span class="s2">&quot;0.3.0&quot;</span><span class="p">,</span>
 </span><span class='line'>    <span class="nt">&quot;aws-sdk&quot;</span><span class="p">:</span> <span class="s2">&quot;2.0.23&quot;</span>
 </span><span class='line'><span class="p">}</span><span class="err">,</span>
 </span><span class='line'><span class="s2">&quot;bundledDependencies&quot;</span><span class="err">:</span> <span class="p">[</span>
@@ -472,7 +472,7 @@ request is about 50 kB the approximate limit should be <code>(180 * 1024 * 1024)
  the page provided in the webpage attribute of the event, extract all the links, convert them to absolute URLs, then
  generate a list of these links from a mustache template and upload it to S3.</p>
 
-<p>Update your index.js with the following:</p>
+<p>Update your index.js with the following, don&rsquo;t forget to replace <code>mybucket</code> with your actual destination bucket:</p>
 
 <figure class='code'><figcaption><span>index.js </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>

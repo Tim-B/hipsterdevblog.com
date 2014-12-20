@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Haproxy | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/haproxy/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2014-12-20T20:16:28+10:00</updated>
+  <updated>2014-12-21T09:17:00+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -100,7 +100,7 @@ time is convenient as any increase in the overall response time can be assumed t
 
 <p><img src="/images/posts/haproxybench/1000loader.png"></p>
 
-<p>As you can see, at 1000 req/second performance has definitely degraded. 10521 requests timeout while 157726 succeed and there is
+<p>At 1000 req/second performance has definitely degraded. 10521 requests timeout while 157726 succeed and there is
  significant fluctuation in response times.</p>
 
 <h3>HAProxy stats</h3>
