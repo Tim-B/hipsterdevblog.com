@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Opsworks | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/opsworks/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2014-12-21T09:17:00+10:00</updated>
+  <updated>2014-12-21T14:36:28+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -12,6 +12,484 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Monitoring Per Application Metrics With CloudWatch Logs and OpsWorks]]></title>
+    <link href="http://hipsterdevblog.com/blog/2014/12/21/monitoring-per-application-metrics-with-cloudwatch-logs-and-opsworks/"/>
+    <updated>2014-12-21T10:53:24+10:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/12/21/monitoring-per-application-metrics-with-cloudwatch-logs-and-opsworks</id>
+    <content type="html"><![CDATA[<p><a href="http://aws.amazon.com/about-aws/whats-new/2014/07/10/introducing-amazon-cloudwatch-logs/">CloudWatch logs</a> is a cheap and
+ easy to set up centralised logging solution. At the moment it lacks several valuable features such as a convenient way
+ to search logs, however it does an <em>excellent</em> job at providing graphing and alerting on aggregated metrics pulled from
+ ingested log data. An obvious application for this is to monitor HTTP server statistics to provide graphs of overall
+ request rates, response sizes, and error rates.</p>
+
+<p><a href="http://aws.amazon.com/opsworks/">OpsWorks</a> makes it easy to orchestrate a fleet of EC2 instances serving multiple applications
+ (as oppose to <a href="http://aws.amazon.com/elasticbeanstalk/">Elastic Beanstalk</a> which only hosts a single application). Apache is
+ the default HTTP server for most OpsWorks layer types.</p>
+
+<p>This post demonstrates how to setup CloudWatch logs for Apache access logs on OpsWorks, then create custom CloudWatch
+ metrics for an individual OpsWorks application to graph the HTTP request rate.</p>
+
+<!-- more -->
+
+
+<h1>Installing the CloudWatch agent with Chef to monitor Apache logs</h1>
+
+<p>The first step is to install the CloudWatch agentusing a custom recipe. These instructions are based off <a href="http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/QuickStartChef.html">the AWS documentation</a>
+ so <strong>follow those steps to configure your IAM instance role first</strong>.</p>
+
+<p>Create the following files in your custom cookbooks repository, you can name the custom recipe anything you like but
+ in this example I&rsquo;ve named it <code>myrecipe</code>.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>myrecipe/recipes/logging.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="n">template</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">cwlogs</span><span class="o">.</span><span class="n">cfg</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">source</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">cwlogs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">erb</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">owner</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">group</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">mode</span> <span class="mo">0644</span>
+</span><span class='line'><span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;directory &amp;ldquo;/o</span><span class="n">pt</span><span class="o">/</span><span class="n">aws</span><span class="o">/</span><span class="n">cloudwatch</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">recursive</span> <span class="kp">true</span>
+</span><span class='line'><span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;remote_file &amp;ldquo;/o</span><span class="n">pt</span><span class="o">/</span><span class="n">aws</span><span class="o">/</span><span class="n">cloudwatch</span><span class="o">/</span><span class="n">awslogs</span><span class="o">-</span><span class="n">agent</span><span class="o">-</span><span class="n">setup</span><span class="o">.</span><span class="n">py</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">source</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py&quot;</span><span class="o">&gt;</span><span class="ss">https</span><span class="p">:</span><span class="sr">//s</span><span class="mi">3</span><span class="o">.</span><span class="n">amazonaws</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">aws</span><span class="o">-</span><span class="n">cloudwatch</span><span class="o">/</span><span class="n">downloads</span><span class="o">/</span><span class="n">latest</span><span class="o">/</span><span class="n">awslogs</span><span class="o">-</span><span class="n">agent</span><span class="o">-</span><span class="n">setup</span><span class="o">.</span><span class="n">py</span><span class="o">&lt;</span><span class="sr">/a&gt;&amp;rdquo;</span>
+</span><span class='line'><span class="sr">  mode &amp;ldquo;0755&amp;rdquo;</span>
+</span><span class='line'><span class="sr">end&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="n">execute</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="no">Install</span> <span class="no">CloudWatch</span> <span class="no">Logs</span> <span class="n">agent</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">command</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">aws</span><span class="o">/</span><span class="n">cloudwatch</span><span class="o">/</span><span class="n">awslogs</span><span class="o">-</span><span class="n">agent</span><span class="o">-</span><span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">n</span> <span class="o">-</span><span class="n">r</span> <span class="n">us</span><span class="o">-</span><span class="n">east</span><span class="o">-</span><span class="mi">1</span> <span class="o">-</span><span class="n">c</span> <span class="sr">/tmp/</span><span class="n">cwlogs</span><span class="o">.</span><span class="n">cfg</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">not_if</span> <span class="p">{</span> <span class="nb">system</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">pgrep</span> <span class="o">-</span><span class="n">f</span> <span class="n">aws</span><span class="o">-</span><span class="n">logs</span><span class="o">-</span><span class="n">agent</span><span class="o">-</span><span class="n">setup</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>myrecipe/templates/default/cwlogs.cfg.erb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='erb'><span class='line'><span class="x">[general]&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;h1&gt;Path to the AWSLogs agent&amp;rsquo;s state file. Agent uses this file to maintain&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;h1&gt;client side state across its executions.&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;state_file = /var/awslogs/state/agent-state&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;[&amp;lt;%= node[:opsworks][:stack][:name] </span><span class="err">%&gt;</span><span class="x">-http-access]</span>
+</span><span class='line'><span class="x">datetime_format = [%Y-%m-%d %H:%M:%S]</span>
+</span><span class='line'><span class="x">log_group_name = &amp;lt;%= node[:opsworks][:stack][:name].gsub(&amp;lsquo; &amp;rsquo;,&amp;lsquo;_&amp;rsquo;) </span><span class="err">%&gt;</span><span class="x">-http-access</span>
+</span><span class='line'><span class="x">file = &amp;lt;%= node[:apache][:log_dir] </span><span class="err">%&gt;</span><span class="x">/*-access.log</span>
+</span><span class='line'><span class="x">log_stream_name = &amp;lt;%= node[:opsworks][:instance][:hostname] </span><span class="err">%&gt;</span><span class="x"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>The significant line is <code>file = &lt;%= node[:apache][:log_dir] %&gt;/*-access.log</code> which
+ sets the log location to the Apache HTTP access logs.</p>
+
+<p>Next, add this recipe to the setup lifecycle event of your OpsWorks layer:</p>
+
+<p><img src="/images/posts/cwlogsopsworks/logrecipe.png"></p>
+
+<h1>Including application in Apache access logs</h1>
+
+<p>The other change we need to make is to include the application name in the Apache access logs, otherwise we won&rsquo;t
+ be able to filter by application when creating a logging metric in CloudWatch.</p>
+
+<p>To do this you need to override the Apache vhost template in the OpsWorks cookbooks. The recipe containing this template
+ will depend on the application type, for example it&rsquo;s located in <code>mod_php5_apache2/templates/default/web_app.conf.erb</code> or
+<code>passenger_apache2/templates/default/web_app.conf.erb</code> for PHP and Ruby applications respectively.</p>
+
+<p>In this example we&rsquo;ll assume a PHP application, so create the following file in your custom cookbooks repository:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>mod_php5_apache2/templates/default/web_app.conf.erb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+<span class='line-number'>123</span>
+<span class='line-number'>124</span>
+<span class='line-number'>125</span>
+<span class='line-number'>126</span>
+<span class='line-number'>127</span>
+<span class='line-number'>128</span>
+<span class='line-number'>129</span>
+<span class='line-number'>130</span>
+<span class='line-number'>131</span>
+<span class='line-number'>132</span>
+<span class='line-number'>133</span>
+<span class='line-number'>134</span>
+<span class='line-number'>135</span>
+<span class='line-number'>136</span>
+<span class='line-number'>137</span>
+<span class='line-number'>138</span>
+<span class='line-number'>139</span>
+<span class='line-number'>140</span>
+</pre></td><td class='code'><pre><code class='erb'><span class='line'><span class="x">&lt;VirtualHost *:80&gt;</span>
+</span><span class='line'><span class="x">  ServerName &amp;lt;%= @params[:server_name] </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% if @params[:server_aliases] &amp;amp;&amp;amp; !@params[:server_aliases].empty? &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  ServerAlias &amp;lt;% @params[:server_aliases].each do |a| </span><span class="err">%&gt;</span><span class="x">&amp;lt;%= &amp;ldquo;#{a}&amp;rdquo; </span><span class="err">%&gt;</span><span class="x"> &amp;lt;% end </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  DocumentRoot &amp;lt;%= @params[:docroot] </span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory </span><span class="cp">&lt;%=</span> <span class="vi">@params</span><span class="o">[</span><span class="ss">:docroot</span><span class="o">]</span> <span class="cp">%&gt;</span><span class="x">&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;Options FollowSymLinks</span>
+</span><span class='line'><span class="x">AllowOverride All</span>
+</span><span class='line'><span class="x">Order allow,deny</span>
+</span><span class='line'><span class="x">Allow from all</span>
+</span><span class='line'><span class="x">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;/Directory&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory ~ &quot;\.svn&quot;&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;Order allow,deny</span>
+</span><span class='line'><span class="x">Deny from all</span>
+</span><span class='line'><span class="x">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;/Directory&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory ~ &quot;\.git&quot;&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;Order allow,deny</span>
+</span><span class='line'><span class="x">Deny from all</span>
+</span><span class='line'><span class="x">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;/Directory&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  LogFormat &amp;ldquo;%h %l %u %t \&amp;rdquo;%r\&amp;ldquo; </span><span class="err">%&gt;</span><span class="x">s %b \&amp;rdquo;%{Referer}i\&amp;ldquo; \&amp;rdquo;%{User-agent}i\&amp;ldquo; \&amp;rdquo;&amp;lt;%= @params[:name] </span><span class="err">%&gt;</span><span class="x">\&amp;ldquo;&amp;rdquo; combinedwithapp&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  LogLevel &amp;lt;%= node[:apache][:log_level] </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  ErrorLog &amp;lt;%= node[:apache][:log_dir] </span><span class="err">%&gt;</span><span class="x">/&amp;lt;%= @params[:name] </span><span class="err">%&gt;</span><span class="x">-error.log</span>
+</span><span class='line'><span class="x">  CustomLog &amp;lt;%= node[:apache][:log_dir] </span><span class="err">%&gt;</span><span class="x">/&amp;lt;%= @params[:name] </span><span class="err">%&gt;</span><span class="x">-access.log combinedwithapp</span>
+</span><span class='line'><span class="x">  CustomLog &amp;lt;%= node[:apache][:log_dir] </span><span class="err">%&gt;</span><span class="x">/&amp;lt;%= @params[:name] </span><span class="err">%&gt;</span><span class="x">-ganglia.log ganglia&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  FileETag none&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  RewriteEngine On</span>
+</span><span class='line'><span class="x">  &amp;lt;% if node[:apache][:version] == &amp;lsquo;2.2&amp;rsquo; &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  Include &amp;lt;%= @params[:rewrite_config] </span><span class="err">%&gt;</span><span class="x">&lt;em&gt;</span>
+</span><span class='line'><span class="x">  RewriteLog &amp;lt;%= node[:apache][:log_dir] </span><span class="err">%&gt;</span><span class="x">/&amp;lt;%= @application_name </span><span class="err">%&gt;</span><span class="x">-rewrite.log</span>
+</span><span class='line'><span class="x">  RewriteLogLevel 0</span>
+</span><span class='line'><span class="x">  &amp;lt;% else &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  IncludeOptional &amp;lt;%= @params[:rewrite_config] </span><span class="err">%&gt;</span><span class="x">&lt;/em&gt;</span>
+</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% @environment.each do |key, value| </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  SetEnv &amp;ldquo;&amp;lt;%= key </span><span class="err">%&gt;</span><span class="x">&amp;rdquo; &amp;ldquo;&amp;lt;%= value </span><span class="err">%&gt;</span><span class="x">&amp;rdquo;</span>
+</span><span class='line'><span class="x">  &amp;lt;% end </span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% if @params[:mounted_at] &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  AliasMatch ^&amp;lt;%= @params[:mounted_at] </span><span class="err">%&gt;</span><span class="x">/(.*)$ &amp;lt;%= @params[:docroot] </span><span class="err">%&gt;</span><span class="x">$1</span>
+</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% if node[:apache][:version] == &amp;lsquo;2.2&amp;rsquo; &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  Include &amp;lt;%= @params[:local_config] </span><span class="err">%&gt;</span><span class="x">&lt;em&gt;</span>
+</span><span class='line'><span class="x">  &amp;lt;% else &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  IncludeOptional &amp;lt;%= @params[:local_config] </span><span class="err">%&gt;</span><span class="x">&lt;/em&gt;</span>
+</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">&lt;/VirtualHost&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;&amp;lt;% if node[:deploy][@application_name][:ssl_support] &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">&lt;VirtualHost *:443&gt;</span>
+</span><span class='line'><span class="x">  ServerName &amp;lt;%= @params[:server_name] </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% if @params[:server_aliases] &amp;amp;&amp;amp; !@params[:server_aliases].empty? &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  ServerAlias &amp;lt;% @params[:server_aliases].each do |a| </span><span class="err">%&gt;</span><span class="x">&amp;lt;%= &amp;ldquo;#{a}&amp;rdquo; </span><span class="err">%&gt;</span><span class="x"> &amp;lt;% end </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  DocumentRoot &amp;lt;%= @params[:docroot] </span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  SSLEngine on</span>
+</span><span class='line'><span class="x">  SSLProxyEngine on</span>
+</span><span class='line'><span class="x">  SSLCertificateFile &amp;lt;%= node[:apache][:dir] </span><span class="err">%&gt;</span><span class="x">/ssl/&amp;lt;%= @params[:server_name] </span><span class="err">%&gt;</span><span class="x">.crt</span>
+</span><span class='line'><span class="x">  SSLCertificateKeyFile &amp;lt;%= node[:apache][:dir] </span><span class="err">%&gt;</span><span class="x">/ssl/&amp;lt;%= @params[:server_name] </span><span class="err">%&gt;</span><span class="x">.key</span>
+</span><span class='line'><span class="x">  &amp;lt;% if @params[:ssl_certificate_ca] &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  SSLCACertificateFile &amp;lt;%= node[:apache][:dir] </span><span class="err">%&gt;</span><span class="x">/ssl/&amp;lt;%= @params[:server_name] </span><span class="err">%&gt;</span><span class="x">.ca</span>
+</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  SetEnvIf User-Agent &amp;ldquo;.&lt;em&gt;MSIE.&lt;/em&gt;&amp;rdquo; nokeepalive ssl-unclean-shutdown downgrade-1.0 force-response-1.0&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory </span><span class="cp">&lt;%=</span> <span class="vi">@params</span><span class="o">[</span><span class="ss">:docroot</span><span class="o">]</span> <span class="cp">%&gt;</span><span class="x">&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;Options FollowSymLinks</span>
+</span><span class='line'><span class="x">AllowOverride All</span>
+</span><span class='line'><span class="x">Order allow,deny</span>
+</span><span class='line'><span class="x">Allow from all</span>
+</span><span class='line'><span class="x">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;/Directory&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory ~ &quot;\.svn&quot;&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;Order allow,deny</span>
+</span><span class='line'><span class="x">Deny from all</span>
+</span><span class='line'><span class="x">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;/Directory&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory ~ &quot;\.git&quot;&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;Order allow,deny</span>
+</span><span class='line'><span class="x">Deny from all</span>
+</span><span class='line'><span class="x">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;/Directory&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  LogLevel &amp;lt;%= node[:apache][:log_level] </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  ErrorLog &amp;lt;%= node[:apache][:log_dir] </span><span class="err">%&gt;</span><span class="x">/&amp;lt;%= @params[:name] </span><span class="err">%&gt;</span><span class="x">-error.log</span>
+</span><span class='line'><span class="x">  CustomLog &amp;lt;%= node[:apache][:log_dir] </span><span class="err">%&gt;</span><span class="x">/&amp;lt;%= @params[:name] </span><span class="err">%&gt;</span><span class="x">-ssl-access.log combinedwithapp</span>
+</span><span class='line'><span class="x">  CustomLog &amp;lt;%= node[:apache][:log_dir] </span><span class="err">%&gt;</span><span class="x">/&amp;lt;%= @params[:name] </span><span class="err">%&gt;</span><span class="x">-ssl-ganglia.log ganglia&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  FileETag none&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  RewriteEngine On</span>
+</span><span class='line'><span class="x">  &amp;lt;% if node[:apache][:version] == &amp;lsquo;2.2&amp;rsquo; &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  Include &amp;lt;%= @params[:rewrite_config] </span><span class="err">%&gt;</span><span class="x">-ssl&lt;em&gt;</span>
+</span><span class='line'><span class="x">  RewriteLog &amp;lt;%= node[:apache][:log_dir] </span><span class="err">%&gt;</span><span class="x">/&amp;lt;%= @application_name </span><span class="err">%&gt;</span><span class="x">-rewrite.log</span>
+</span><span class='line'><span class="x">  RewriteLogLevel 0</span>
+</span><span class='line'><span class="x">  &amp;lt;% else &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  IncludeOptional &amp;lt;%= @params[:rewrite_config] </span><span class="err">%&gt;</span><span class="x">-ssl&lt;/em&gt;</span>
+</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% @environment.each do |key, value| </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  SetEnv &amp;ldquo;&amp;lt;%= key </span><span class="err">%&gt;</span><span class="x">&amp;rdquo; &amp;ldquo;&amp;lt;%= value </span><span class="err">%&gt;</span><span class="x">&amp;rdquo;</span>
+</span><span class='line'><span class="x">  &amp;lt;% end </span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% if @params[:mounted_at] &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  AliasMatch ^&amp;lt;%= @params[:mounted_at] </span><span class="err">%&gt;</span><span class="x">/(.*)$ &amp;lt;%= @params[:docroot] </span><span class="err">%&gt;</span><span class="x">$1</span>
+</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% if node[:apache][:version] == &amp;lsquo;2.2&amp;rsquo; &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  Include &amp;lt;%= @params[:local_config] </span><span class="err">%&gt;</span><span class="x">-ssl&lt;em&gt;</span>
+</span><span class='line'><span class="x">  &amp;lt;% else &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  IncludeOptional &amp;lt;%= @params[:local_config] </span><span class="err">%&gt;</span><span class="x">-ssl&lt;/em&gt;</span>
+</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">&lt;/VirtualHost&gt;</span>
+</span><span class='line'><span class="x">&amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>This configuration is based on the <a href="https://github.com/aws/opsworks-cookbooks/blob/release-chef-11.10/mod_php5_apache2/templates/default/web_app.conf.erb">default template</a> so
+ it may be best to start with the latest template file on GitHub.</p>
+
+<p>Note the following lines which are relevant:</p>
+
+<p><code>LogFormat "%h %l %u %t \"%r\" %&gt;s %b \"%{Referer}i\" \"%{User-agent}i\" \"&lt;%= @params[:name] %&gt;\"" combinedwithapp</code></p>
+
+<p>This is creating a new log format called <code>combinedweithapp</code>, it&rsquo;s the same as the <code>combined</code> format except the app name
+ is appended to the end.</p>
+
+<p><code>CustomLog &lt;%= node[:apache][:log_dir] %&gt;/&lt;%= @params[:name] %&gt;-access.log combinedwithapp</code>
+<code>CustomLog &lt;%= node[:apache][:log_dir] %&gt;/&lt;%= @params[:name] %&gt;-ssl-access.log combinedwithapp</code></p>
+
+<p>This is telling both the HTTP and HTTPS access logs to use the new custom format.</p>
+
+<h1>Testing the logging</h1>
+
+<p>If you now launch an instance, wait for it to come online then load the App a few times you should begin to see logs
+ appearing in CloudWatch after a few minutes.</p>
+
+<p><img src="/images/posts/cwlogsopsworks/logsappearing.png"></p>
+
+<p>This indicates that the CloudWatch agent is working, you should also be able to see the app name. You&rsquo;ll notice
+ that logs are nicely categorized by stack and instance too.</p>
+
+<h1>Creating a metric to monitor HTTP requests by App</h1>
+
+<p>How that we have Apache access logs being sent to CloudWatch including the App name we can setup a metric to monitor
+ the number of requests made to this application.</p>
+
+<p>From the &ldquo;Log Groups&rdquo; screen in CloudWatch, tick the appropriate log group (<code>cw-logs-test-http-access</code> in this example) and then
+ click &ldquo;Create Metric Filter&rdquo; at the top.</p>
+
+<p>Enter the following Filter Pattern:</p>
+
+<p><code>[host, logName, user, timestamp, request, statusCode, size, referer, useragent, app=app1, ...]</code></p>
+
+<p>Note that you should replace app1 with the name of the app you&rsquo;re interested in.</p>
+
+<p><img src="/images/posts/cwlogsopsworks/metricfilterapp.png"></p>
+
+<p>You can test your filter pattern, otherwise proceed by clicking &ldquo;Assign Metric&rdquo;.</p>
+
+<p><img src="/images/posts/cwlogsopsworks/metric-name.png"></p>
+
+<p>Give your new metric an appropriate namespace (group) and name. As we&rsquo;re only interested in the number of requests the
+ &ldquo;Metric Value&rdquo; is 1 (1 per request).</p>
+
+<h1>Viewing the results</h1>
+
+<p>Once you&rsquo;ve created the metric you won&rsquo;t see data until more logs matching that criteria occur, so either generate some
+ traffic on your app or wait for some to come in. There can be a delay of about 5 minutes for metrics data to appear.</p>
+
+<p>After data has been recorded into the metric you should be able to find that metric either by searching the metrics list
+ or from the &ldquo;Custom Metrics&rdquo; drop down which will appear after you refresh the page.</p>
+
+<p><img src="/images/posts/cwlogsopsworks/request_graph.png"></p>
+
+<p>Change the aggregation type from &ldquo;average&rdquo; to &ldquo;sum&rdquo; and you should now see a nice graph of the requests going to your app
+ over time. You can change the interval to 1 minute to get the most detailed graph.</p>
+
+<h1>Other metrics</h1>
+
+<p>In this example we&rsquo;re only interested in the number of HTTP requests, but you can easily create additional metrics for things
+ like 4xx errors or response size (to get an estimate of bandwidth usage by app).</p>
+
+<p>To graph 4xx errors use a Filter Pattern like this (note the statusCode field):</p>
+
+<p><code>[host, logName, user, timestamp, request, statusCode=4*, size, referer, useragent, app=app1, ...]</code></p>
+
+<p>To graph response size enter <code>$size</code> instead of 1 as the &ldquo;Metric Value&rdquo; when creating the metric.</p>
+
+<p>To monitor multiple apps simply create additional sets of your custom metrics, each with a different app filter.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Part 3: Integrating OpsWorks and CodeDeploy]]></title>
@@ -749,230 +1227,6 @@ opsworks:stack</code> and <code>opsworks:layer:php-app</code> to the name of you
 <p>
     Now when the run the configure event you should see a new DNS A record being added in Route53!
 </p>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Retrieving Files From S3 Using Chef on OpsWorks]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/"/>
-    <updated>2014-06-22T17:44:02+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks</id>
-    <content type="html"><![CDATA[<p>
-    Say you wanted to manage some configuration file in your OpsWorks stack – typically you'd create a custom Chef recipe,
-    make your configuration file a template and store it within your custom cookbook repository. This approach works well
-    in most instances, but what if the file is something not suited to version control such as a large binary file or
-    perhaps a programmatically generated artifact of your system?
-</p>
-
-
-<p>
-    In these cases you may prefer to store the file in an S3 bucket and automatically download a copy of the file
-    as part of a custom recipe. In my case I wanted to have a dynamically generated (by a separate system)
-    vhost configuration file which could be deployed to a stack using a simple recipe.
-</p>
-
-
-<!-- more -->
-
-
-<h2>Adding AWS cookbook via Berkshelf</h2>
-
-
-
-
-<p>
-    The first thing you'll need to do is add the OpsCode <a target="_blank" href="http://community.opscode.com/cookbooks/aws">AWS
-    cookbook</a> to your Berkfile. Note that Berkshelf is only supported on Chef 11.10 or higher on OpsWorks, so if your
-    OpsWorks stack has an older version selected you'll have to either upgrade or include the whole AWS cookbook in your
-    custom cookbook repository.
-</p>
-
-
-<p>
-    If you don't already have a Berkfile you'll need to create one in your custom cookbook repository, otherwise simply
-    add the AWS cookbook. Your Berkfile should look something like this:
-</p>
-
-
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Berksfile </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">source</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;https://api.berkshelf.com&quot;</span><span class="o">&gt;</span><span class="ss">https</span><span class="p">:</span><span class="sr">//</span><span class="n">api</span><span class="o">.</span><span class="n">berkshelf</span><span class="o">.</span><span class="n">com</span><span class="o">&lt;</span><span class="sr">/a&gt;&amp;rdquo;&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="n">cookbook</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">aws</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;,</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&gt;=</span> <span class="mi">2</span><span class="o">.</span><span class="mi">2</span><span class="o">.</span><span class="mi">2</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<h2>Creating an S3 bucket and a user which can access it</h2>
-
-
-<p>
-    You can probably figure out how to create a bucket on your own. In my case I have a bucket called 'test-site-config'
-    and a file in there called 'vhost.map' which I want to download via Chef.
-</p>
-
-
-<p> <img src="/images/posts/s3_chef_opsworks/bucket.png"></p>
-
-<p>
-    Next you'll need some AWS credentials for Chef to use while downloading the file. You can use your root account
-    but I'd strongly suggest using an IAM user limited to your bucket instead. If you create a new IAM user you can
-    use the following policy which will only permit reading objects from the specified S3 bucket (obviously replace
-    'test-site-config' with your own bucket name:
-</p>
-
-
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>IAM policy </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="err">&amp;ldquo;Version&amp;rdquo;:</span> <span class="err">&amp;ldquo;2012-10-17&amp;rdquo;,</span>
-</span><span class='line'>  <span class="err">&amp;ldquo;Statement&amp;rdquo;:</span> <span class="err">[&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;pre&gt;&lt;code&gt;{</span>
-</span><span class='line'>  <span class="nt">&quot;Sid&quot;</span><span class="p">:</span> <span class="s2">&quot;Stmt1403407152000&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="nt">&quot;Effect&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="nt">&quot;Action&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span class='line'>    <span class="s2">&quot;s3:GetObject&quot;</span>
-</span><span class='line'>  <span class="p">],</span>
-</span><span class='line'>  <span class="nt">&quot;Resource&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span class='line'>    <span class="s2">&quot;arn:aws:s3:::test-site-config/*&quot;</span>
-</span><span class='line'>  <span class="p">]</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="err">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;</span>  <span class="err">]</span>
-</span><span class='line'><span class="err">}</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<h2>Passing AWS credentials via custom JSON</h2>
-
-
-<p>
-    Now navigate to your stack in the OpsWorks console, click 'Stack Settings' then 'Edit' and modify the Custom JSON
-    field to include variables for your access and secret key. If you already have custom JSON values then you'll
-    need to merge the new values with your existing JSON, otherwise you can use the code below:
-</p>
-
-
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Custom JSON </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="err">&amp;ldquo;custom_access_key&amp;rdquo;:</span> <span class="err">&amp;ldquo;&lt;insert</span> <span class="err">access</span> <span class="err">key&gt;&amp;rdquo;,</span>
-</span><span class='line'>  <span class="err">&amp;ldquo;custom_secret_key&amp;rdquo;:</span> <span class="err">&amp;ldquo;&lt;insert</span> <span class="err">secret</span> <span class="err">key&gt;&amp;rdquo;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div>
-<img src="/images/posts/s3_chef_opsworks/edit_stack.png"></p>
-
-<h2>Creating your custom recipe</h2>
-
-
-<p>
-    In this instance I'll create a new recipe called 'deployfile' which does nothing but download my file and save it to the specified
-    location, however you could just as easily include this code within an existing recipe.
-</p>
-
-
-<p>
-    Create the following file structure and use the code below in your custom cookbook repository:
-</p>
-
-
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>File Structure </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>deployfile/metadata.rb
-</span><span class='line'>deployfile/recipes/default.rb</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>metadata.rb </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="nb">name</span>        <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">deployfile</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
-</span><span class='line'><span class="n">description</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="no">Deploy</span> <span class="no">File</span> <span class="no">From</span> <span class="no">S3</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
-</span><span class='line'><span class="n">maintainer</span>  <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="no">Dilbert</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
-</span><span class='line'><span class="n">license</span>     <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="no">Apache</span> <span class="mi">2</span><span class="o">.</span><span class="mi">0</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
-</span><span class='line'><span class="n">version</span>     <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="mi">1</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sr">&lt;p&gt;depends &amp;ldquo;aws&amp;rdquo;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>recipes/default.rb </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="n">include_recipe</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">aws</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sr">&lt;p&gt;aws_s3_file &amp;ldquo;/e</span><span class="n">tc</span><span class="o">/</span><span class="n">apache2</span><span class="o">/</span><span class="n">vhost</span><span class="o">.</span><span class="n">map</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span> <span class="k">do</span>
-</span><span class='line'>  <span class="n">bucket</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="nb">test</span><span class="o">-</span><span class="n">site</span><span class="o">-</span><span class="n">config</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">remote_path</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">vhost</span><span class="o">.</span><span class="n">map</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">aws_access_key_id</span> <span class="n">node</span><span class="o">[</span><span class="ss">:custom_access_key</span><span class="o">]</span>
-</span><span class='line'>  <span class="n">aws_secret_access_key</span> <span class="n">node</span><span class="o">[</span><span class="ss">:custom_secret_key</span><span class="o">]</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<p>
-    Substitute <code>/etc/apache2/vhost.map</code> with the destination on your nodes, the bucket name and the remote
-    path as required. You can also use other attributes belonging to the <a target="_blank" href="http://docs.opscode.com/resource_file.html">Chef
-    file resource</a>.
-</p>
-
-
-
-
-<h2>Updating stack and executing recipe</h2>
-
-
-<p>Once the code above has been committed and pushed back to your repository you're finally ready to execute the recipe.</p>
-
-
-
-
-<p>Go to your stack and click 'Run Command', select 'Update Custom Cookbooks':</p>
-
-
-<p><img src="/images/posts/s3_chef_opsworks/update_cookbook.png"></p>
-
-<p>Once OpsWorks has finished updating your custom cookbooks go back to 'Run Command' and select 'Execute Recipes'.
-Enter the name of your recipe into the 'Recipes to execute' field:</p>
-
-
-<p><img src="/images/posts/s3_chef_opsworks/deploy_file.png"></p>
-
-<p>Alternatively you can add your recipe to a layer life-cycle event (such as setup) and execute that life-cycle event
-instead</p>
-
-
-<p>Once that recipe has finished executing the file downloaded from S3 should now be present on your system!</p>
 
 ]]></content>
   </entry>

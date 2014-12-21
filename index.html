@@ -9,7 +9,7 @@
   <meta name="author" content="Tim B.">
 
   
-  <meta name="description" content="Load balancing is critical to any scalable and highly available cloud application. The obvious choice for load balancing on AWS is ELB, but &hellip;">
+  <meta name="description" content="CloudWatch logs is a cheap and easy to set up centralised logging solution. At the moment it lacks several valuable features such as a convenient way &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,58 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/12/21/monitoring-per-application-metrics-with-cloudwatch-logs-and-opsworks/">Monitoring Per Application Metrics With CloudWatch Logs and OpsWorks</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-12-21T10:53:24+10:00" pubdate data-updated="true">Dec 21<sup>st</sup>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="http://aws.amazon.com/about-aws/whats-new/2014/07/10/introducing-amazon-cloudwatch-logs/">CloudWatch logs</a> is a cheap and
+ easy to set up centralised logging solution. At the moment it lacks several valuable features such as a convenient way
+ to search logs, however it does an <em>excellent</em> job at providing graphing and alerting on aggregated metrics pulled from
+ ingested log data. An obvious application for this is to monitor HTTP server statistics to provide graphs of overall
+ request rates, response sizes, and error rates.</p>
+
+<p><a href="http://aws.amazon.com/opsworks/">OpsWorks</a> makes it easy to orchestrate a fleet of EC2 instances serving multiple applications
+ (as oppose to <a href="http://aws.amazon.com/elasticbeanstalk/">Elastic Beanstalk</a> which only hosts a single application). Apache is
+ the default HTTP server for most OpsWorks layer types.</p>
+
+<p>This post demonstrates how to setup CloudWatch logs for Apache access logs on OpsWorks, then create custom CloudWatch
+ metrics for an individual OpsWorks application to graph the HTTP request rate.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/12/21/monitoring-per-application-metrics-with-cloudwatch-logs-and-opsworks/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -524,61 +576,9 @@ delegating the configuration management to OpsWorks and the deployment functiona
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/">Retrieving Files From S3 Using Chef on OpsWorks</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-22T17:44:02+10:00" pubdate data-updated="true">Jun 22<sup>nd</sup>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>
-    Say you wanted to manage some configuration file in your OpsWorks stack – typically you&#8217;d create a custom Chef recipe,
-    make your configuration file a template and store it within your custom cookbook repository. This approach works well
-    in most instances, but what if the file is something not suited to version control such as a large binary file or
-    perhaps a programmatically generated artifact of your system?
-</p>
-
-
-<p>
-    In these cases you may prefer to store the file in an S3 bucket and automatically download a copy of the file
-    as part of a custom recipe. In my case I wanted to have a dynamically generated (by a separate system)
-    vhost configuration file which could be deployed to a stack using a simple recipe.
-</p>
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
+    
+      <a class="prev" href="/posts/2">&larr; Older</a>
     
     <a href="/blog/archives">Blog Archives</a>
     
@@ -589,6 +589,10 @@ delegating the configuration management to OpsWorks and the deployment functiona
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/12/21/monitoring-per-application-metrics-with-cloudwatch-logs-and-opsworks/">Monitoring Per Application Metrics With CloudWatch Logs and OpsWorks</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/12/19/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro/">How Far Can You Go With HAProxy and a t2.micro</a>
@@ -604,10 +608,6 @@ delegating the configuration management to OpsWorks and the deployment functiona
     
       <li class="post">
         <a href="/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/">Part 2: Integrating OpsWorks and CodeDeploy</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Part 1: Integrating OpsWorks and CodeDeploy</a>
       </li>
     
   </ul>

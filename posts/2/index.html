@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Category: Ec2 - :HIPSTER_DEV_BLOG</title>
+  <title>:HIPSTER_DEV_BLOG</title>
   <meta name="author" content="Tim B.">
 
   
-  <meta name="description" content="Category: ec2">
+  <meta name="description" content="Say you wanted to manage some configuration file in your OpsWorks stack – typically you&#8217;d create a custom Chef recipe, make your configuration &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://hipsterdevblog.com/blog/categories/ec2">
+  <link rel="canonical" href="http://hipsterdevblog.com/posts/2">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title=":HIPSTER_DEV_BLOG" type="application/atom+xml">
@@ -76,96 +76,71 @@
 </nav>
   <div id="main">
     <div id="content">
-      <div>
-<article role="article">
+      <div class="blog-index">
   
+  
+  
+    <article>
+      
   <header>
-    <h1 class="entry-title">Category: Ec2</h1>
+    
+      <h1 class="entry-title"><a href="/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/">Retrieving Files From S3 Using Chef on OpsWorks</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-06-22T17:44:02+10:00" pubdate data-updated="true">Jun 22<sup>nd</sup>, 2014</time>
+        
+      </p>
     
   </header>
-  
-  <div id="blog-archives" class="category">
 
 
-
-  
-  <h2>2014</h2>
-
-<article>
-  
-<h1><a href="/blog/2014/12/19/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro/">How Far Can You Go With HAProxy and a t2.micro</a></h1>
-<time datetime="2014-12-19T09:56:13+10:00" pubdate><span class='month'>Dec</span> <span class='day'>19</span> <span class='year'>2014</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/ec2/'>ec2</a>, <a class='category' href='/blog/categories/elb/'>elb</a>, <a class='category' href='/blog/categories/haproxy/'>haproxy</a>, <a class='category' href='/blog/categories/loader-dot-io/'>loader.io</a></span>
-</footer>
+  <div class="entry-content"><p>
+    Say you wanted to manage some configuration file in your OpsWorks stack – typically you&#8217;d create a custom Chef recipe,
+    make your configuration file a template and store it within your custom cookbook repository. This approach works well
+    in most instances, but what if the file is something not suited to version control such as a large binary file or
+    perhaps a programmatically generated artifact of your system?
+</p>
 
 
-</article>
+<p>
+    In these cases you may prefer to store the file in an S3 bucket and automatically download a copy of the file
+    as part of a custom recipe. In my case I wanted to have a dynamically generated (by a separate system)
+    vhost configuration file which could be deployed to a stack using a simple recipe.
+</p>
 
-
-
-<article>
-  
-<h1><a href="/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/">Part 3: Integrating OpsWorks and CodeDeploy</a></h1>
-<time datetime="2014-11-25T11:43:36+10:00" pubdate><span class='month'>Nov</span> <span class='day'>25</span> <span class='year'>2014</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/aws/'>aws</a>, <a class='category' href='/blog/categories/chef/'>chef</a>, <a class='category' href='/blog/categories/codedeploy/'>codedeploy</a>, <a class='category' href='/blog/categories/ec2/'>ec2</a>, <a class='category' href='/blog/categories/integrating-opsworks-and-codedeploy/'>integrating opsworks and codedeploy</a>, <a class='category' href='/blog/categories/opsworks/'>opsworks</a></span>
-</footer>
-
-
-</article>
-
-
-
-<article>
-  
-<h1><a href="/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/">Part 2: Integrating OpsWorks and CodeDeploy</a></h1>
-<time datetime="2014-11-24T11:43:29+10:00" pubdate><span class='month'>Nov</span> <span class='day'>24</span> <span class='year'>2014</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/aws/'>aws</a>, <a class='category' href='/blog/categories/chef/'>chef</a>, <a class='category' href='/blog/categories/codedeploy/'>codedeploy</a>, <a class='category' href='/blog/categories/ec2/'>ec2</a>, <a class='category' href='/blog/categories/integrating-opsworks-and-codedeploy/'>integrating opsworks and codedeploy</a>, <a class='category' href='/blog/categories/opsworks/'>opsworks</a></span>
-</footer>
-
-
-</article>
-
-
-
-<article>
-  
-<h1><a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Part 1: Integrating OpsWorks and CodeDeploy</a></h1>
-<time datetime="2014-11-23T11:09:28+10:00" pubdate><span class='month'>Nov</span> <span class='day'>23</span> <span class='year'>2014</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/aws/'>aws</a>, <a class='category' href='/blog/categories/chef/'>chef</a>, <a class='category' href='/blog/categories/codedeploy/'>codedeploy</a>, <a class='category' href='/blog/categories/ec2/'>ec2</a>, <a class='category' href='/blog/categories/integrating-opsworks-and-codedeploy/'>integrating opsworks and codedeploy</a>, <a class='category' href='/blog/categories/opsworks/'>opsworks</a></span>
-</footer>
-
-
-</article>
-
-
-
-<article>
-  
-<h1><a href="/blog/2014/06/23/automatic-dns-records-using-route53/">Automatic DNS Records Using Route53 on OpsWorks</a></h1>
-<time datetime="2014-06-23T18:28:23+10:00" pubdate><span class='month'>Jun</span> <span class='day'>23</span> <span class='year'>2014</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/chef/'>chef</a>, <a class='category' href='/blog/categories/dns/'>dns</a>, <a class='category' href='/blog/categories/ec2/'>ec2</a>, <a class='category' href='/blog/categories/opsworks/'>opsworks</a>, <a class='category' href='/blog/categories/route53/'>route53</a></span>
-</footer>
-
-
-</article>
 
 </div>
-
   
-</article>
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/">Read on &rarr;</a>
+    </footer>
+  
 
+
+    </article>
+  
+  <div class="pagination">
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/index.html">Newer &rarr;</a>
+    
+  </div>
 </div>
-
 <aside class="sidebar">
   
     <section>
@@ -201,7 +176,6 @@
 
   
 </aside>
-
 
     </div>
   </div>
