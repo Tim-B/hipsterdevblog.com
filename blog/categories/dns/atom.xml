@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Dns | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/dns/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2014-12-21T14:36:28+10:00</updated>
+  <updated>2015-01-02T11:55:47+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -20,7 +20,7 @@
     <id>http://hipsterdevblog.com/blog/2014/06/23/automatic-dns-records-using-route53</id>
     <content type="html"><![CDATA[<p>
     Lets say you have a load balanced web application managed with OpsWorks – your application traffic will be addressed
-    to the load balancer, but sometimes it's still handy to address your application nodes directly for testing
+    to the load balancer, but sometimes it&#8217;s still handy to address your application nodes directly for testing
     purposes or perhaps so each node has a unique SNS endpoint for HTTP notifications. You could just  use their IP,
     but unless you use an EIP that IP address may change. You could create a DNS record, which would be easier to remember
     and allows the IP to change – but managing this manually would be a pain.
@@ -47,13 +47,13 @@
 
 
 <p>
-    Firstly, I'll assume you have a Route53 zone created – in my case the zone will be called <code>example.com</code>.
-    You'll also need a set of AWS access keys, I recommend creating an IAM user restricted to managing your hosted zone.
+    Firstly, I&#8217;ll assume you have a Route53 zone created – in my case the zone will be called <code>example.com</code>.
+    You&#8217;ll also need a set of AWS access keys, I recommend creating an IAM user restricted to managing your hosted zone.
     You can use the following IAM user policy:
 </p>
 
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>IAM User Policy </span></figcaption>
+<p><figure class='code'><figcaption><span>IAM User Policy </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -71,37 +71,31 @@
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
 <span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
 </pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
 </span><span class='line'>  <span class="err">&amp;ldquo;Version&amp;rdquo;:</span> <span class="err">&amp;ldquo;2012-10-17&amp;rdquo;,</span>
-</span><span class='line'>  <span class="err">&amp;ldquo;Statement&amp;rdquo;:</span> <span class="err">[&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;pre&gt;&lt;code&gt;{</span>
-</span><span class='line'>  <span class="nt">&quot;Sid&quot;</span><span class="p">:</span> <span class="s2">&quot;Stmt1403515694000&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="nt">&quot;Effect&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="nt">&quot;Action&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span class='line'>    <span class="s2">&quot;route53:ChangeResourceRecordSets&quot;</span><span class="p">,</span>
-</span><span class='line'>    <span class="s2">&quot;route53:GetHostedZone&quot;</span><span class="p">,</span>
-</span><span class='line'>    <span class="s2">&quot;route53:ListResourceRecordSets&quot;</span>
-</span><span class='line'>  <span class="p">],</span>
-</span><span class='line'>  <span class="nt">&quot;Resource&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span class='line'>    <span class="s2">&quot;arn:aws:route53:::hostedzone/&amp;lt;insert your hosted zone ID&amp;gt;&quot;</span>
-</span><span class='line'>  <span class="p">]</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="err">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;</span>  <span class="err">]</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;Statement&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>    <span class="err">{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Sid&amp;rdquo;:</span> <span class="err">&amp;ldquo;Stmt1403515694000&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Effect&amp;rdquo;:</span> <span class="err">&amp;ldquo;Allow&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Action&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;route53:ChangeResourceRecordSets&amp;rdquo;,</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;route53:GetHostedZone&amp;rdquo;,</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;route53:ListResourceRecordSets&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">],</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Resource&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;arn:aws:route53:::hostedzone/&lt;insert</span> <span class="err">your</span> <span class="err">hosted</span> <span class="err">zone</span> <span class="err">ID&gt;&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">]</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="err">]</span>
 </span><span class='line'><span class="err">}</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>
     Next add your AWS credentials and zone ID as custom JSON variables in your OpsWorks stack:
 </p>
 
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Custom JSON </span></figcaption>
+<p><figure class='code'><figcaption><span>Custom JSON </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -112,7 +106,7 @@
 </span><span class='line'>  <span class="err">&amp;ldquo;custom_access_key&amp;rdquo;:</span> <span class="err">&amp;ldquo;&lt;insert</span> <span class="err">access</span> <span class="err">key&gt;&amp;rdquo;,</span>
 </span><span class='line'>  <span class="err">&amp;ldquo;custom_secret_key&amp;rdquo;:</span> <span class="err">&amp;ldquo;&lt;insert</span> <span class="err">secret</span> <span class="err">key&gt;&amp;rdquo;</span>
 </span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>
  Adding custom JSON to your stack is covered in more detail in
@@ -122,19 +116,19 @@
 
 <p>
     Finally, add the <a target="_blank" href="http://community.opscode.com/cookbooks/route53">route53 cookbook</a>
-    to your Berksfile. If you're not using Berkshelf you'll have to clone the whole cookbook into your custom cookbook
+    to your Berksfile. If you&#8217;re not using Berkshelf you&#8217;ll have to clone the whole cookbook into your custom cookbook
     repository.
 </p>
 
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Berksfile </span></figcaption>
+<p><figure class='code'><figcaption><span>Berksfile </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">source</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;https://api.berkshelf.com&quot;</span><span class="o">&gt;</span><span class="ss">https</span><span class="p">:</span><span class="sr">//</span><span class="n">api</span><span class="o">.</span><span class="n">berkshelf</span><span class="o">.</span><span class="n">com</span><span class="o">&lt;</span><span class="sr">/a&gt;&amp;rdquo;&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="n">cookbook</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">route53</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;,</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&gt;=</span> <span class="mi">0</span><span class="o">.</span><span class="mi">3</span><span class="o">.</span><span class="mi">4</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <h2>Creating your recipes</h2>
 
@@ -145,13 +139,13 @@
 </p>
 
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>File Structure </span></figcaption>
+<p><figure class='code'><figcaption><span>File Structure </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>dnsupdate/metadata.rb
-</span><span class='line'>dnsupdate/recipes/add.rb</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span><span class='line'>dnsupdate/recipes/add.rb</span></code></pre></td></tr></table></div></figure></p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>metadata.rb </span></figcaption>
+<p><figure class='code'><figcaption><span>metadata.rb </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -166,9 +160,9 @@
 </span><span class='line'><span class="n">version</span>     <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="mi">1</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="sr">&lt;p&gt;depends &amp;ldquo;route53&amp;rdquo;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>recipes/add.rb </span></figcaption>
+<p><figure class='code'><figcaption><span>recipes/add.rb </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -197,7 +191,7 @@
 </span><span class='line'><span class="s2">  overwrite true</span>
 </span><span class='line'><span class="s2">  action :create</span>
 </span><span class='line'><span class="s2">end</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>
     Substitute <code>.example.com</code> with your own domain. <code>Net::HTTP.get(URI.parse('http://169.254.169.254/latest/meta-data/public-ipv4'))</code>
@@ -212,14 +206,14 @@
 
 
 <p>
-    Once you've committed and pushed the new recipe to your custom cookbook repository you're ready to add the recipe
+    Once you&#8217;ve committed and pushed the new recipe to your custom cookbook repository you&#8217;re ready to add the recipe
     to the configure life cycle event. First update your custom cookbooks, by going to your stack > Run Command > and
-    selecting 'Update Custom Cookbooks' from the command select box.
+    selecting &#8216;Update Custom Cookbooks&#8217; from the command select box.
 </p>
 
 
 <p>
-    Finally, navigate to a layer in OpsWorks > Edit > Recipes > add 'dnsupdate::add' to the configure
+    Finally, navigate to a layer in OpsWorks > Edit > Recipes > add &#8216;dnsupdate::add&#8217; to the configure
     event and save.
 </p>
 

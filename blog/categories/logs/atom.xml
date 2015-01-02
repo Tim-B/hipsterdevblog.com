@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Logs | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/logs/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2014-12-21T14:36:28+10:00</updated>
+  <updated>2015-01-02T11:55:47+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -42,7 +42,7 @@
 <p>Create the following files in your custom cookbooks repository, you can name the custom recipe anything you like but
  in this example I&rsquo;ve named it <code>myrecipe</code>.</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>myrecipe/recipes/logging.rb </span></figcaption>
+<p><figure class='code'><figcaption><span>myrecipe/recipes/logging.rb </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -83,9 +83,9 @@
 </span><span class='line'>  <span class="n">command</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">aws</span><span class="o">/</span><span class="n">cloudwatch</span><span class="o">/</span><span class="n">awslogs</span><span class="o">-</span><span class="n">agent</span><span class="o">-</span><span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">n</span> <span class="o">-</span><span class="n">r</span> <span class="n">us</span><span class="o">-</span><span class="n">east</span><span class="o">-</span><span class="mi">1</span> <span class="o">-</span><span class="n">c</span> <span class="sr">/tmp/</span><span class="n">cwlogs</span><span class="o">.</span><span class="n">cfg</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
 </span><span class='line'>  <span class="n">not_if</span> <span class="p">{</span> <span class="nb">system</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">pgrep</span> <span class="o">-</span><span class="n">f</span> <span class="n">aws</span><span class="o">-</span><span class="n">logs</span><span class="o">-</span><span class="n">agent</span><span class="o">-</span><span class="n">setup</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span> <span class="p">}</span>
 </span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>myrecipe/templates/default/cwlogs.cfg.erb </span></figcaption>
+<p><figure class='code'><figcaption><span>myrecipe/templates/default/cwlogs.cfg.erb </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -112,7 +112,7 @@
 </span><span class='line'><span class="x">log_group_name = &amp;lt;%= node[:opsworks][:stack][:name].gsub(&amp;lsquo; &amp;rsquo;,&amp;lsquo;_&amp;rsquo;) </span><span class="err">%&gt;</span><span class="x">-http-access</span>
 </span><span class='line'><span class="x">file = &amp;lt;%= node[:apache][:log_dir] </span><span class="err">%&gt;</span><span class="x">/*-access.log</span>
 </span><span class='line'><span class="x">log_stream_name = &amp;lt;%= node[:opsworks][:instance][:hostname] </span><span class="err">%&gt;</span><span class="x"></span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>The significant line is <code>file = &lt;%= node[:apache][:log_dir] %&gt;/*-access.log</code> which
  sets the log location to the Apache HTTP access logs.</p>
@@ -132,7 +132,7 @@
 
 <p>In this example we&rsquo;ll assume a PHP application, so create the following file in your custom cookbooks repository:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>mod_php5_apache2/templates/default/web_app.conf.erb </span></figcaption>
+<p><figure class='code'><figcaption><span>mod_php5_apache2/templates/default/web_app.conf.erb </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -255,56 +255,29 @@
 <span class='line-number'>120</span>
 <span class='line-number'>121</span>
 <span class='line-number'>122</span>
-<span class='line-number'>123</span>
-<span class='line-number'>124</span>
-<span class='line-number'>125</span>
-<span class='line-number'>126</span>
-<span class='line-number'>127</span>
-<span class='line-number'>128</span>
-<span class='line-number'>129</span>
-<span class='line-number'>130</span>
-<span class='line-number'>131</span>
-<span class='line-number'>132</span>
-<span class='line-number'>133</span>
-<span class='line-number'>134</span>
-<span class='line-number'>135</span>
-<span class='line-number'>136</span>
-<span class='line-number'>137</span>
-<span class='line-number'>138</span>
-<span class='line-number'>139</span>
-<span class='line-number'>140</span>
 </pre></td><td class='code'><pre><code class='erb'><span class='line'><span class="x">&lt;VirtualHost *:80&gt;</span>
 </span><span class='line'><span class="x">  ServerName &amp;lt;%= @params[:server_name] </span><span class="err">%&gt;</span><span class="x"></span>
-</span><span class='line'><span class="x">  &amp;lt;% if @params[:server_aliases] &amp;amp;&amp;amp; !@params[:server_aliases].empty? &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% if @params[:server_aliases] &amp;amp;&amp;amp; !@params[:server_aliases].empty? </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  ServerAlias &amp;lt;% @params[:server_aliases].each do |a| </span><span class="err">%&gt;</span><span class="x">&amp;lt;%= &amp;ldquo;#{a}&amp;rdquo; </span><span class="err">%&gt;</span><span class="x"> &amp;lt;% end </span><span class="err">%&gt;</span><span class="x"></span>
-</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% end </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  DocumentRoot &amp;lt;%= @params[:docroot] </span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory </span><span class="cp">&lt;%=</span> <span class="vi">@params</span><span class="o">[</span><span class="ss">:docroot</span><span class="o">]</span> <span class="cp">%&gt;</span><span class="x">&gt;&lt;/p&gt;</span>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory </span><span class="cp">&lt;%=</span> <span class="vi">@params</span><span class="o">[</span><span class="ss">:docroot</span><span class="o">]</span> <span class="cp">%&gt;</span><span class="x">&gt;</span>
+</span><span class='line'><span class="x">    Options FollowSymLinks</span>
+</span><span class='line'><span class="x">    AllowOverride All</span>
+</span><span class='line'><span class="x">    Order allow,deny</span>
+</span><span class='line'><span class="x">    Allow from all</span>
+</span><span class='line'><span class="x">  &lt;/Directory&gt;&lt;/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;Options FollowSymLinks</span>
-</span><span class='line'><span class="x">AllowOverride All</span>
-</span><span class='line'><span class="x">Order allow,deny</span>
-</span><span class='line'><span class="x">Allow from all</span>
-</span><span class='line'><span class="x">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory ~ &quot;\.svn&quot;&gt;</span>
+</span><span class='line'><span class="x">    Order allow,deny</span>
+</span><span class='line'><span class="x">    Deny from all</span>
+</span><span class='line'><span class="x">  &lt;/Directory&gt;&lt;/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="x">&lt;p&gt;  &lt;/Directory&gt;&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory ~ &quot;\.svn&quot;&gt;&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;Order allow,deny</span>
-</span><span class='line'><span class="x">Deny from all</span>
-</span><span class='line'><span class="x">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="x">&lt;p&gt;  &lt;/Directory&gt;&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory ~ &quot;\.git&quot;&gt;&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;Order allow,deny</span>
-</span><span class='line'><span class="x">Deny from all</span>
-</span><span class='line'><span class="x">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="x">&lt;p&gt;  &lt;/Directory&gt;&lt;/p&gt;</span>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory ~ &quot;\.git&quot;&gt;</span>
+</span><span class='line'><span class="x">    Order allow,deny</span>
+</span><span class='line'><span class="x">    Deny from all</span>
+</span><span class='line'><span class="x">  &lt;/Directory&gt;&lt;/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="x">&lt;p&gt;  LogFormat &amp;ldquo;%h %l %u %t \&amp;rdquo;%r\&amp;ldquo; </span><span class="err">%&gt;</span><span class="x">s %b \&amp;rdquo;%{Referer}i\&amp;ldquo; \&amp;rdquo;%{User-agent}i\&amp;ldquo; \&amp;rdquo;&amp;lt;%= @params[:name] </span><span class="err">%&gt;</span><span class="x">\&amp;ldquo;&amp;rdquo; combinedwithapp&lt;/p&gt;</span>
 </span><span class='line'>
@@ -316,71 +289,62 @@
 </span><span class='line'><span class="x">&lt;p&gt;  FileETag none&lt;/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="x">&lt;p&gt;  RewriteEngine On</span>
-</span><span class='line'><span class="x">  &amp;lt;% if node[:apache][:version] == &amp;lsquo;2.2&amp;rsquo; &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% if node[:apache][:version] == &amp;lsquo;2.2&amp;rsquo; </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  Include &amp;lt;%= @params[:rewrite_config] </span><span class="err">%&gt;</span><span class="x">&lt;em&gt;</span>
 </span><span class='line'><span class="x">  RewriteLog &amp;lt;%= node[:apache][:log_dir] </span><span class="err">%&gt;</span><span class="x">/&amp;lt;%= @application_name </span><span class="err">%&gt;</span><span class="x">-rewrite.log</span>
 </span><span class='line'><span class="x">  RewriteLogLevel 0</span>
-</span><span class='line'><span class="x">  &amp;lt;% else &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% else </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  IncludeOptional &amp;lt;%= @params[:rewrite_config] </span><span class="err">%&gt;</span><span class="x">&lt;/em&gt;</span>
-</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
+</span><span class='line'><span class="x">  &amp;lt;% end </span><span class="err">-%&gt;</span><span class="x">&lt;/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% @environment.each do |key, value| </span><span class="err">%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  SetEnv &amp;ldquo;&amp;lt;%= key </span><span class="err">%&gt;</span><span class="x">&amp;rdquo; &amp;ldquo;&amp;lt;%= value </span><span class="err">%&gt;</span><span class="x">&amp;rdquo;</span>
 </span><span class='line'><span class="x">  &amp;lt;% end </span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% if @params[:mounted_at] &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% if @params[:mounted_at] </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  AliasMatch ^&amp;lt;%= @params[:mounted_at] </span><span class="err">%&gt;</span><span class="x">/(.*)$ &amp;lt;%= @params[:docroot] </span><span class="err">%&gt;</span><span class="x">$1</span>
-</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
+</span><span class='line'><span class="x">  &amp;lt;% end </span><span class="err">-%&gt;</span><span class="x">&lt;/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% if node[:apache][:version] == &amp;lsquo;2.2&amp;rsquo; &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% if node[:apache][:version] == &amp;lsquo;2.2&amp;rsquo; </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  Include &amp;lt;%= @params[:local_config] </span><span class="err">%&gt;</span><span class="x">&lt;em&gt;</span>
-</span><span class='line'><span class="x">  &amp;lt;% else &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% else </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  IncludeOptional &amp;lt;%= @params[:local_config] </span><span class="err">%&gt;</span><span class="x">&lt;/em&gt;</span>
-</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% end </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">&lt;/VirtualHost&gt;&lt;/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="x">&lt;p&gt;&amp;lt;% if node[:deploy][@application_name][:ssl_support] &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">&lt;p&gt;&amp;lt;% if node[:deploy][@application_name][:ssl_support] </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">&lt;VirtualHost *:443&gt;</span>
 </span><span class='line'><span class="x">  ServerName &amp;lt;%= @params[:server_name] </span><span class="err">%&gt;</span><span class="x"></span>
-</span><span class='line'><span class="x">  &amp;lt;% if @params[:server_aliases] &amp;amp;&amp;amp; !@params[:server_aliases].empty? &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% if @params[:server_aliases] &amp;amp;&amp;amp; !@params[:server_aliases].empty? </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  ServerAlias &amp;lt;% @params[:server_aliases].each do |a| </span><span class="err">%&gt;</span><span class="x">&amp;lt;%= &amp;ldquo;#{a}&amp;rdquo; </span><span class="err">%&gt;</span><span class="x"> &amp;lt;% end </span><span class="err">%&gt;</span><span class="x"></span>
-</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% end </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  DocumentRoot &amp;lt;%= @params[:docroot] </span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="x">&lt;p&gt;  SSLEngine on</span>
 </span><span class='line'><span class="x">  SSLProxyEngine on</span>
 </span><span class='line'><span class="x">  SSLCertificateFile &amp;lt;%= node[:apache][:dir] </span><span class="err">%&gt;</span><span class="x">/ssl/&amp;lt;%= @params[:server_name] </span><span class="err">%&gt;</span><span class="x">.crt</span>
 </span><span class='line'><span class="x">  SSLCertificateKeyFile &amp;lt;%= node[:apache][:dir] </span><span class="err">%&gt;</span><span class="x">/ssl/&amp;lt;%= @params[:server_name] </span><span class="err">%&gt;</span><span class="x">.key</span>
-</span><span class='line'><span class="x">  &amp;lt;% if @params[:ssl_certificate_ca] &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% if @params[:ssl_certificate_ca] </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  SSLCACertificateFile &amp;lt;%= node[:apache][:dir] </span><span class="err">%&gt;</span><span class="x">/ssl/&amp;lt;%= @params[:server_name] </span><span class="err">%&gt;</span><span class="x">.ca</span>
-</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% end </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  SetEnvIf User-Agent &amp;ldquo;.&lt;em&gt;MSIE.&lt;/em&gt;&amp;rdquo; nokeepalive ssl-unclean-shutdown downgrade-1.0 force-response-1.0&lt;/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory </span><span class="cp">&lt;%=</span> <span class="vi">@params</span><span class="o">[</span><span class="ss">:docroot</span><span class="o">]</span> <span class="cp">%&gt;</span><span class="x">&gt;&lt;/p&gt;</span>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory </span><span class="cp">&lt;%=</span> <span class="vi">@params</span><span class="o">[</span><span class="ss">:docroot</span><span class="o">]</span> <span class="cp">%&gt;</span><span class="x">&gt;</span>
+</span><span class='line'><span class="x">    Options FollowSymLinks</span>
+</span><span class='line'><span class="x">    AllowOverride All</span>
+</span><span class='line'><span class="x">    Order allow,deny</span>
+</span><span class='line'><span class="x">    Allow from all</span>
+</span><span class='line'><span class="x">  &lt;/Directory&gt;&lt;/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;Options FollowSymLinks</span>
-</span><span class='line'><span class="x">AllowOverride All</span>
-</span><span class='line'><span class="x">Order allow,deny</span>
-</span><span class='line'><span class="x">Allow from all</span>
-</span><span class='line'><span class="x">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory ~ &quot;\.svn&quot;&gt;</span>
+</span><span class='line'><span class="x">    Order allow,deny</span>
+</span><span class='line'><span class="x">    Deny from all</span>
+</span><span class='line'><span class="x">  &lt;/Directory&gt;&lt;/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="x">&lt;p&gt;  &lt;/Directory&gt;&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory ~ &quot;\.svn&quot;&gt;&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;Order allow,deny</span>
-</span><span class='line'><span class="x">Deny from all</span>
-</span><span class='line'><span class="x">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="x">&lt;p&gt;  &lt;/Directory&gt;&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory ~ &quot;\.git&quot;&gt;&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;Order allow,deny</span>
-</span><span class='line'><span class="x">Deny from all</span>
-</span><span class='line'><span class="x">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="x">&lt;p&gt;  &lt;/Directory&gt;&lt;/p&gt;</span>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;Directory ~ &quot;\.git&quot;&gt;</span>
+</span><span class='line'><span class="x">    Order allow,deny</span>
+</span><span class='line'><span class="x">    Deny from all</span>
+</span><span class='line'><span class="x">  &lt;/Directory&gt;&lt;/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="x">&lt;p&gt;  LogLevel &amp;lt;%= node[:apache][:log_level] </span><span class="err">%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  ErrorLog &amp;lt;%= node[:apache][:log_dir] </span><span class="err">%&gt;</span><span class="x">/&amp;lt;%= @params[:name] </span><span class="err">%&gt;</span><span class="x">-error.log</span>
@@ -390,30 +354,30 @@
 </span><span class='line'><span class="x">&lt;p&gt;  FileETag none&lt;/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="x">&lt;p&gt;  RewriteEngine On</span>
-</span><span class='line'><span class="x">  &amp;lt;% if node[:apache][:version] == &amp;lsquo;2.2&amp;rsquo; &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% if node[:apache][:version] == &amp;lsquo;2.2&amp;rsquo; </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  Include &amp;lt;%= @params[:rewrite_config] </span><span class="err">%&gt;</span><span class="x">-ssl&lt;em&gt;</span>
 </span><span class='line'><span class="x">  RewriteLog &amp;lt;%= node[:apache][:log_dir] </span><span class="err">%&gt;</span><span class="x">/&amp;lt;%= @application_name </span><span class="err">%&gt;</span><span class="x">-rewrite.log</span>
 </span><span class='line'><span class="x">  RewriteLogLevel 0</span>
-</span><span class='line'><span class="x">  &amp;lt;% else &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% else </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  IncludeOptional &amp;lt;%= @params[:rewrite_config] </span><span class="err">%&gt;</span><span class="x">-ssl&lt;/em&gt;</span>
-</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
+</span><span class='line'><span class="x">  &amp;lt;% end </span><span class="err">-%&gt;</span><span class="x">&lt;/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% @environment.each do |key, value| </span><span class="err">%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  SetEnv &amp;ldquo;&amp;lt;%= key </span><span class="err">%&gt;</span><span class="x">&amp;rdquo; &amp;ldquo;&amp;lt;%= value </span><span class="err">%&gt;</span><span class="x">&amp;rdquo;</span>
 </span><span class='line'><span class="x">  &amp;lt;% end </span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% if @params[:mounted_at] &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% if @params[:mounted_at] </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  AliasMatch ^&amp;lt;%= @params[:mounted_at] </span><span class="err">%&gt;</span><span class="x">/(.*)$ &amp;lt;%= @params[:docroot] </span><span class="err">%&gt;</span><span class="x">$1</span>
-</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
+</span><span class='line'><span class="x">  &amp;lt;% end </span><span class="err">-%&gt;</span><span class="x">&lt;/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% if node[:apache][:version] == &amp;lsquo;2.2&amp;rsquo; &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% if node[:apache][:version] == &amp;lsquo;2.2&amp;rsquo; </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  Include &amp;lt;%= @params[:local_config] </span><span class="err">%&gt;</span><span class="x">-ssl&lt;em&gt;</span>
-</span><span class='line'><span class="x">  &amp;lt;% else &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% else </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  IncludeOptional &amp;lt;%= @params[:local_config] </span><span class="err">%&gt;</span><span class="x">-ssl&lt;/em&gt;</span>
-</span><span class='line'><span class="x">  &amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;% end </span><span class="err">-%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">&lt;/VirtualHost&gt;</span>
-</span><span class='line'><span class="x">&amp;lt;% end &amp;ndash;</span><span class="err">%&gt;</span><span class="x"></span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span><span class='line'><span class="x">&amp;lt;% end </span><span class="err">-%&gt;</span><span class="x"></span>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>This configuration is based on the <a href="https://github.com/aws/opsworks-cookbooks/blob/release-chef-11.10/mod_php5_apache2/templates/default/web_app.conf.erb">default template</a> so
  it may be best to start with the latest template file on GitHub.</p>

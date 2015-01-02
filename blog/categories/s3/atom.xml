@@ -4,7 +4,7 @@
   <title><![CDATA[Category: S3 | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/s3/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2014-12-21T14:36:28+10:00</updated>
+  <updated>2015-01-02T11:55:47+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -19,8 +19,8 @@
     <updated>2014-06-22T19:14:44+10:00</updated>
     <id>http://hipsterdevblog.com/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules</id>
     <content type="html"><![CDATA[<p>
-    In a system dealing with user generated images it's common to have to resize images before they can be served to the web.
-    Storing and serving large quantities of user generated images can also be a challenge – that is unless you're using
+    In a system dealing with user generated images it&#8217;s common to have to resize images before they can be served to the web.
+    Storing and serving large quantities of user generated images can also be a challenge – that is unless you&#8217;re using
     AWS S3. A typical implementation using S3 to store and serve images requires images to be resized into every required
     size and saved to S3 upon being uploaded. An unfortunate limitation of this technique is that you must know all
      required sizes at the time the image is uploaded – something that may not be constant, consistent or known in some
@@ -29,9 +29,9 @@
 
 
 <p>
-     One solution is to automatically resize images the first time they're requested
+     One solution is to automatically resize images the first time they&#8217;re requested
      using dimensions provided in the image URL, this way the application requesting the image can choose an appropriate
-     size. While S3 doesn't provide functionality to transparently proxy image misses to your image processor, it is
+     size. While S3 doesn&#8217;t provide functionality to transparently proxy image misses to your image processor, it is
      possible to use S3 <a target="_blank" href="http://docs.aws.amazon.com/AmazonS3/latest/dev/HowDoIWebsiteConfiguration.html">S3
      routing rules</a> to achieve a similar function.
 </p>
@@ -44,9 +44,9 @@
 
 
 <p>
-    Using routing rules it's possible to return a 302 redirect whenever a 404 error occurs, this 302 redirect can then
+    Using routing rules it&#8217;s possible to return a 302 redirect whenever a 404 error occurs, this 302 redirect can then
     take the user to your EC2 instance which resizes the image, serves it to them then saves the resized copy back to
-     the original bucket so future visitors won't be redirected.
+     the original bucket so future visitors won&#8217;t be redirected.
 </p>
 
 
@@ -56,7 +56,7 @@
 
 
 <p>
-    First, it's assumed that you have a bucket setup to serve its content publicly on one domain and your processing
+    First, it&#8217;s assumed that you have a bucket setup to serve its content publicly on one domain and your processing
     server on another. Both domains must use the same URL structure for images aside from the host name, so for example
      <code>images.domain.com/widgets/myimage_600_400.jpg</code> and <code>process.domain.com/widgets/myimage_600_400.jpg</code>
      should both work (assuming <code>images.mydomain.com</code> is the bucket and <code>process.mydomain.com</code> is the processor).
@@ -72,11 +72,11 @@
 
 <p>
     Next – go to the bucket in the S3 console, go to the bucket properties and enter the following routing rules
-    in the 'Enable website hosting' accordion menu:
+    in the &#8216;Enable website hosting&#8217; accordion menu:
 </p>
 
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Routing rules </span></figcaption>
+<p><figure class='code'><figcaption><span>Routing rules </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -90,26 +90,20 @@
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
 <span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;RoutingRules&gt;&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nt">&lt;pre&gt;&lt;code&gt;</span><span class="ni">&amp;lt;</span>RoutingRule<span class="ni">&amp;gt;</span>
-</span><span class='line'>    <span class="ni">&amp;lt;</span>Condition<span class="ni">&amp;gt;</span>
-</span><span class='line'>        <span class="ni">&amp;lt;</span>HttpErrorCodeReturnedEquals<span class="ni">&amp;gt;</span>404<span class="ni">&amp;lt;</span>/HttpErrorCodeReturnedEquals<span class="ni">&amp;gt;</span>
-</span><span class='line'>    <span class="ni">&amp;lt;</span>/Condition<span class="ni">&amp;gt;</span>
-</span><span class='line'>    <span class="ni">&amp;lt;</span>Redirect<span class="ni">&amp;gt;</span>
-</span><span class='line'>        <span class="ni">&amp;lt;</span>HostName<span class="ni">&amp;gt;</span>process.domain.com<span class="ni">&amp;lt;</span>/HostName<span class="ni">&amp;gt;</span>
-</span><span class='line'>        <span class="ni">&amp;lt;</span>HttpRedirectCode<span class="ni">&amp;gt;</span>302<span class="ni">&amp;lt;</span>/HttpRedirectCode<span class="ni">&amp;gt;</span>
-</span><span class='line'>    <span class="ni">&amp;lt;</span>/Redirect<span class="ni">&amp;gt;</span>
-</span><span class='line'><span class="ni">&amp;lt;</span>/RoutingRule<span class="ni">&amp;gt;</span>
-</span><span class='line'><span class="nt">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nt">&lt;p&gt;&lt;/RoutingRules&gt;&lt;/p&gt;</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;RoutingRules&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;RoutingRule&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;Condition&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;HttpErrorCodeReturnedEquals&gt;</span>404<span class="nt">&lt;/HttpErrorCodeReturnedEquals&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/Condition&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;Redirect&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;HostName&gt;</span>process.domain.com<span class="nt">&lt;/HostName&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;HttpRedirectCode&gt;</span>302<span class="nt">&lt;/HttpRedirectCode&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/Redirect&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/RoutingRule&gt;</span>
+</span><span class='line'><span class="nt">&lt;/RoutingRules&gt;&lt;/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="nt">&lt;p&gt;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div>
+</span></code></pre></td></tr></table></div></figure>
 <img src="/images/posts/s3_lazy_process/bucket_config.png"></p>
 
 <p>
@@ -121,9 +115,9 @@
 
 
 <p>
-    S3 is a reasonably effective CDN (in the sense that it offloads serving images), but it's not geographically
-    distributed and if you're serving images to visitors across the globe you may wish to also implement CloudFront.
-    Unfortunately you can't simply setup CloudFront to use the <code>images.mydomain.com</code> bucket as an origin because
+    S3 is a reasonably effective CDN (in the sense that it offloads serving images), but it&#8217;s not geographically
+    distributed and if you&#8217;re serving images to visitors across the globe you may wish to also implement CloudFront.
+    Unfortunately you can&#8217;t simply setup CloudFront to use the <code>images.mydomain.com</code> bucket as an origin because
      CloudFront will cache the 302 redirects for a minimum of 60 minutes – meaning your image processor might process the same image many times.
 </p>
 
@@ -134,7 +128,7 @@
      a request will pass through the first CloudFront distribution, the S3 bucket, the second CloudFront distribution
      and then hit the processor. The second request from that same region should then hit the second CloudFront distribution
      as will every other request from this region until the 302 redirect expires.
-     Users making requests from other regions after the first request won't have the 302 redirect in the cache for their region
+     Users making requests from other regions after the first request won&#8217;t have the 302 redirect in the cache for their region
      so they should hit the file in the S3 bucket which will then get cached in their region.
 </p>
 
@@ -143,15 +137,15 @@
 
 
 <p>
-    While this approach is certainly effective in some scenarios it's not exactly <em>elegant</em>.
+    While this approach is certainly effective in some scenarios it&#8217;s not exactly <em>elegant</em>.
     Be sure to first consider whether CloudFront alone or
-    resizing images in advance would work better in your situation. It's also worth keeping in mind that all genuine
-    404 requests (that is for images which don't exist at all) will get passed to your server and won't be offloaded to S3.
+    resizing images in advance would work better in your situation. It&#8217;s also worth keeping in mind that all genuine
+    404 requests (that is for images which don&#8217;t exist at all) will get passed to your server and won&#8217;t be offloaded to S3.
 </p>
 
 
 <p>
-    Be careful when lazy processing images in general – if you don't implement some form of rate limiting you may
+    Be careful when lazy processing images in general – if you don&#8217;t implement some form of rate limiting you may
       end up being vulnerable to a Denial of Service attack if someone were to try and request thousands of images in
       different sizes.
 </p>
@@ -165,7 +159,7 @@
     <updated>2014-06-22T17:44:02+10:00</updated>
     <id>http://hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks</id>
     <content type="html"><![CDATA[<p>
-    Say you wanted to manage some configuration file in your OpsWorks stack – typically you'd create a custom Chef recipe,
+    Say you wanted to manage some configuration file in your OpsWorks stack – typically you&#8217;d create a custom Chef recipe,
     make your configuration file a template and store it within your custom cookbook repository. This approach works well
     in most instances, but what if the file is something not suited to version control such as a large binary file or
     perhaps a programmatically generated artifact of your system?
@@ -188,48 +182,48 @@
 
 
 <p>
-    The first thing you'll need to do is add the OpsCode <a target="_blank" href="http://community.opscode.com/cookbooks/aws">AWS
+    The first thing you&#8217;ll need to do is add the OpsCode <a target="_blank" href="http://community.opscode.com/cookbooks/aws">AWS
     cookbook</a> to your Berkfile. Note that Berkshelf is only supported on Chef 11.10 or higher on OpsWorks, so if your
-    OpsWorks stack has an older version selected you'll have to either upgrade or include the whole AWS cookbook in your
+    OpsWorks stack has an older version selected you&#8217;ll have to either upgrade or include the whole AWS cookbook in your
     custom cookbook repository.
 </p>
 
 
 <p>
-    If you don't already have a Berkfile you'll need to create one in your custom cookbook repository, otherwise simply
+    If you don&#8217;t already have a Berkfile you&#8217;ll need to create one in your custom cookbook repository, otherwise simply
     add the AWS cookbook. Your Berkfile should look something like this:
 </p>
 
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Berksfile </span></figcaption>
+<p><figure class='code'><figcaption><span>Berksfile </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">source</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;https://api.berkshelf.com&quot;</span><span class="o">&gt;</span><span class="ss">https</span><span class="p">:</span><span class="sr">//</span><span class="n">api</span><span class="o">.</span><span class="n">berkshelf</span><span class="o">.</span><span class="n">com</span><span class="o">&lt;</span><span class="sr">/a&gt;&amp;rdquo;&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="n">cookbook</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">aws</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;,</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&gt;=</span> <span class="mi">2</span><span class="o">.</span><span class="mi">2</span><span class="o">.</span><span class="mi">2</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <h2>Creating an S3 bucket and a user which can access it</h2>
 
 
 <p>
-    You can probably figure out how to create a bucket on your own. In my case I have a bucket called 'test-site-config'
-    and a file in there called 'vhost.map' which I want to download via Chef.
+    You can probably figure out how to create a bucket on your own. In my case I have a bucket called &#8216;test-site-config&#8217;
+    and a file in there called &#8216;vhost.map&#8217; which I want to download via Chef.
 </p>
 
 
 <p> <img src="/images/posts/s3_chef_opsworks/bucket.png"></p>
 
 <p>
-    Next you'll need some AWS credentials for Chef to use while downloading the file. You can use your root account
-    but I'd strongly suggest using an IAM user limited to your bucket instead. If you create a new IAM user you can
+    Next you&#8217;ll need some AWS credentials for Chef to use while downloading the file. You can use your root account
+    but I&#8217;d strongly suggest using an IAM user limited to your bucket instead. If you create a new IAM user you can
     use the following policy which will only permit reading objects from the specified S3 bucket (obviously replace
-    'test-site-config' with your own bucket name:
+    &#8216;test-site-config&#8217; with your own bucket name:
 </p>
 
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>IAM policy </span></figcaption>
+<p><figure class='code'><figcaption><span>IAM policy </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -245,40 +239,34 @@
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
 </pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
 </span><span class='line'>  <span class="err">&amp;ldquo;Version&amp;rdquo;:</span> <span class="err">&amp;ldquo;2012-10-17&amp;rdquo;,</span>
-</span><span class='line'>  <span class="err">&amp;ldquo;Statement&amp;rdquo;:</span> <span class="err">[&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;pre&gt;&lt;code&gt;{</span>
-</span><span class='line'>  <span class="nt">&quot;Sid&quot;</span><span class="p">:</span> <span class="s2">&quot;Stmt1403407152000&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="nt">&quot;Effect&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="nt">&quot;Action&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span class='line'>    <span class="s2">&quot;s3:GetObject&quot;</span>
-</span><span class='line'>  <span class="p">],</span>
-</span><span class='line'>  <span class="nt">&quot;Resource&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span class='line'>    <span class="s2">&quot;arn:aws:s3:::test-site-config/*&quot;</span>
-</span><span class='line'>  <span class="p">]</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="err">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;</span>  <span class="err">]</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;Statement&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>    <span class="err">{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Sid&amp;rdquo;:</span> <span class="err">&amp;ldquo;Stmt1403407152000&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Effect&amp;rdquo;:</span> <span class="err">&amp;ldquo;Allow&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Action&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;s3:GetObject&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">],</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Resource&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;arn:aws:s3:::test-site-config/*&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">]</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="err">]</span>
 </span><span class='line'><span class="err">}</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <h2>Passing AWS credentials via custom JSON</h2>
 
 
 <p>
-    Now navigate to your stack in the OpsWorks console, click 'Stack Settings' then 'Edit' and modify the Custom JSON
-    field to include variables for your access and secret key. If you already have custom JSON values then you'll
+    Now navigate to your stack in the OpsWorks console, click &#8216;Stack Settings&#8217; then &#8216;Edit&#8217; and modify the Custom JSON
+    field to include variables for your access and secret key. If you already have custom JSON values then you&#8217;ll
     need to merge the new values with your existing JSON, otherwise you can use the code below:
 </p>
 
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Custom JSON </span></figcaption>
+<p><figure class='code'><figcaption><span>Custom JSON </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -287,14 +275,14 @@
 </span><span class='line'>  <span class="err">&amp;ldquo;custom_access_key&amp;rdquo;:</span> <span class="err">&amp;ldquo;&lt;insert</span> <span class="err">access</span> <span class="err">key&gt;&amp;rdquo;,</span>
 </span><span class='line'>  <span class="err">&amp;ldquo;custom_secret_key&amp;rdquo;:</span> <span class="err">&amp;ldquo;&lt;insert</span> <span class="err">secret</span> <span class="err">key&gt;&amp;rdquo;</span>
 </span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div>
+</span></code></pre></td></tr></table></div></figure>
 <img src="/images/posts/s3_chef_opsworks/edit_stack.png"></p>
 
 <h2>Creating your custom recipe</h2>
 
 
 <p>
-    In this instance I'll create a new recipe called 'deployfile' which does nothing but download my file and save it to the specified
+    In this instance I&#8217;ll create a new recipe called &#8216;deployfile&#8217; which does nothing but download my file and save it to the specified
     location, however you could just as easily include this code within an existing recipe.
 </p>
 
@@ -304,13 +292,13 @@
 </p>
 
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>File Structure </span></figcaption>
+<p><figure class='code'><figcaption><span>File Structure </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>deployfile/metadata.rb
-</span><span class='line'>deployfile/recipes/default.rb</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span><span class='line'>deployfile/recipes/default.rb</span></code></pre></td></tr></table></div></figure></p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>metadata.rb </span></figcaption>
+<p><figure class='code'><figcaption><span>metadata.rb </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -325,9 +313,9 @@
 </span><span class='line'><span class="n">version</span>     <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="mi">1</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="sr">&lt;p&gt;depends &amp;ldquo;aws&amp;rdquo;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>recipes/default.rb </span></figcaption>
+<p><figure class='code'><figcaption><span>recipes/default.rb </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -344,7 +332,7 @@
 </span><span class='line'>  <span class="n">aws_access_key_id</span> <span class="n">node</span><span class="o">[</span><span class="ss">:custom_access_key</span><span class="o">]</span>
 </span><span class='line'>  <span class="n">aws_secret_access_key</span> <span class="n">node</span><span class="o">[</span><span class="ss">:custom_secret_key</span><span class="o">]</span>
 </span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>
     Substitute <code>/etc/apache2/vhost.map</code> with the destination on your nodes, the bucket name and the remote
@@ -358,18 +346,18 @@
 <h2>Updating stack and executing recipe</h2>
 
 
-<p>Once the code above has been committed and pushed back to your repository you're finally ready to execute the recipe.</p>
+<p>Once the code above has been committed and pushed back to your repository you&#8217;re finally ready to execute the recipe.</p>
 
 
 
 
-<p>Go to your stack and click 'Run Command', select 'Update Custom Cookbooks':</p>
+<p>Go to your stack and click &#8216;Run Command&#8217;, select &#8216;Update Custom Cookbooks&#8217;:</p>
 
 
 <p><img src="/images/posts/s3_chef_opsworks/update_cookbook.png"></p>
 
-<p>Once OpsWorks has finished updating your custom cookbooks go back to 'Run Command' and select 'Execute Recipes'.
-Enter the name of your recipe into the 'Recipes to execute' field:</p>
+<p>Once OpsWorks has finished updating your custom cookbooks go back to &#8216;Run Command&#8217; and select &#8216;Execute Recipes&#8217;.
+Enter the name of your recipe into the &#8216;Recipes to execute&#8217; field:</p>
 
 
 <p><img src="/images/posts/s3_chef_opsworks/deploy_file.png"></p>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Integrating Opsworks and Codedeploy | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/integrating-opsworks-and-codedeploy/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2014-12-21T14:36:28+10:00</updated>
+  <updated>2015-01-02T11:55:47+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -32,37 +32,29 @@
 
 <p>For the purposes of this example the package will contain two files:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>File Structure </span></figcaption>
+<p><figure class='code'><figcaption><span>File Structure </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>appspec.yml
-</span><span class='line'>app/index.php</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span><span class='line'>app/index.php</span></code></pre></td></tr></table></div></figure></p>
 
 <p>The <a href="http://docs.aws.amazon.com/codedeploy/latest/userguide/app-spec-ref.html">AppSpec</a> specifies that the contents of the
  App directory should be copied to the location of the placeholder OpsWorks deployment.</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>appspec.yml </span></figcaption>
+<p><figure class='code'><figcaption><span>appspec.yml </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
 </pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">version</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">0.0</span>
 </span><span class='line'><span class="l-Scalar-Plain">os</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">linux</span>
 </span><span class='line'><span class="l-Scalar-Plain">files</span><span class="p-Indicator">:</span>
-</span><span class='line'>   <span class="nl">&amp;ndash</span><span class="l-Scalar-Plain">; source</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">app&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="l-Scalar-Plain">&lt;pre&gt;&lt;code&gt; destination</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/srv/www/my_app/public</span>
-</span><span class='line'><span class="l-Scalar-Plain">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="l-Scalar-Plain">&lt;p&gt;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span><span class='line'>   <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">source</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">app</span>
+</span><span class='line'>     <span class="l-Scalar-Plain">destination</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/srv/www/my_app/public</span>
+</span></code></pre></td></tr></table></div></figure></p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>app/index.php </span></figcaption>
+<p><figure class='code'><figcaption><span>app/index.php </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -75,7 +67,7 @@
 </span><span class='line'>
 </span><span class='line'>
 </span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>Zip this up and upload it to your S3 bucket where you&rsquo;ll store your deployment packages.</p>
 
@@ -112,7 +104,7 @@
 
 <p><img src="/images/posts/opsworks_codedeploy/complete.png"></p>
 
-<h2>Caveats &ndash; Launching a new instance</h2>
+<h2>Caveats - Launching a new instance</h2>
 
 <p>Unfortunately it seems CodeDeploy currently only supports automatic deployments for new instances when they&rsquo;re in
  an autoscaling group. OpsWorks only supports its own load and time based instance functionality rather than
@@ -127,9 +119,9 @@
 <h2>Integrating OpsWorks and CodeDeploy</h2>
 
 <ul>
-<li><a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Part 1</a> &ndash; Introduction and getting started.</li>
-<li><a href="/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/">Part 2</a> &ndash; OpsWorks configuration and recipes.</li>
-<li><a href="/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/">Part 3</a> &ndash; Deployment and results.</li>
+<li><a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Part 1</a> - Introduction and getting started.</li>
+<li><a href="/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/">Part 2</a> - OpsWorks configuration and recipes.</li>
+<li><a href="/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/">Part 3</a> - Deployment and results.</li>
 </ul>
 
 ]]></content>
@@ -154,7 +146,7 @@
 
 <p>Checkout your cookbooks repository and create the following files:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>File Structure </span></figcaption>
+<p><figure class='code'><figcaption><span>File Structure </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -164,29 +156,29 @@
 </span><span class='line'>myrecipe/metadata.rb
 </span><span class='line'>myrecipe/recipes/agent-install.rb
 </span><span class='line'>myrecipe/recipes/vhost.rb
-</span><span class='line'>myrecipe/templates/default/myapp_vhost.erb</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span><span class='line'>myrecipe/templates/default/myapp_vhost.erb</span></code></pre></td></tr></table></div></figure></p>
 
 <p>Populate these files with the following:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Berksfile </span></figcaption>
+<p><figure class='code'><figcaption><span>Berksfile </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">source</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;https://supermarket.getchef.com&quot;</span><span class="o">&gt;</span><span class="ss">https</span><span class="p">:</span><span class="sr">//su</span><span class="n">permarket</span><span class="o">.</span><span class="n">getchef</span><span class="o">.</span><span class="n">com</span><span class="o">&lt;</span><span class="sr">/a&gt;&amp;rdquo;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>(We won&rsquo;t be using <a href="http://docs.aws.amazon.com/opsworks/latest/userguide/cookbooks-101-opsworks-berkshelf.html">Berkshelf</a>
  in this tutorial, however you&rsquo;ll probably want to create this file any way if you&rsquo;re planning to extend this tutorial
   with your own configuration)</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>myrecipe/metadata.rb </span></figcaption>
+<p><figure class='code'><figcaption><span>myrecipe/metadata.rb </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">name</span>    <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">myrecipe</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
 </span><span class='line'><span class="n">recipe</span>  <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">myrecipe</span><span class="o">::</span><span class="n">agent</span><span class="o">-</span><span class="n">install</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;,</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="no">Fetches</span><span class="p">,</span> <span class="n">installs</span><span class="p">,</span> <span class="ow">and</span> <span class="n">starts</span> <span class="n">the</span> <span class="no">AWS</span> <span class="no">CodeDeploy</span> <span class="n">host</span> <span class="n">agent</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>This is the code which downloads, installs and starts the CodeDeploy agent service:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>myrecipe/recipes/agent-install.rb </span></figcaption>
+<p><figure class='code'><figcaption><span>myrecipe/recipes/agent-install.rb </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -202,38 +194,26 @@
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">remote_file</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="c1">#{Chef::Config[:file_cache_path]}/codedeploy-install.sh&amp;rdquo; do&lt;/p&gt;</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">remote_file</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="c1">#{Chef::Config[:file_cache_path]}/codedeploy-install.sh&amp;rdquo; do</span>
+</span><span class='line'>    <span class="n">source</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;https://s3.amazonaws.com/aws-codedeploy-us-east-1/latest/install&quot;</span><span class="o">&gt;</span><span class="ss">https</span><span class="p">:</span><span class="sr">//s</span><span class="mi">3</span><span class="o">.</span><span class="n">amazonaws</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">aws</span><span class="o">-</span><span class="n">codedeploy</span><span class="o">-</span><span class="n">us</span><span class="o">-</span><span class="n">east</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="n">latest</span><span class="o">/</span><span class="n">install</span><span class="o">&lt;</span><span class="sr">/a&gt;&amp;rdquo;</span>
+</span><span class='line'><span class="sr">    mode &amp;ldquo;0744&amp;rdquo;</span>
+</span><span class='line'><span class="sr">    owner &amp;ldquo;root&amp;rdquo;</span>
+</span><span class='line'><span class="sr">    group &amp;ldquo;root&amp;rdquo;</span>
+</span><span class='line'><span class="sr">end&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">source</span> <span class="s2">&quot;https://s3.amazonaws.com/aws-codedeploy-us-east-1/latest/install&quot;</span>
-</span><span class='line'><span class="n">mode</span> <span class="s2">&quot;0744&quot;</span>
-</span><span class='line'><span class="n">owner</span> <span class="s2">&quot;root&quot;</span>
-</span><span class='line'><span class="n">group</span> <span class="s2">&quot;root&quot;</span>
-</span><span class='line'><span class="o">&lt;</span><span class="sr">/code&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sr">&lt;p&gt;execute &amp;ldquo;install_codedeploy_agent&amp;rdquo; do</span>
-</span><span class='line'><span class="sr">  command &amp;ldquo;</span><span class="si">#{</span><span class="no">Chef</span><span class="o">::</span><span class="no">Config</span><span class="o">[</span><span class="ss">:file_cache_path</span><span class="o">]</span><span class="si">}</span><span class="sr">/</span><span class="n">codedeploy</span><span class="o">-</span><span class="n">install</span><span class="o">.</span><span class="n">sh</span> <span class="n">auto</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="n">execute</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">install_codedeploy_agent</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">command</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="c1">#{Chef::Config[:file_cache_path]}/codedeploy-install.sh auto&amp;rdquo;</span>
 </span><span class='line'>  <span class="n">user</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
 </span><span class='line'><span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="sr">&lt;p&gt;service &amp;ldquo;codedeploy-agent&amp;rdquo; do&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">action</span> <span class="o">[</span><span class="ss">:enable</span><span class="p">,</span> <span class="ss">:start</span><span class="o">]</span>
-</span><span class='line'><span class="o">&lt;</span><span class="sr">/code&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span><span class='line'><span class="sr">&lt;p&gt;service &amp;ldquo;codedeploy-agent&amp;rdquo; do</span>
+</span><span class='line'><span class="sr">    action [:enable, :start]</span>
+</span><span class='line'><span class="sr">end</span>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>This code creates a directory for the CodeDeploy to deploy to, creates the vhost and enables it.</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>myrecipe/recipes/vhost.rb </span></figcaption>
+<p><figure class='code'><figcaption><span>myrecipe/recipes/vhost.rb </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -257,45 +237,33 @@
 <span class='line-number'>21</span>
 <span class='line-number'>22</span>
 <span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">directory</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="o">/</span><span class="n">srv</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">my_app</span><span class="o">/</span><span class="kp">public</span><span class="o">/&amp;</span><span class="n">rsquo</span><span class="p">;</span> <span class="k">do</span>
 </span><span class='line'>  <span class="n">owner</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">deploy</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
 </span><span class='line'>  <span class="n">group</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">www</span><span class="o">-</span><span class="n">data</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
 </span><span class='line'>  <span class="n">recursive</span> <span class="kp">true</span>
 </span><span class='line'><span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="sr">&lt;p&gt;directory &amp;lsquo;/e</span><span class="n">tc</span><span class="o">/</span><span class="n">apache2</span><span class="o">/</span><span class="n">sites</span><span class="o">-</span><span class="n">available</span><span class="o">/</span><span class="n">my_app</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">d</span><span class="o">/&amp;</span><span class="n">rsquo</span><span class="p">;</span> <span class="k">do</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'><span class="sr">&lt;p&gt;directory &amp;lsquo;/e</span><span class="n">tc</span><span class="o">/</span><span class="n">apache2</span><span class="o">/</span><span class="n">sites</span><span class="o">-</span><span class="n">available</span><span class="o">/</span><span class="n">my_app</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">d</span><span class="o">/&amp;</span><span class="n">rsquo</span><span class="p">;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">owner</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">group</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">mode</span> <span class="mo">0644</span>
+</span><span class='line'>    <span class="n">recursive</span> <span class="kp">true</span>
+</span><span class='line'><span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="sr">&lt;pre&gt;&lt;code&gt;owner &#39;root&#39;</span>
-</span><span class='line'><span class="sr">group &#39;root&#39;</span>
-</span><span class='line'><span class="sr">mode 0644</span>
-</span><span class='line'><span class="sr">recursive true</span>
-</span><span class='line'><span class="sr">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;</span><span class="sr">/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sr">&lt;p&gt;end&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="n">template</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">myapp_vhost</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span> <span class="k">do</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sr">&lt;pre&gt;&lt;code&gt;path  &#39;/e</span><span class="n">tc</span><span class="o">/</span><span class="n">apache2</span><span class="o">/</span><span class="n">sites</span><span class="o">-</span><span class="n">available</span><span class="o">/</span><span class="n">my_app</span><span class="o">.</span><span class="n">conf</span><span class="s1">&#39;</span>
-</span><span class='line'><span class="s1">owner &#39;</span><span class="n">root</span><span class="s1">&#39;</span>
-</span><span class='line'><span class="s1">group &#39;</span><span class="n">root</span><span class="err">&#39;</span>
-</span><span class='line'><span class="n">mode</span> <span class="mo">0644</span>
-</span><span class='line'><span class="o">&lt;</span><span class="sr">/code&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'><span class="sr">&lt;p&gt;template &amp;lsquo;myapp_vhost&amp;rsquo; do</span>
+</span><span class='line'><span class="sr">    path  &amp;lsquo;/e</span><span class="n">tc</span><span class="o">/</span><span class="n">apache2</span><span class="o">/</span><span class="n">sites</span><span class="o">-</span><span class="n">available</span><span class="o">/</span><span class="n">my_app</span><span class="o">.</span><span class="n">conf</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">owner</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">group</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">mode</span> <span class="mo">0644</span>
+</span><span class='line'><span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="sr">&lt;p&gt;link &amp;ldquo;/e</span><span class="n">tc</span><span class="o">/</span><span class="n">apache2</span><span class="o">/</span><span class="n">sites</span><span class="o">-</span><span class="n">enabled</span><span class="o">/</span><span class="n">my_app</span><span class="o">.</span><span class="n">conf</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span> <span class="k">do</span>
 </span><span class='line'>  <span class="n">to</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">apache2</span><span class="o">/</span><span class="n">sites</span><span class="o">-</span><span class="n">available</span><span class="o">/</span><span class="n">my_app</span><span class="o">.</span><span class="n">conf</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
 </span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>This is a standard Apache vhost configuration based on the default OpsWorks template:
-<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>myrecipe/templates/default/myapp_vhost.erb </span></figcaption>
+<figure class='code'><figcaption><span>myrecipe/templates/default/myapp_vhost.erb </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -329,44 +297,26 @@
 <span class='line-number'>31</span>
 <span class='line-number'>32</span>
 <span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
 </pre></td><td class='code'><pre><code class='apacheconf'><span class='line'><span class="nt">&lt;VirtualHost</span> <span class="s">*:80</span><span class="nt">&gt;</span>
 </span><span class='line'>  <span class="nb">ServerName</span> myapp.com
 </span><span class='line'>  <span class="nb">DocumentRoot</span> <span class="sx">/srv/www/my_app/public/</span>&lt;/p&gt;
 </span><span class='line'>
-</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nt">&lt;Directory</span> <span class="s">/srv/www/my_app/public/</span><span class="nt">&gt;&lt;/p&gt;</span>
+</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nt">&lt;Directory</span> <span class="s">/srv/www/my_app/public/</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nb">Options</span> FollowSymLinks
+</span><span class='line'>    <span class="nb">AllowOverride</span> <span class="k">All</span>
+</span><span class='line'>    <span class="nb">Order</span> allow,deny
+</span><span class='line'>    <span class="nb">Allow</span> from <span class="k">all</span>
+</span><span class='line'>  <span class="nt">&lt;/Directory&gt;&lt;/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="nt">&lt;pre&gt;&lt;code&gt;</span><span class="nb">Options</span> FollowSymLinks
-</span><span class='line'><span class="nb">AllowOverride</span> <span class="k">All</span>
-</span><span class='line'><span class="nb">Order</span> allow,deny
-</span><span class='line'><span class="nb">Allow</span> from <span class="k">all</span>
-</span><span class='line'><span class="nt">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nt">&lt;Directory</span> <span class="s">~ &quot;\.svn&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nb">Order</span> allow,deny
+</span><span class='line'>    <span class="nb">Deny</span> from <span class="k">all</span>
+</span><span class='line'>  <span class="nt">&lt;/Directory&gt;&lt;/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nt">&lt;/Directory&gt;&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nt">&lt;Directory</span> <span class="s">~ &quot;\.svn&quot;</span><span class="nt">&gt;&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nt">&lt;pre&gt;&lt;code&gt;</span><span class="nb">Order</span> allow,deny
-</span><span class='line'><span class="nb">Deny</span> from <span class="k">all</span>
-</span><span class='line'><span class="nt">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nt">&lt;/Directory&gt;&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nt">&lt;Directory</span> <span class="s">~ &quot;\.git&quot;</span><span class="nt">&gt;&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nt">&lt;pre&gt;&lt;code&gt;</span><span class="nb">Order</span> allow,deny
-</span><span class='line'><span class="nb">Deny</span> from <span class="k">all</span>
-</span><span class='line'><span class="nt">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nt">&lt;/Directory&gt;&lt;/p&gt;</span>
+</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nt">&lt;Directory</span> <span class="s">~ &quot;\.git&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nb">Order</span> allow,deny
+</span><span class='line'>    <span class="nb">Deny</span> from <span class="k">all</span>
+</span><span class='line'>  <span class="nt">&lt;/Directory&gt;&lt;/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nb">LogLevel</span> <span class="k">info</span>
 </span><span class='line'>  <span class="nb">ErrorLog</span> <span class="sx">/var/log/apache2/my_app-error.log</span>
@@ -380,7 +330,7 @@
 </span><span class='line'>
 </span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nb">IncludeOptional</span> <span class="sx">/etc/apache2/sites-available/my_app.conf.d/local</span>*
 </span><span class='line'><span class="nt">&lt;/VirtualHost&gt;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>In this step you may also like to create additional recipes for other configuration tasks, such as installing dependencies
 or configuring your HTTP server.</p>
@@ -401,7 +351,7 @@ of your application server layer. Also add <code>ruby2.0</code> and <code>awscli
 <p>In this instance we&rsquo;ll create a new repository for the placeholder which contains nothing but an index.php file containing
  a placeholder message.</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>index.php </span></figcaption>
+<p><figure class='code'><figcaption><span>index.php </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -414,7 +364,7 @@ of your application server layer. Also add <code>ruby2.0</code> and <code>awscli
 </span><span class='line'>
 </span><span class='line'>
 </span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>Create this deployment in OpsWorks:</p>
 
@@ -436,9 +386,9 @@ of your application server layer. Also add <code>ruby2.0</code> and <code>awscli
 <h2>Integrating OpsWorks and CodeDeploy</h2>
 
 <ul>
-<li><a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Part 1</a> &ndash; Introduction and getting started.</li>
-<li><a href="/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/">Part 2</a> &ndash; OpsWorks configuration and recipes.</li>
-<li><a href="/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/">Part 3</a> &ndash; Deployment and results.</li>
+<li><a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Part 1</a> - Introduction and getting started.</li>
+<li><a href="/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/">Part 2</a> - OpsWorks configuration and recipes.</li>
+<li><a href="/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/">Part 3</a> - Deployment and results.</li>
 </ul>
 
 ]]></content>
@@ -525,9 +475,9 @@ opsworks:stack</code> and <code>opsworks:layer:php-app</code> to the name of you
 <h2>Integrating OpsWorks and CodeDeploy</h2>
 
 <ul>
-<li><a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Part 1</a> &ndash; Introduction and getting started.</li>
-<li><a href="/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/">Part 2</a> &ndash; OpsWorks configuration and recipes.</li>
-<li><a href="/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/">Part 3</a> &ndash; Deployment and results.</li>
+<li><a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Part 1</a> - Introduction and getting started.</li>
+<li><a href="/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/">Part 2</a> - OpsWorks configuration and recipes.</li>
+<li><a href="/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/">Part 3</a> - Deployment and results.</li>
 </ul>
 
 ]]></content>

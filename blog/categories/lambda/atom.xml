@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Lambda | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/lambda/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2014-12-21T14:36:28+10:00</updated>
+  <updated>2015-01-02T11:55:47+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -12,6 +12,105 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[My 2015 AWS Wish List]]></title>
+    <link href="http://hipsterdevblog.com/blog/2015/01/01/my-2015-aws-wish-list/"/>
+    <updated>2015-01-01T22:53:23+10:00</updated>
+    <id>http://hipsterdevblog.com/blog/2015/01/01/my-2015-aws-wish-list</id>
+    <content type="html"><![CDATA[<p>As a new year dawns it occurred to me how much AWS functionality I now use heavily wasn&rsquo;t available only a year ago.
+ Almost every day I check the <a href="http://aws.amazon.com/blogs/aws/">AWS blog</a> to find some new feature is available. This
+ got me thinking about the functionality I&rsquo;d like to see in 2015, so I put together a list of my top 5.</p>
+
+<p>I&rsquo;m sure the engineers at AWS are already working on some (if not most) of these, but if not then hopefully someone sees
+ this post and gets a great idea!</p>
+
+<!-- more -->
+
+
+<h1>#1 - EIPs for ELB</h1>
+
+<p>Elastic load balancer (ELB) doesn&rsquo;t support static IPs, instead you must CNAME your domain to the hostname for your ELB or
+ use the special alias record in Route53. I understand why they preferred to design it this way - it&rsquo;s much easier to load
+ balance the load balancing instances via DNS rather than via network routing. This solution works fine in the majority of scenarios,
+ but unfortunately it makes things much more difficult if you need to give out a static IP to your customers for them to use
+ in their A records.</p>
+
+<p>Being able to assign an Elastic IP (EIP) to an ELB would eliminate a huge barrier for a lot of people. Scaling could be addressed
+ with anycast to provide a virtual IP which addresses multiple load balancing instances. This would also help ELB to compete
+ against <a href="http://www.rackspace.com.au/cloud/load-balancers/compare">rackspace</a> and <a href="https://cloud.google.com/compute/docs/load-balancing/http/cross-region-example">Google Cloud</a>
+ which both offer this feature.</p>
+
+<h1>#2 - A managed scheduling / timer service</h1>
+
+<p>Invoking global jobs on a schedule can be quite a hassle in distributed systems. On one hand you can&rsquo;t have a CRON job running
+ on every instance because then you&rsquo;ll end up with multiple invocations, but on the other hand if you have just one instance
+ that handles scheduling you need to ensure the job is triggered even if that instance fails or is replaced.</p>
+
+<p>One solution is to use AWS Data Pipeline to start an instance and invoke a command that sends a message to SNS,
+although starting an EC2 instance just to do this is quite expensive. Also, the minimum period is 15 minutes, and you don&rsquo;t have control
+ down to the minute or second as to exactly when your task will be invoked.</p>
+
+<p>A managed scheduling service that allows you to submit messages to an SNS topic would be great! SNS already supports
+ message fan-out to queues and delivery retires so the only component missing is something to submit those messages
+ at a specified time. Azure has a <a href="http://azure.microsoft.com/en-us/services/scheduler/">similar solution</a> already.</p>
+
+<h1>#3 - Search for CloudWatch logs</h1>
+
+<p>CloudWatch logs provides a convenient way to manage logs across multiple instances without having to leave the AWS ecosystem.
+ It&rsquo;s still a new product, but it feels like it hasn&rsquo;t yet achieved its full potential.</p>
+
+<p>Currently you can store logs and create metrics based on certain patterns appearing in your logs, but there&rsquo;s no search
+other than the ability to filter by time!
+ You can&rsquo;t archive your logs to S3 for external processing either, and the GetLogEvents API function is limited to 10,000
+ logs per request and can only be called 10 times/second.</p>
+
+<p>These limitations mean most users will probably have to use a second log aggregation service to cater for ad-hoc
+ log searches and extraction. However, a search function would make a huge difference and enable CloudWatch to compete
+ with the likes of Logentries and Loggly. Even integration with CloudSearch would be enough for users
+ who have a large enough log volume to justify a dedicated search instance.</p>
+
+<h1>#4 - HTTP endpoint triggers for Lambda functions</h1>
+
+<p>It&rsquo;s easy to think of opportunities where the new Lambda service could help &ldquo;glue&rdquo; different systems together. Unfortunately
+ we&rsquo;re currently limited by how a Lambda function can be invoked - it either has to be done manually via the AWS API
+ or via S3, DynamoDB or Kinesis events.</p>
+
+<p>Lambda would become significantly more useful if functions could be triggered asynchronously with a simple REST endpoint
+ without authentication. Obviously a lack of authentication isn&rsquo;t ideal, but it&rsquo;d make it much easier to integrate
+ with 3rd parties that support web-hook functionality. Imagine being able to trigger Lambda functions
+ using a BitBucket commit hook, or a stored email notification from Mailgun.</p>
+
+<h1>#5 - Zone tagging in Route53</h1>
+
+<p>Resource tags can be used in IAM policies to restrict users to particular tags. This is useful when creating accounts
+ that can only access EC2 instances tagged as belonging to a specific department for example.</p>
+
+<p>Users who manage DNS on behalf of some of their customers via Route53 would appreciate giving their customers
+ direct access via an IAM account to manage their zones directly. This would help to cut down on support costs
+ associated with making DNS updates on behalf of the customer due to changes unrelated to the product they provide.</p>
+
+<p>You can currently restrict IAM accounts to a list of zone IDs, but maintaining this list is impractical when some customers
+ have dozens of zones and several users that change regularly. It would make things much easier if zones could be tagged
+ with a particular customer, then accounts can be limited to zones tagged with that customer.</p>
+
+<h1>Worth a mention</h1>
+
+<p>Here are some other features I&rsquo;d love to see but didn&rsquo;t make it into my top 5.</p>
+
+<p><strong>Rolling deployments for OpsWorks</strong> - ElasticBeanstalk and CodeDeploy both support rolling deployments, it&rsquo;s a shame
+ OpsWorks is the odd one out!</p>
+
+<p><strong>Trigger Lambda functions with SQS and SNS</strong> - Being able to process SQS and SNS messages with Lambda would be great too,
+ although if you could trigger a Lambda function with a HTTP endpoint then you could subscribe that to SNS instead.</p>
+
+<p><strong>HTTP request routing via ELB</strong> - I can live without this, but many users would find it useful to route certain paths
+ to different sets of back end instances. <a href="https://cloud.google.com/compute/docs/load-balancing/http/content-based-example">Google Cloud</a>
+ supports this already.</p>
+
+<p>So, what&rsquo;s on your wish list?</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Writing Functions for AWS Lambda Using NPM and Grunt]]></title>
@@ -54,7 +153,7 @@
 
 <p>Your package.json should looks something like the following.</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>package.json </span></figcaption>
+<p><figure class='code'><figcaption><span>package.json </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -67,29 +166,23 @@
 <span class='line-number'>10</span>
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
 </pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
 </span><span class='line'>  <span class="err">&amp;ldquo;name&amp;rdquo;:</span> <span class="err">&amp;ldquo;link-scraper&amp;rdquo;,</span>
 </span><span class='line'>  <span class="err">&amp;ldquo;version&amp;rdquo;:</span> <span class="err">&amp;ldquo;1.0.0&amp;rdquo;,</span>
 </span><span class='line'>  <span class="err">&amp;ldquo;description&amp;rdquo;:</span> <span class="err">&amp;ldquo;Scrapes</span> <span class="err">a</span> <span class="err">page</span> <span class="err">and</span> <span class="err">saves</span> <span class="err">links</span> <span class="err">in</span> <span class="err">a</span> <span class="err">HTML</span> <span class="err">page</span> <span class="err">to</span> <span class="err">S3&amp;rdquo;,</span>
 </span><span class='line'>  <span class="err">&amp;ldquo;private&amp;rdquo;:</span> <span class="err">&amp;ldquo;true&amp;rdquo;,</span>
-</span><span class='line'>  <span class="err">&amp;ldquo;devDependencies&amp;rdquo;:</span> <span class="err">{&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;pre&gt;&lt;code&gt;</span>  <span class="nt">&quot;grunt&quot;</span><span class="p">:</span> <span class="s2">&quot;0.4.*&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="nt">&quot;grunt-aws-lambda&quot;</span><span class="p">:</span> <span class="s2">&quot;0.3.0&quot;</span>
-</span><span class='line'><span class="err">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;</span>  <span class="p">}</span><span class="err">,</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;devDependencies&amp;rdquo;:</span> <span class="err">{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;grunt&amp;rdquo;:</span> <span class="err">&amp;ldquo;0.4.*&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;grunt-aws-lambda&amp;rdquo;:</span> <span class="err">&amp;ldquo;0.3.0&amp;rdquo;</span>
+</span><span class='line'>  <span class="p">}</span><span class="err">,</span>
 </span><span class='line'>  <span class="err">&amp;ldquo;author&amp;rdquo;:</span> <span class="err">&amp;ldquo;&amp;rdquo;,</span>
 </span><span class='line'>  <span class="err">&amp;ldquo;license&amp;rdquo;:</span> <span class="err">&amp;ldquo;BSD&amp;rdquo;</span>
 </span><span class='line'><span class="err">}</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>Next, create a Gruntfile.js with the following:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Gruntfile.js </span></figcaption>
+<p><figure class='code'><figcaption><span>Gruntfile.js </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -110,53 +203,41 @@
 <span class='line-number'>18</span>
 <span class='line-number'>19</span>
 <span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">grunt</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">grunt</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
 </span><span class='line'><span class="nx">grunt</span><span class="p">.</span><span class="nx">loadNpmTasks</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">grunt</span><span class="o">-</span><span class="nx">aws</span><span class="o">-</span><span class="nx">lambda</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span><span class="o">&lt;</span><span class="err">/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="nx">grunt</span><span class="p">.</span><span class="nx">initConfig</span><span class="p">({</span><span class="o">&lt;</span><span class="err">/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="nx">pre</span><span class="o">&gt;&lt;</span><span class="nx">code</span><span class="o">&gt;</span><span class="nx">lambda_invoke</span><span class="o">:</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">default</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="nx">grunt</span><span class="p">.</span><span class="nx">initConfig</span><span class="p">({</span>
+</span><span class='line'>    <span class="nx">lambda_invoke</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">default</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="nx">lambda_deploy</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">default</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>            <span class="kd">function</span><span class="o">:</span> <span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">link</span><span class="o">-</span><span class="nx">scraper</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="nx">lambda_package</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">default</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="p">}</span>
 </span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">},</span>
-</span><span class='line'><span class="nx">lambda_deploy</span><span class="o">:</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">default</span><span class="o">:</span> <span class="p">{</span>
-</span><span class='line'>        <span class="kd">function</span><span class="o">:</span> <span class="s1">&#39;link-scraper&#39;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">},</span>
-</span><span class='line'><span class="nx">lambda_package</span><span class="o">:</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">default</span><span class="o">:</span> <span class="p">{</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="o">&lt;</span><span class="err">/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="p">});</span><span class="o">&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'><span class="p">});</span><span class="o">&lt;</span><span class="err">/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="nx">grunt</span><span class="p">.</span><span class="nx">registerTask</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">deploy</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;,</span> <span class="p">[</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">lambda_package</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;,</span> <span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">lambda_deploy</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;]);</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>Then create an index.js, .npmignore and event.json with the following:
-<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>index.js </span></figcaption>
+<figure class='code'><figcaption><span>index.js </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">exports</span><span class="p">.</span><span class="nx">handler</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">event</span><span class="p">,</span> <span class="nx">context</span><span class="p">)</span> <span class="p">{</span><span class="o">&lt;</span><span class="err">/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="nx">pre</span><span class="o">&gt;&lt;</span><span class="nx">code</span><span class="o">&gt;</span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;webpage = &#39;</span> <span class="o">+</span> <span class="nx">event</span><span class="p">.</span><span class="nx">webpage</span><span class="p">);</span>
-</span><span class='line'><span class="nx">context</span><span class="p">.</span><span class="nx">done</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="s1">&#39;link-scraper complete.&#39;</span><span class="p">);</span>
-</span><span class='line'><span class="o">&lt;</span><span class="err">/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">exports</span><span class="p">.</span><span class="nx">handler</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">event</span><span class="p">,</span> <span class="nx">context</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">webpage</span> <span class="o">=</span> <span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;</span> <span class="o">+</span> <span class="nx">event</span><span class="p">.</span><span class="nx">webpage</span><span class="p">);</span>
+</span><span class='line'>    <span class="nx">context</span><span class="p">.</span><span class="nx">done</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">link</span><span class="o">-</span><span class="nx">scraper</span> <span class="nx">complete</span><span class="p">.</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure></p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>.npmignore </span></figcaption>
+<p><figure class='code'><figcaption><span>.npmignore </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -164,28 +245,22 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>event.json
 </span><span class='line'>Gruntfile.js
 </span><span class='line'>dist
-</span><span class='line'>*.iml</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span><span class='line'>*.iml</span></code></pre></td></tr></table></div></figure></p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>event.json </span></figcaption>
+<p><figure class='code'><figcaption><span>event.json </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span><span class="err">&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;pre&gt;&lt;code&gt;</span><span class="nt">&quot;webpage&quot;</span><span class="p">:</span> <span class="s2">&quot;http://en.wikipedia.org/wiki/Main_Page&quot;</span>
-</span><span class='line'><span class="err">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;</span><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;webpage&amp;rdquo;:</span> <span class="err">&amp;ldquo;&lt;a</span> <span class="err">href=</span><span class="nt">&quot;http://en.wikipedia.org/wiki/Main_Page&quot;</span><span class="err">&gt;http</span><span class="p">:</span><span class="err">//en.wikipedia.org/wiki/Main_Page&lt;/a&gt;&amp;rdquo;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>Now run <code>npm install</code></p>
 
 <p>Then run <code>grunt lambda_invoke</code>, you should receive the following output:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>lambda_invoke </span></figcaption>
+<p><figure class='code'><figcaption><span>lambda_invoke </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -207,7 +282,7 @@
 </span><span class='line'>
 </span><span class='line'>&lt;p>Done, without errors.&lt;/p>
 </span><span class='line'>
-</span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></p>
 
 <p>Congratulations, you&rsquo;ve created a Lambda function and executed it locally!</p>
 
@@ -219,11 +294,11 @@
 <p>In this example we&rsquo;re going to use the following NPM packages:</p>
 
 <ul>
-<li><a href="https://www.npmjs.org/package/request">request</a> &ndash; Make a HTTP request to download the target page</li>
-<li><a href="https://www.npmjs.org/package/cheerio">cheerio</a> &ndash; Query the DOM of the page we download</li>
-<li><a href="https://www.npmjs.org/package/moment">moment</a> &ndash; Format the current time</li>
-<li><a href="https://www.npmjs.org/package/mustache">mustache</a> &ndash; Generate our HTML page using a template file</li>
-<li><a href="https://www.npmjs.org/package/aws-sdk">aws-sdk</a> &ndash; Access the AWS API to upload the page to S3</li>
+<li><a href="https://www.npmjs.org/package/request">request</a> - Make a HTTP request to download the target page</li>
+<li><a href="https://www.npmjs.org/package/cheerio">cheerio</a> - Query the DOM of the page we download</li>
+<li><a href="https://www.npmjs.org/package/moment">moment</a> - Format the current time</li>
+<li><a href="https://www.npmjs.org/package/mustache">mustache</a> - Generate our HTML page using a template file</li>
+<li><a href="https://www.npmjs.org/package/aws-sdk">aws-sdk</a> - Access the AWS API to upload the page to S3</li>
 </ul>
 
 
@@ -232,7 +307,7 @@
 
 <p>Update your package.json file with the following:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>package.json </span></figcaption>
+<p><figure class='code'><figcaption><span>package.json </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -252,44 +327,26 @@
 <span class='line-number'>17</span>
 <span class='line-number'>18</span>
 <span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
 </pre></td><td class='code'><pre><code class='json'><span class='line'><span class="err">&amp;hellip;</span>
-</span><span class='line'><span class="err">&amp;ldquo;dependencies&amp;rdquo;:</span> <span class="p">{</span><span class="err">&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;pre&gt;&lt;code&gt;</span><span class="nt">&quot;cheerio&quot;</span><span class="p">:</span> <span class="s2">&quot;0.18.0&quot;</span><span class="p">,</span>
-</span><span class='line'><span class="nt">&quot;request&quot;</span><span class="p">:</span> <span class="s2">&quot;2.49.0&quot;</span><span class="p">,</span>
-</span><span class='line'><span class="nt">&quot;mustache&quot;</span><span class="p">:</span> <span class="s2">&quot;0.8.2&quot;</span><span class="p">,</span>
-</span><span class='line'><span class="nt">&quot;moment&quot;</span><span class="p">:</span> <span class="s2">&quot;2.8.4&quot;</span>
-</span><span class='line'><span class="err">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;</span><span class="p">}</span><span class="err">,</span>
-</span><span class='line'><span class="err">&amp;ldquo;devDependencies&amp;rdquo;:</span> <span class="p">{</span><span class="err">&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;pre&gt;&lt;code&gt;</span><span class="nt">&quot;grunt&quot;</span><span class="p">:</span> <span class="s2">&quot;0.4.*&quot;</span><span class="p">,</span>
-</span><span class='line'><span class="nt">&quot;grunt-aws-lambda&quot;</span><span class="p">:</span> <span class="s2">&quot;0.3.0&quot;</span><span class="p">,</span>
-</span><span class='line'><span class="nt">&quot;aws-sdk&quot;</span><span class="p">:</span> <span class="s2">&quot;2.0.23&quot;</span>
-</span><span class='line'><span class="err">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;</span><span class="p">}</span><span class="err">,</span>
-</span><span class='line'><span class="err">&amp;ldquo;bundledDependencies&amp;rdquo;:</span> <span class="p">[</span><span class="err">&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;pre&gt;&lt;code&gt;</span><span class="s2">&quot;cheerio&quot;</span><span class="p">,</span>
-</span><span class='line'><span class="s2">&quot;request&quot;</span><span class="p">,</span>
-</span><span class='line'><span class="s2">&quot;mustache&quot;</span><span class="p">,</span>
-</span><span class='line'><span class="s2">&quot;moment&quot;</span>
-</span><span class='line'><span class="err">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;</span><span class="p">]</span><span class="err">,</span>
+</span><span class='line'><span class="err">&amp;ldquo;dependencies&amp;rdquo;:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;cheerio&amp;rdquo;:</span> <span class="err">&amp;ldquo;0.18.0&amp;rdquo;,</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;request&amp;rdquo;:</span> <span class="err">&amp;ldquo;2.49.0&amp;rdquo;,</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;mustache&amp;rdquo;:</span> <span class="err">&amp;ldquo;0.8.2&amp;rdquo;,</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;moment&amp;rdquo;:</span> <span class="err">&amp;ldquo;2.8.4&amp;rdquo;</span>
+</span><span class='line'><span class="p">}</span><span class="err">,</span>
+</span><span class='line'><span class="err">&amp;ldquo;devDependencies&amp;rdquo;:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;grunt&amp;rdquo;:</span> <span class="err">&amp;ldquo;0.4.*&amp;rdquo;,</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;grunt-aws-lambda&amp;rdquo;:</span> <span class="err">&amp;ldquo;0.3.0&amp;rdquo;,</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;aws-sdk&amp;rdquo;:</span> <span class="err">&amp;ldquo;2.0.23&amp;rdquo;</span>
+</span><span class='line'><span class="p">}</span><span class="err">,</span>
+</span><span class='line'><span class="err">&amp;ldquo;bundledDependencies&amp;rdquo;:</span> <span class="p">[</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;cheerio&amp;rdquo;</span><span class="p">,</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;request&amp;rdquo;</span><span class="p">,</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;mustache&amp;rdquo;</span><span class="p">,</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;moment&amp;rdquo;</span>
+</span><span class='line'><span class="p">]</span><span class="err">,</span>
 </span><span class='line'><span class="err">&amp;hellip;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p><strong>Note that you must include any packages which are to be included in the Lambda package within the bundledDependencies list</strong>.</p>
 
@@ -303,7 +360,7 @@
 
 <p>Update your index.js with the following, don&rsquo;t forget to replace <code>mybucket</code> with your actual destination bucket:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>index.js </span></figcaption>
+<p><figure class='code'><figcaption><span>index.js </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -373,7 +430,6 @@
 <span class='line-number'>67</span>
 <span class='line-number'>68</span>
 <span class='line-number'>69</span>
-<span class='line-number'>70</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">cheerio</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">cheerio</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
 </span><span class='line'><span class="kd">var</span> <span class="nx">request</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">request</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
 </span><span class='line'><span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">url</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
@@ -382,12 +438,11 @@
 </span><span class='line'><span class="kd">var</span> <span class="nx">AWS</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">aws</span><span class="o">-</span><span class="nx">sdk</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
 </span><span class='line'><span class="kd">var</span> <span class="nx">moment</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">moment</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span><span class="o">&lt;</span><span class="err">/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="nx">exports</span><span class="p">.</span><span class="nx">handler</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">event</span><span class="p">,</span> <span class="nx">context</span><span class="p">)</span> <span class="p">{</span><span class="o">&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="nx">exports</span><span class="p">.</span><span class="nx">handler</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">event</span><span class="p">,</span> <span class="nx">context</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">request</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">webpage</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">response</span><span class="p">,</span> <span class="nx">body</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">err</span><span class="p">.</span><span class="nx">stack</span><span class="p">);</span> <span class="c1">// an error occurred&lt;/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="nx">pre</span><span class="o">&gt;&lt;</span><span class="nx">code</span><span class="o">&gt;</span><span class="nx">request</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">webpage</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">response</span><span class="p">,</span> <span class="nx">body</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">err</span><span class="p">.</span><span class="nx">stack</span><span class="p">);</span> <span class="c1">// an error occurred</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kd">var</span> <span class="nx">$</span> <span class="o">=</span> <span class="nx">cheerio</span><span class="p">.</span><span class="nx">load</span><span class="p">(</span><span class="nx">body</span><span class="p">);</span>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">pre</span><span class="o">&gt;&lt;</span><span class="nx">code</span><span class="o">&gt;</span>    <span class="kd">var</span> <span class="nx">$</span> <span class="o">=</span> <span class="nx">cheerio</span><span class="p">.</span><span class="nx">load</span><span class="p">(</span><span class="nx">body</span><span class="p">);</span>
 </span><span class='line'>    <span class="kd">var</span> <span class="nx">links</span> <span class="o">=</span> <span class="p">[];</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="nx">AWS</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">apiVersions</span> <span class="o">=</span> <span class="p">{</span>
@@ -444,11 +499,11 @@
 </span><span class='line'><span class="o">&lt;</span><span class="err">/code&gt;&lt;/pre&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>Also create template.html which will be used to generate the page:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>template.html </span></figcaption>
+<p><figure class='code'><figcaption><span>template.html </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -475,17 +530,11 @@
 <span class='line-number'>24</span>
 <span class='line-number'>25</span>
 <span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
 </pre></td><td class='code'><pre><code class='html'><span class='line'><span class="ni">&amp;lt;</span>!doctype html&gt;
 </span><span class='line'><span class="nt">&lt;html</span> <span class="na">lang=</span><span class="s">&quot;&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'><span class="nt">&lt;head&gt;&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nt">&lt;pre&gt;&lt;code&gt;</span><span class="ni">&amp;lt;</span>title<span class="ni">&amp;gt;</span>List of links on {{page}}<span class="ni">&amp;lt;</span>/title<span class="ni">&amp;gt;</span>
-</span><span class='line'><span class="nt">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nt">&lt;p&gt;&lt;/head&gt;</span>
+</span><span class='line'><span class="nt">&lt;head&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;title&gt;</span>List of links on {{page}}<span class="nt">&lt;/title&gt;</span>
+</span><span class='line'><span class="nt">&lt;/head&gt;</span>
 </span><span class='line'><span class="nt">&lt;body&gt;&lt;/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="nt">&lt;h1&gt;</span>List of links on {{page}}<span class="nt">&lt;/h1&gt;</span>
@@ -507,11 +556,11 @@
 </span><span class='line'>
 </span><span class='line'><span class="nt">&lt;p&gt;&lt;/body&gt;</span>
 </span><span class='line'><span class="nt">&lt;/html&gt;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>If we run <code>grunt lambda_invoke</code> again the task should output:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>lambda_invoke </span></figcaption>
+<p><figure class='code'><figcaption><span>lambda_invoke </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -525,7 +574,7 @@
 </span><span class='line'>
 </span><span class='line'>&lt;p>link-scraper complete.&lt;/p>
 </span><span class='line'>
-</span><span class='line'>&lt;p>Done, without errors.</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span><span class='line'>&lt;p>Done, without errors.</span></code></pre></td></tr></table></div></figure></p>
 
 <p>Then, if we look in our target bucket there should be a file called links.html, if you view it in your browser you should see something like:</p>
 
@@ -545,7 +594,7 @@
 
 <p>After running that you should see something like:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>lambda_deploy </span></figcaption>
+<p><figure class='code'><figcaption><span>lambda_deploy </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -556,14 +605,14 @@
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>Running &ldquo;lambda_package:default&rdquo; (lambda_package) task
-</span><span class='line'>&lt;a href="&#109;&#97;&#x69;&#108;&#116;&#111;&#x3a;&#108;&#x69;&#110;&#x6b;&#45;&#115;&#x63;&#114;&#97;&#x70;&#x65;&#114;&#64;&#49;&#46;&#x30;&#x2e;&#48;">&#108;&#x69;&#110;&#107;&#45;&#x73;&#x63;&#114;&#97;&#x70;&#101;&#114;&#64;&#49;&#46;&#48;&#x2e;&#48;&lt;/a> ../../../../../../tmp/1417936030856.854/node_modules/link-scraper
+</span><span class='line'>&lt;a href="&#x6d;&#97;&#x69;&#108;&#116;&#111;&#x3a;&#108;&#x69;&#110;&#x6b;&#45;&#x73;&#x63;&#x72;&#97;&#x70;&#x65;&#x72;&#x40;&#x31;&#x2e;&#48;&#x2e;&#48;">&#x6c;&#x69;&#110;&#x6b;&#45;&#x73;&#x63;&#x72;&#97;&#x70;&#x65;&#x72;&#64;&#x31;&#46;&#48;&#46;&#48;&lt;/a> ../../../../../../tmp/1417936030856.854/node_modules/link-scraper
 </span><span class='line'>Created package at dist/link-scraper_1-0-0_2014-11-7-17-7-10.zip&lt;/p>
 </span><span class='line'>
 </span><span class='line'>&lt;p>Running &ldquo;lambda_deploy:default&rdquo; (lambda_deploy) task
 </span><span class='line'>Uploading&hellip;
 </span><span class='line'>Package deployed.&lt;/p>
 </span><span class='line'>
-</span><span class='line'>&lt;p>Done, without errors.</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span><span class='line'>&lt;p>Done, without errors.</span></code></pre></td></tr></table></div></figure></p>
 
 <p>Now if you go to the AWS console you should be able to successfully invoke the uploaded task:</p>
 

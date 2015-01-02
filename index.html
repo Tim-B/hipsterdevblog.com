@@ -9,7 +9,7 @@
   <meta name="author" content="Tim B.">
 
   
-  <meta name="description" content="CloudWatch logs is a cheap and easy to set up centralised logging solution. At the moment it lacks several valuable features such as a convenient way &hellip;">
+  <meta name="description" content="As a new year dawns it occurred to me how much AWS functionality I now use heavily wasn&rsquo;t available only a year ago. Almost every day I check &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,52 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/01/01/my-2015-aws-wish-list/">My 2015 AWS Wish List</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-01-01T22:53:23+10:00" pubdate data-updated="true">Jan 1<sup>st</sup>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>As a new year dawns it occurred to me how much AWS functionality I now use heavily wasn&rsquo;t available only a year ago.
+ Almost every day I check the <a href="http://aws.amazon.com/blogs/aws/">AWS blog</a> to find some new feature is available. This
+ got me thinking about the functionality I&rsquo;d like to see in 2015, so I put together a list of my top 5.</p>
+
+<p>I&rsquo;m sure the engineers at AWS are already working on some (if not most) of these, but if not then hopefully someone sees
+ this post and gets a great idea!</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2015/01/01/my-2015-aws-wish-list/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -168,7 +214,7 @@
  which makes it the obvious choice for OpsWorks users.</p>
 
 <p>It&rsquo;s well known that several large application servers can be served by just a single small HAProxy server, but what is
-the definition of small? How about the smallest EC2 instance on offer &ndash; the <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/t2-instances.html">t2.micro</a>?
+the definition of small? How about the smallest EC2 instance on offer - the <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/t2-instances.html">t2.micro</a>?
  This blog post puts HAProxy on a t2.micro to the test using <a href="https://loader.io/">loader.io</a> to determine just how many requests/second it
  can handle and whether CPU or network is the limiting factor.</p>
 
@@ -518,64 +564,6 @@ delegating the configuration management to OpsWorks and the deployment functiona
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules/">Lazy Processing Images Using S3 and Redirection Rules</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-22T19:14:44+10:00" pubdate data-updated="true">Jun 22<sup>nd</sup>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>
-    In a system dealing with user generated images it&#8217;s common to have to resize images before they can be served to the web.
-    Storing and serving large quantities of user generated images can also be a challenge – that is unless you&#8217;re using
-    AWS S3. A typical implementation using S3 to store and serve images requires images to be resized into every required
-    size and saved to S3 upon being uploaded. An unfortunate limitation of this technique is that you must know all
-     required sizes at the time the image is uploaded – something that may not be constant, consistent or known in some
-     (particularly legacy) applications.
-</p>
-
-
-<p>
-     One solution is to automatically resize images the first time they&#8217;re requested
-     using dimensions provided in the image URL, this way the application requesting the image can choose an appropriate
-     size. While S3 doesn&#8217;t provide functionality to transparently proxy image misses to your image processor, it is
-     possible to use S3 <a target="_blank" href="http://docs.aws.amazon.com/AmazonS3/latest/dev/HowDoIWebsiteConfiguration.html">S3
-     routing rules</a> to achieve a similar function.
-</p>
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -589,6 +577,10 @@ delegating the configuration management to OpsWorks and the deployment functiona
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/01/01/my-2015-aws-wish-list/">My 2015 AWS Wish List</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/12/21/monitoring-per-application-metrics-with-cloudwatch-logs-and-opsworks/">Monitoring Per Application Metrics With CloudWatch Logs and OpsWorks</a>
@@ -606,10 +598,6 @@ delegating the configuration management to OpsWorks and the deployment functiona
         <a href="/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/">Part 3: Integrating OpsWorks and CodeDeploy</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/">Part 2: Integrating OpsWorks and CodeDeploy</a>
-      </li>
-    
   </ul>
 </section>
 
@@ -623,7 +611,7 @@ delegating the configuration management to OpsWorks and the deployment functiona
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2014.
+  Copyright &copy; 2015.
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> and
     <a href="https://github.com/vladigleba/readify">Readify</a></span>.
 </p>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Route53 | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/route53/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2014-12-21T14:36:28+10:00</updated>
+  <updated>2015-01-02T11:55:47+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -14,13 +14,112 @@
 
   
   <entry>
+    <title type="html"><![CDATA[My 2015 AWS Wish List]]></title>
+    <link href="http://hipsterdevblog.com/blog/2015/01/01/my-2015-aws-wish-list/"/>
+    <updated>2015-01-01T22:53:23+10:00</updated>
+    <id>http://hipsterdevblog.com/blog/2015/01/01/my-2015-aws-wish-list</id>
+    <content type="html"><![CDATA[<p>As a new year dawns it occurred to me how much AWS functionality I now use heavily wasn&rsquo;t available only a year ago.
+ Almost every day I check the <a href="http://aws.amazon.com/blogs/aws/">AWS blog</a> to find some new feature is available. This
+ got me thinking about the functionality I&rsquo;d like to see in 2015, so I put together a list of my top 5.</p>
+
+<p>I&rsquo;m sure the engineers at AWS are already working on some (if not most) of these, but if not then hopefully someone sees
+ this post and gets a great idea!</p>
+
+<!-- more -->
+
+
+<h1>#1 - EIPs for ELB</h1>
+
+<p>Elastic load balancer (ELB) doesn&rsquo;t support static IPs, instead you must CNAME your domain to the hostname for your ELB or
+ use the special alias record in Route53. I understand why they preferred to design it this way - it&rsquo;s much easier to load
+ balance the load balancing instances via DNS rather than via network routing. This solution works fine in the majority of scenarios,
+ but unfortunately it makes things much more difficult if you need to give out a static IP to your customers for them to use
+ in their A records.</p>
+
+<p>Being able to assign an Elastic IP (EIP) to an ELB would eliminate a huge barrier for a lot of people. Scaling could be addressed
+ with anycast to provide a virtual IP which addresses multiple load balancing instances. This would also help ELB to compete
+ against <a href="http://www.rackspace.com.au/cloud/load-balancers/compare">rackspace</a> and <a href="https://cloud.google.com/compute/docs/load-balancing/http/cross-region-example">Google Cloud</a>
+ which both offer this feature.</p>
+
+<h1>#2 - A managed scheduling / timer service</h1>
+
+<p>Invoking global jobs on a schedule can be quite a hassle in distributed systems. On one hand you can&rsquo;t have a CRON job running
+ on every instance because then you&rsquo;ll end up with multiple invocations, but on the other hand if you have just one instance
+ that handles scheduling you need to ensure the job is triggered even if that instance fails or is replaced.</p>
+
+<p>One solution is to use AWS Data Pipeline to start an instance and invoke a command that sends a message to SNS,
+although starting an EC2 instance just to do this is quite expensive. Also, the minimum period is 15 minutes, and you don&rsquo;t have control
+ down to the minute or second as to exactly when your task will be invoked.</p>
+
+<p>A managed scheduling service that allows you to submit messages to an SNS topic would be great! SNS already supports
+ message fan-out to queues and delivery retires so the only component missing is something to submit those messages
+ at a specified time. Azure has a <a href="http://azure.microsoft.com/en-us/services/scheduler/">similar solution</a> already.</p>
+
+<h1>#3 - Search for CloudWatch logs</h1>
+
+<p>CloudWatch logs provides a convenient way to manage logs across multiple instances without having to leave the AWS ecosystem.
+ It&rsquo;s still a new product, but it feels like it hasn&rsquo;t yet achieved its full potential.</p>
+
+<p>Currently you can store logs and create metrics based on certain patterns appearing in your logs, but there&rsquo;s no search
+other than the ability to filter by time!
+ You can&rsquo;t archive your logs to S3 for external processing either, and the GetLogEvents API function is limited to 10,000
+ logs per request and can only be called 10 times/second.</p>
+
+<p>These limitations mean most users will probably have to use a second log aggregation service to cater for ad-hoc
+ log searches and extraction. However, a search function would make a huge difference and enable CloudWatch to compete
+ with the likes of Logentries and Loggly. Even integration with CloudSearch would be enough for users
+ who have a large enough log volume to justify a dedicated search instance.</p>
+
+<h1>#4 - HTTP endpoint triggers for Lambda functions</h1>
+
+<p>It&rsquo;s easy to think of opportunities where the new Lambda service could help &ldquo;glue&rdquo; different systems together. Unfortunately
+ we&rsquo;re currently limited by how a Lambda function can be invoked - it either has to be done manually via the AWS API
+ or via S3, DynamoDB or Kinesis events.</p>
+
+<p>Lambda would become significantly more useful if functions could be triggered asynchronously with a simple REST endpoint
+ without authentication. Obviously a lack of authentication isn&rsquo;t ideal, but it&rsquo;d make it much easier to integrate
+ with 3rd parties that support web-hook functionality. Imagine being able to trigger Lambda functions
+ using a BitBucket commit hook, or a stored email notification from Mailgun.</p>
+
+<h1>#5 - Zone tagging in Route53</h1>
+
+<p>Resource tags can be used in IAM policies to restrict users to particular tags. This is useful when creating accounts
+ that can only access EC2 instances tagged as belonging to a specific department for example.</p>
+
+<p>Users who manage DNS on behalf of some of their customers via Route53 would appreciate giving their customers
+ direct access via an IAM account to manage their zones directly. This would help to cut down on support costs
+ associated with making DNS updates on behalf of the customer due to changes unrelated to the product they provide.</p>
+
+<p>You can currently restrict IAM accounts to a list of zone IDs, but maintaining this list is impractical when some customers
+ have dozens of zones and several users that change regularly. It would make things much easier if zones could be tagged
+ with a particular customer, then accounts can be limited to zones tagged with that customer.</p>
+
+<h1>Worth a mention</h1>
+
+<p>Here are some other features I&rsquo;d love to see but didn&rsquo;t make it into my top 5.</p>
+
+<p><strong>Rolling deployments for OpsWorks</strong> - ElasticBeanstalk and CodeDeploy both support rolling deployments, it&rsquo;s a shame
+ OpsWorks is the odd one out!</p>
+
+<p><strong>Trigger Lambda functions with SQS and SNS</strong> - Being able to process SQS and SNS messages with Lambda would be great too,
+ although if you could trigger a Lambda function with a HTTP endpoint then you could subscribe that to SNS instead.</p>
+
+<p><strong>HTTP request routing via ELB</strong> - I can live without this, but many users would find it useful to route certain paths
+ to different sets of back end instances. <a href="https://cloud.google.com/compute/docs/load-balancing/http/content-based-example">Google Cloud</a>
+ supports this already.</p>
+
+<p>So, what&rsquo;s on your wish list?</p>
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[Automatic DNS Records Using Route53 on OpsWorks]]></title>
     <link href="http://hipsterdevblog.com/blog/2014/06/23/automatic-dns-records-using-route53/"/>
     <updated>2014-06-23T18:28:23+10:00</updated>
     <id>http://hipsterdevblog.com/blog/2014/06/23/automatic-dns-records-using-route53</id>
     <content type="html"><![CDATA[<p>
     Lets say you have a load balanced web application managed with OpsWorks – your application traffic will be addressed
-    to the load balancer, but sometimes it's still handy to address your application nodes directly for testing
+    to the load balancer, but sometimes it&#8217;s still handy to address your application nodes directly for testing
     purposes or perhaps so each node has a unique SNS endpoint for HTTP notifications. You could just  use their IP,
     but unless you use an EIP that IP address may change. You could create a DNS record, which would be easier to remember
     and allows the IP to change – but managing this manually would be a pain.
@@ -47,13 +146,13 @@
 
 
 <p>
-    Firstly, I'll assume you have a Route53 zone created – in my case the zone will be called <code>example.com</code>.
-    You'll also need a set of AWS access keys, I recommend creating an IAM user restricted to managing your hosted zone.
+    Firstly, I&#8217;ll assume you have a Route53 zone created – in my case the zone will be called <code>example.com</code>.
+    You&#8217;ll also need a set of AWS access keys, I recommend creating an IAM user restricted to managing your hosted zone.
     You can use the following IAM user policy:
 </p>
 
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>IAM User Policy </span></figcaption>
+<p><figure class='code'><figcaption><span>IAM User Policy </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -71,37 +170,31 @@
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
 <span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
 </pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
 </span><span class='line'>  <span class="err">&amp;ldquo;Version&amp;rdquo;:</span> <span class="err">&amp;ldquo;2012-10-17&amp;rdquo;,</span>
-</span><span class='line'>  <span class="err">&amp;ldquo;Statement&amp;rdquo;:</span> <span class="err">[&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;pre&gt;&lt;code&gt;{</span>
-</span><span class='line'>  <span class="nt">&quot;Sid&quot;</span><span class="p">:</span> <span class="s2">&quot;Stmt1403515694000&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="nt">&quot;Effect&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="nt">&quot;Action&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span class='line'>    <span class="s2">&quot;route53:ChangeResourceRecordSets&quot;</span><span class="p">,</span>
-</span><span class='line'>    <span class="s2">&quot;route53:GetHostedZone&quot;</span><span class="p">,</span>
-</span><span class='line'>    <span class="s2">&quot;route53:ListResourceRecordSets&quot;</span>
-</span><span class='line'>  <span class="p">],</span>
-</span><span class='line'>  <span class="nt">&quot;Resource&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span class='line'>    <span class="s2">&quot;arn:aws:route53:::hostedzone/&amp;lt;insert your hosted zone ID&amp;gt;&quot;</span>
-</span><span class='line'>  <span class="p">]</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="err">&lt;/code&gt;&lt;/pre&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">&lt;p&gt;</span>  <span class="err">]</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;Statement&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>    <span class="err">{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Sid&amp;rdquo;:</span> <span class="err">&amp;ldquo;Stmt1403515694000&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Effect&amp;rdquo;:</span> <span class="err">&amp;ldquo;Allow&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Action&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;route53:ChangeResourceRecordSets&amp;rdquo;,</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;route53:GetHostedZone&amp;rdquo;,</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;route53:ListResourceRecordSets&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">],</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Resource&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;arn:aws:route53:::hostedzone/&lt;insert</span> <span class="err">your</span> <span class="err">hosted</span> <span class="err">zone</span> <span class="err">ID&gt;&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">]</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="err">]</span>
 </span><span class='line'><span class="err">}</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>
     Next add your AWS credentials and zone ID as custom JSON variables in your OpsWorks stack:
 </p>
 
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Custom JSON </span></figcaption>
+<p><figure class='code'><figcaption><span>Custom JSON </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -112,7 +205,7 @@
 </span><span class='line'>  <span class="err">&amp;ldquo;custom_access_key&amp;rdquo;:</span> <span class="err">&amp;ldquo;&lt;insert</span> <span class="err">access</span> <span class="err">key&gt;&amp;rdquo;,</span>
 </span><span class='line'>  <span class="err">&amp;ldquo;custom_secret_key&amp;rdquo;:</span> <span class="err">&amp;ldquo;&lt;insert</span> <span class="err">secret</span> <span class="err">key&gt;&amp;rdquo;</span>
 </span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>
  Adding custom JSON to your stack is covered in more detail in
@@ -122,19 +215,19 @@
 
 <p>
     Finally, add the <a target="_blank" href="http://community.opscode.com/cookbooks/route53">route53 cookbook</a>
-    to your Berksfile. If you're not using Berkshelf you'll have to clone the whole cookbook into your custom cookbook
+    to your Berksfile. If you&#8217;re not using Berkshelf you&#8217;ll have to clone the whole cookbook into your custom cookbook
     repository.
 </p>
 
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>Berksfile </span></figcaption>
+<p><figure class='code'><figcaption><span>Berksfile </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">source</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;https://api.berkshelf.com&quot;</span><span class="o">&gt;</span><span class="ss">https</span><span class="p">:</span><span class="sr">//</span><span class="n">api</span><span class="o">.</span><span class="n">berkshelf</span><span class="o">.</span><span class="n">com</span><span class="o">&lt;</span><span class="sr">/a&gt;&amp;rdquo;&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="n">cookbook</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">route53</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;,</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&gt;=</span> <span class="mi">0</span><span class="o">.</span><span class="mi">3</span><span class="o">.</span><span class="mi">4</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <h2>Creating your recipes</h2>
 
@@ -145,13 +238,13 @@
 </p>
 
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>File Structure </span></figcaption>
+<p><figure class='code'><figcaption><span>File Structure </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>dnsupdate/metadata.rb
-</span><span class='line'>dnsupdate/recipes/add.rb</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span><span class='line'>dnsupdate/recipes/add.rb</span></code></pre></td></tr></table></div></figure></p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>metadata.rb </span></figcaption>
+<p><figure class='code'><figcaption><span>metadata.rb </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -166,9 +259,9 @@
 </span><span class='line'><span class="n">version</span>     <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="mi">1</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="sr">&lt;p&gt;depends &amp;ldquo;route53&amp;rdquo;</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>recipes/add.rb </span></figcaption>
+<p><figure class='code'><figcaption><span>recipes/add.rb </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -197,7 +290,7 @@
 </span><span class='line'><span class="s2">  overwrite true</span>
 </span><span class='line'><span class="s2">  action :create</span>
 </span><span class='line'><span class="s2">end</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>
     Substitute <code>.example.com</code> with your own domain. <code>Net::HTTP.get(URI.parse('http://169.254.169.254/latest/meta-data/public-ipv4'))</code>
@@ -212,14 +305,14 @@
 
 
 <p>
-    Once you've committed and pushed the new recipe to your custom cookbook repository you're ready to add the recipe
+    Once you&#8217;ve committed and pushed the new recipe to your custom cookbook repository you&#8217;re ready to add the recipe
     to the configure life cycle event. First update your custom cookbooks, by going to your stack > Run Command > and
-    selecting 'Update Custom Cookbooks' from the command select box.
+    selecting &#8216;Update Custom Cookbooks&#8217; from the command select box.
 </p>
 
 
 <p>
-    Finally, navigate to a layer in OpsWorks > Edit > Recipes > add 'dnsupdate::add' to the configure
+    Finally, navigate to a layer in OpsWorks > Edit > Recipes > add &#8216;dnsupdate::add&#8217; to the configure
     event and save.
 </p>
 

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Haproxy | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/haproxy/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2014-12-21T14:36:28+10:00</updated>
+  <updated>2015-01-02T11:55:47+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -27,7 +27,7 @@
  which makes it the obvious choice for OpsWorks users.</p>
 
 <p>It&rsquo;s well known that several large application servers can be served by just a single small HAProxy server, but what is
-the definition of small? How about the smallest EC2 instance on offer &ndash; the <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/t2-instances.html">t2.micro</a>?
+the definition of small? How about the smallest EC2 instance on offer - the <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/t2-instances.html">t2.micro</a>?
  This blog post puts HAProxy on a t2.micro to the test using <a href="https://loader.io/">loader.io</a> to determine just how many requests/second it
  can handle and whether CPU or network is the limiting factor.</p>
 
@@ -39,7 +39,7 @@ the definition of small? How about the smallest EC2 instance on offer &ndash; th
 <p>To create a test environment I set up an OpsWorks stack with a HAProxy and PHP layer.
 I then deployed the following file:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>index.php </span></figcaption>
+<p><figure class='code'><figcaption><span>index.php </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -54,7 +54,7 @@ I then deployed the following file:</p>
 </span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;?&gt;&lt;/</span><span class="nx">p</span><span class="o">&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="nx">Lorem</span> <span class="nx">ipsum</span> <span class="nx">dolor</span> <span class="nx">sit</span> <span class="nx">amet</span><span class="p">,</span> <span class="nx">consectetur</span> <span class="o">&amp;</span><span class="nx">hellip</span><span class="p">;</span> <span class="p">[</span><span class="nx">continues</span> <span class="k">for</span> <span class="o">~</span><span class="mi">50</span><span class="nx">kb</span><span class="p">]</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>This is intended to emulate a fairly typical application request from the perspective of the load balancer
 (ie. takes about 300ms to generate and the resulting document is about 50kb in size). Having a fixed page generation
@@ -115,7 +115,7 @@ time is convenient as any increase in the overall response time can be assumed t
 
 <p><img src="/images/posts/haproxybench/1000nrnetwork.jpg"></p>
 
-<p>This time CPU is higher, but still only ~7% &ndash; however combined network throughput is close to 40k packets/second and 400 MB/s.</p>
+<p>This time CPU is higher, but still only ~7% - however combined network throughput is close to 40k packets/second and 400 MB/s.</p>
 
 <p>Clearly network capacity is the limiting factor.</p>
 
@@ -160,7 +160,7 @@ request is about 50 kB the approximate limit should be <code>(180 * 1024 * 1024)
 
 <p>I also ran some tests using this scenario:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>api.php </span></figcaption>
+<p><figure class='code'><figcaption><span>api.php </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -173,7 +173,7 @@ request is about 50 kB the approximate limit should be <code>(180 * 1024 * 1024)
 </span><span class='line'>
 </span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;?&gt;</span>
 </span><span class='line'><span class="p">{</span><span class="o">&amp;</span><span class="nx">ldquo</span><span class="p">;</span><span class="nx">hello</span><span class="o">&amp;</span><span class="nx">rdquo</span><span class="p">;</span><span class="o">:</span> <span class="o">&amp;</span><span class="nx">ldquo</span><span class="p">;</span><span class="nx">world</span><span class="o">&amp;</span><span class="nx">rdquo</span><span class="p">;}</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>When I tested this with 1000 req/sec HAProxy health checks began to fail on the app servers even though CPU
  usage was low, this caused response times to jump and fluctuate:</p>
