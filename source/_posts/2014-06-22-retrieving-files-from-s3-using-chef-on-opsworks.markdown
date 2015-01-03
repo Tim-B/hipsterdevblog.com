@@ -9,6 +9,10 @@ categories:
  - AWS
  - S3
 ---
+<p>
+**You may also be interested in my new post [Revisited: Retrieving Files From S3 Using Chef on OpsWorks](/blog/2015/01/03/revisited-retrieving-files-from-s3-using-chef-on-opsworks/)
+ which includes support for IAM instance roles.**
+<p>
 
 <p>
     Say you wanted to manage some configuration file in your OpsWorks stack – typically you'd create a custom Chef recipe,
