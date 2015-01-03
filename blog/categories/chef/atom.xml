@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Chef | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/chef/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-01-03T17:00:25+10:00</updated>
+  <updated>2015-01-03T17:05:49+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -22,7 +22,7 @@
  That posts uses the <a href="https://github.com/opscode-cookbooks/aws">Opscode AWS cookbook</a> which in turn uses the <a href="https://github.com/rightscale/right_aws">right_aws</a>
  gem. While this method is fine - particularly if you&rsquo;re not using OpsWorks - there are some situations where it&rsquo;s not ideal.</p>
 
-<p>Recently I&rsquo;ve taken directly using the aws-sdk gem which is bundled with the OpsWorks agent. The version at the time of
+<p>Recently I&rsquo;ve started using the aws-sdk gem directly which is bundled with the OpsWorks agent. The version at the time of
  writing is 1.53.0.</p>
 
 <p>The advantages of this are:</p>
@@ -30,7 +30,7 @@
 <ul>
 <li>Support for <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html">IAM instance roles</a>,
 meaning you don&rsquo;t have to pass AWS credentials via your custom JSON.</li>
-<li>No dependencies on external cookbooks</li>
+<li>No dependencies on external cookbooks.</li>
 <li>Will ordinarily be run at the compile stage, therefore you could download a JSON file, parse it, then use it to
 generate resources if you wanted.</li>
 </ul>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Aws | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/aws/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-01-03T17:00:25+10:00</updated>
+  <updated>2015-01-03T17:05:49+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -22,7 +22,7 @@
  That posts uses the <a href="https://github.com/opscode-cookbooks/aws">Opscode AWS cookbook</a> which in turn uses the <a href="https://github.com/rightscale/right_aws">right_aws</a>
  gem. While this method is fine - particularly if you&rsquo;re not using OpsWorks - there are some situations where it&rsquo;s not ideal.</p>
 
-<p>Recently I&rsquo;ve taken directly using the aws-sdk gem which is bundled with the OpsWorks agent. The version at the time of
+<p>Recently I&rsquo;ve started using the aws-sdk gem directly which is bundled with the OpsWorks agent. The version at the time of
  writing is 1.53.0.</p>
 
 <p>The advantages of this are:</p>
@@ -30,7 +30,7 @@
 <ul>
 <li>Support for <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html">IAM instance roles</a>,
 meaning you don&rsquo;t have to pass AWS credentials via your custom JSON.</li>
-<li>No dependencies on external cookbooks</li>
+<li>No dependencies on external cookbooks.</li>
 <li>Will ordinarily be run at the compile stage, therefore you could download a JSON file, parse it, then use it to
 generate resources if you wanted.</li>
 </ul>
@@ -902,7 +902,7 @@ other than the ability to filter by time!
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>Running &ldquo;lambda_package:default&rdquo; (lambda_package) task
-</span><span class='line'>&lt;a href="&#109;&#97;&#105;&#108;&#x74;&#111;&#58;&#108;&#105;&#110;&#107;&#45;&#x73;&#x63;&#x72;&#x61;&#x70;&#x65;&#x72;&#64;&#49;&#46;&#x30;&#x2e;&#48;">&#x6c;&#x69;&#x6e;&#107;&#x2d;&#115;&#99;&#114;&#97;&#x70;&#x65;&#x72;&#x40;&#x31;&#x2e;&#x30;&#46;&#48;&lt;/a> ../../../../../../tmp/1417936030856.854/node_modules/link-scraper
+</span><span class='line'>&lt;a href="&#109;&#x61;&#105;&#x6c;&#116;&#111;&#58;&#x6c;&#105;&#110;&#107;&#x2d;&#x73;&#99;&#x72;&#x61;&#x70;&#x65;&#114;&#x40;&#x31;&#46;&#48;&#46;&#48;">&#x6c;&#105;&#110;&#107;&#x2d;&#115;&#99;&#114;&#97;&#x70;&#x65;&#114;&#x40;&#49;&#46;&#x30;&#46;&#x30;&lt;/a> ../../../../../../tmp/1417936030856.854/node_modules/link-scraper
 </span><span class='line'>Created package at dist/link-scraper_1-0-0_2014-11-7-17-7-10.zip&lt;/p>
 </span><span class='line'>
 </span><span class='line'>&lt;p>Running &ldquo;lambda_deploy:default&rdquo; (lambda_deploy) task
