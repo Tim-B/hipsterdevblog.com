@@ -14,14 +14,14 @@ One of my earliest and most popular posts is [Retrieving Files From S3 Using Che
  That posts uses the [Opscode AWS cookbook](https://github.com/opscode-cookbooks/aws) which in turn uses the [right_aws](https://github.com/rightscale/right_aws)
  gem. While this method is fine - particularly if you're not using OpsWorks - there are some situations where it's not ideal.
 
-Recently I've taken directly using the aws-sdk gem which is bundled with the OpsWorks agent. The version at the time of
+Recently I've started using the aws-sdk gem directly which is bundled with the OpsWorks agent. The version at the time of
  writing is 1.53.0.
 
 The advantages of this are:
 
 * Support for [IAM instance roles](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html),
  meaning you don't have to pass AWS credentials via your custom JSON.
-* No dependencies on external cookbooks
+* No dependencies on external cookbooks.
 * Will ordinarily be run at the compile stage, therefore you could download a JSON file, parse it, then use it to
  generate resources if you wanted.
 
