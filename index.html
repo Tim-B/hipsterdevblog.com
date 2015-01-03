@@ -9,7 +9,7 @@
   <meta name="author" content="Tim B.">
 
   
-  <meta name="description" content="As a new year dawns it occurred to me how much AWS functionality I now use heavily wasn&rsquo;t available only a year ago. Almost every day I check &hellip;">
+  <meta name="description" content="One of my earliest and most popular posts is Retrieving Files From S3 Using Chef on OpsWorks. That posts uses the Opscode AWS cookbook which in turn &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,78 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/01/03/revisited-retrieving-files-from-s3-using-chef-on-opsworks/">Revisited: Retrieving Files From S3 Using Chef on OpsWorks</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-01-03T09:13:42+10:00" pubdate data-updated="true">Jan 3<sup>rd</sup>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>One of my earliest and most popular posts is <a href="/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/">Retrieving Files From S3 Using Chef on OpsWorks</a>.
+ That posts uses the <a href="https://github.com/opscode-cookbooks/aws">Opscode AWS cookbook</a> which in turn uses the <a href="https://github.com/rightscale/right_aws">right_aws</a>
+ gem. While this method is fine - particularly if you&rsquo;re not using OpsWorks - there are some situations where it&rsquo;s not ideal.</p>
+
+<p>Recently I&rsquo;ve taken directly using the aws-sdk gem which is bundled with the OpsWorks agent. The version at the time of
+ writing is 1.53.0.</p>
+
+<p>The advantages of this are:</p>
+
+<ul>
+<li>Support for <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html">IAM instance roles</a>,
+meaning you don&rsquo;t have to pass AWS credentials via your custom JSON.</li>
+<li>No dependencies on external cookbooks</li>
+<li>Will ordinarily be run at the compile stage, therefore you could download a JSON file, parse it, then use it to
+generate resources if you wanted.</li>
+</ul>
+
+
+<p>The disadvantages are:</p>
+
+<ul>
+<li>It&rsquo;s not entirely clear, but my feeling is that the gems included with the OpsWorks agent aren&rsquo;t necessarily
+part of the API &ldquo;contract&rdquo; provided by OpsWorks for cookbook developers. Therefore there is no guarantee that AWS
+won&rsquo;t change the version or even remove it entirely without notice. I think it&rsquo;s unlikely that they&rsquo;ll remove the
+aws-sdk gem or move to a version with compatibility breaking changes any time soon, but it&rsquo;s possible.</li>
+<li>Less &ldquo;chef-like&rdquo; solution, although you could write your own chef resource to wrap it</li>
+<li>If you&rsquo;re not using OpsWorks then the aws-sdk will create another dependency</li>
+</ul>
+
+
+<p>This blog post provides an example of how to use the bundled aws-sdk gem to download a file from S3 using IAM instance
+ roles on OpsWorks.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2015/01/03/revisited-retrieving-files-from-s3-using-chef-on-opsworks/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -505,65 +577,6 @@ delegating the configuration management to OpsWorks and the deployment functiona
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/06/23/automatic-dns-records-using-route53/">Automatic DNS Records Using Route53 on OpsWorks</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-23T18:28:23+10:00" pubdate data-updated="true">Jun 23<sup>rd</sup>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>
-    Lets say you have a load balanced web application managed with OpsWorks – your application traffic will be addressed
-    to the load balancer, but sometimes it&#8217;s still handy to address your application nodes directly for testing
-    purposes or perhaps so each node has a unique SNS endpoint for HTTP notifications. You could just  use their IP,
-    but unless you use an EIP that IP address may change. You could create a DNS record, which would be easier to remember
-    and allows the IP to change – but managing this manually would be a pain.
-</p>
-
-
-
-
-<p>
-    Fortunately this process of managing DNS records can be automated using Chef, Route53 and the EC2 instance
-    metadata functionality to obtain the public IP. Each instance will automatically create an A record for
-    <code>[instance name].example.com</code> on setup using their OpsWorks instance name.
-</p>
-
-
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/06/23/automatic-dns-records-using-route53/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -579,6 +592,10 @@ delegating the configuration management to OpsWorks and the deployment functiona
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/01/03/revisited-retrieving-files-from-s3-using-chef-on-opsworks/">Revisited: Retrieving Files From S3 Using Chef on OpsWorks</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/01/01/my-2015-aws-wish-list/">My 2015 AWS Wish List</a>
       </li>
     
@@ -592,10 +609,6 @@ delegating the configuration management to OpsWorks and the deployment functiona
     
       <li class="post">
         <a href="/blog/2014/12/07/writing-functions-for-aws-lambda-using-npm-and-grunt/">Writing Functions for AWS Lambda Using NPM and Grunt</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/">Part 3: Integrating OpsWorks and CodeDeploy</a>
       </li>
     
   </ul>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: S3 | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/s3/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-01-02T11:55:47+10:00</updated>
+  <updated>2015-01-03T17:00:25+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -12,6 +12,303 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Revisited: Retrieving Files From S3 Using Chef on OpsWorks]]></title>
+    <link href="http://hipsterdevblog.com/blog/2015/01/03/revisited-retrieving-files-from-s3-using-chef-on-opsworks/"/>
+    <updated>2015-01-03T09:13:42+10:00</updated>
+    <id>http://hipsterdevblog.com/blog/2015/01/03/revisited-retrieving-files-from-s3-using-chef-on-opsworks</id>
+    <content type="html"><![CDATA[<p>One of my earliest and most popular posts is <a href="/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/">Retrieving Files From S3 Using Chef on OpsWorks</a>.
+ That posts uses the <a href="https://github.com/opscode-cookbooks/aws">Opscode AWS cookbook</a> which in turn uses the <a href="https://github.com/rightscale/right_aws">right_aws</a>
+ gem. While this method is fine - particularly if you&rsquo;re not using OpsWorks - there are some situations where it&rsquo;s not ideal.</p>
+
+<p>Recently I&rsquo;ve taken directly using the aws-sdk gem which is bundled with the OpsWorks agent. The version at the time of
+ writing is 1.53.0.</p>
+
+<p>The advantages of this are:</p>
+
+<ul>
+<li>Support for <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html">IAM instance roles</a>,
+meaning you don&rsquo;t have to pass AWS credentials via your custom JSON.</li>
+<li>No dependencies on external cookbooks</li>
+<li>Will ordinarily be run at the compile stage, therefore you could download a JSON file, parse it, then use it to
+generate resources if you wanted.</li>
+</ul>
+
+
+<p>The disadvantages are:</p>
+
+<ul>
+<li>It&rsquo;s not entirely clear, but my feeling is that the gems included with the OpsWorks agent aren&rsquo;t necessarily
+part of the API &ldquo;contract&rdquo; provided by OpsWorks for cookbook developers. Therefore there is no guarantee that AWS
+won&rsquo;t change the version or even remove it entirely without notice. I think it&rsquo;s unlikely that they&rsquo;ll remove the
+aws-sdk gem or move to a version with compatibility breaking changes any time soon, but it&rsquo;s possible.</li>
+<li>Less &ldquo;chef-like&rdquo; solution, although you could write your own chef resource to wrap it</li>
+<li>If you&rsquo;re not using OpsWorks then the aws-sdk will create another dependency</li>
+</ul>
+
+
+<p>This blog post provides an example of how to use the bundled aws-sdk gem to download a file from S3 using IAM instance
+ roles on OpsWorks.</p>
+
+<!-- more -->
+
+
+<h1>The IAM role</h1>
+
+<p>Before starting you&rsquo;ll need to grant permissions to access your S3 bucket to the IAM role used by your instances. You can find
+ and edit EC2 instance roles under Identity &amp; Access Management > Roles. The default role will probably be called something
+ like <code>aws-opsworks-ec2-role</code>.</p>
+
+<p>If you need to find the role it unfortunately isn&rsquo;t listed in OpsWorks on the instance view page, but you can either
+ find it in the instance properties within the EC2 console:</p>
+
+<p><img src="/images/posts/s3_chef_revisited/ec2_role.png"></p>
+
+<p>Or in the security tab of the layer settings:</p>
+
+<p><img src="/images/posts/s3_chef_revisited/layer_security.png"></p>
+
+<p>Add a new policy to this role granting permissions to access your desired S3 bucket, for example:</p>
+
+<p><figure class='code'><figcaption><span>s3_access_policy </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;Version&amp;rdquo;:</span> <span class="err">&amp;ldquo;2012-10-17&amp;rdquo;,</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;Statement&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>    <span class="err">{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Action&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;s3:Get&lt;em&gt;&amp;rdquo;,</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;s3:List&lt;/em&gt;&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">],</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Sid&amp;rdquo;:</span> <span class="err">&amp;ldquo;Stmt0123456789&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Resource&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;arn:aws:s3:::my-bucket/*&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">],</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Effect&amp;rdquo;:</span> <span class="err">&amp;ldquo;Allow&amp;rdquo;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="err">]</span>
+</span><span class='line'><span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Don&rsquo;t forget to replace <code>my-bucket</code> with your bucket name. This will grant access to all the Get and List prefixed operations
+ for all objects in the bucket, but you can use a more specific policy if desired.</p>
+
+<h1>The recipe</h1>
+
+<p>I won&rsquo;t go into the details of creating a custom cookbook, S3 bucket or adding recipes to lifecycle events as these steps
+ were covered in my <a href="/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/">earlier post</a>. Given that
+ we won&rsquo;t be using the OpsCode AWS cookbook you can skip adding that to your Berskfile.</p>
+
+<p><figure class='code'><figcaption><span>mycookbook/recipes/myrecipe.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="nb">require</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">aws</span><span class="o">-</span><span class="n">sdk</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;s3 = AWS::S3.new&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="no">Set</span> <span class="n">bucket</span> <span class="ow">and</span> <span class="n">object</span> <span class="nb">name</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;obj = s3.buckets[&amp;lsquo;my-bucket&amp;rsquo;].objects[&amp;lsquo;my/o</span><span class="n">bject</span><span class="o">.</span><span class="n">txt</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="o">]&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;h1&gt;Read content to variable&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="n">file_content</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">read</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;h1&gt;Log output (optional)&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="no">Chef</span><span class="o">::</span><span class="no">Log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">file_content</span><span class="p">)</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;h1&gt;Write content to file&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="n">file</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">myobject</span><span class="o">.</span><span class="n">txt</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">owner</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">group</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">mode</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="mo">0755</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">content</span> <span class="n">file_content</span>
+</span><span class='line'>  <span class="n">action</span> <span class="ss">:create</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Now if you run <code>mycookbook::myrecipe</code> you should find <code>/tmp/myobject.txt</code> is populated with the content of <code>my/object.txt</code>
+ in the <code>my-bucket</code> bucket.</p>
+
+<p>Note that as I mentioned earlier the aws-sdk version at the time of writing is 1.53.0, therefore remember to refer to the
+<strong><a href="http://docs.aws.amazon.com/AWSRubySDK/latest/frames.html">SDK version 1 docs</a></strong> rather than the version 2 docs which will
+ use the <code>Aws.</code> namespace in examples (note the capitalization).</p>
+
+<h1>Reading and parsing a JSON file to use in a recipe</h1>
+
+<p>Here&rsquo;s an example which downloads a JSON file, parses it then uses it to create resources.</p>
+
+<p><figure class='code'><figcaption><span>fruits.json </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;fruit&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;apples&amp;rdquo;,</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;oranges&amp;rdquo;,</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;bananas&amp;rdquo;</span>
+</span><span class='line'>    <span class="err">]</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><figcaption><span>mycookbook/recipes/myrecipe.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="nb">require</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">aws</span><span class="o">-</span><span class="n">sdk</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;s3 = AWS::S3.new&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="no">Set</span> <span class="n">bucket</span> <span class="ow">and</span> <span class="n">object</span> <span class="nb">name</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;obj = s3.buckets[&amp;lsquo;test-site-config&amp;rsquo;].objects[&amp;lsquo;fruits.json&amp;rsquo;]&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="no">Read</span> <span class="n">content</span> <span class="n">to</span> <span class="n">variable</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;file_content = obj.read&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="no">Log</span> <span class="n">output</span> <span class="p">(</span><span class="n">optional</span><span class="p">)</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;Chef::Log.info(file_content)&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="n">fruits</span> <span class="o">=</span> <span class="no">JSON</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">file_content</span><span class="p">)</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;fruits[&amp;lsquo;fruit&amp;rsquo;].each do |fruit|</span>
+</span><span class='line'><span class="sr">  log &amp;ldquo;I have </span><span class="si">#{</span><span class="n">fruit</span><span class="si">}</span><span class="sr">&amp;rdquo; do</span>
+</span><span class='line'><span class="sr">    level :info</span>
+</span><span class='line'><span class="sr">  end</span>
+</span><span class='line'><span class="sr">end</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>In your OpsWorks run logs you should see something like:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[2015-01-03T06:18:10+00:00] INFO: Processing log[I have apples] action write (mycookbook::myrecipe line 17)
+</span><span class='line'>[2015-01-03T06:18:10+00:00] INFO: I have apples
+</span><span class='line'>[2015-01-03T06:18:10+00:00] INFO: Processing log[I have oranges] action write (mycookbook::myrecipe line 17)
+</span><span class='line'>[2015-01-03T06:18:10+00:00] INFO: I have oranges
+</span><span class='line'>[2015-01-03T06:18:10+00:00] INFO: Processing log[I have bananas] action write (mycookbook::myrecipe line 17)
+</span><span class='line'>[2015-01-03T06:18:10+00:00] INFO: I have bananas</span></code></pre></td></tr></table></div></figure></p>
+
+<h1>Compile vs. Converge time</h1>
+
+<p>Chef runs in two stages, the compile stage then the converge stage. In the first recipe the S3 code is run at compile
+ time because it is not part of a resource, but actually writing it to a file
+ using the file resource takes place at converge time.</p>
+
+<p>Therefore in the following scenario:</p>
+
+<p><figure class='code'><figcaption><span>mycookbook/recipes/myrecipe.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='rb'><span class='line'><span class="nb">require</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">aws</span><span class="o">-</span><span class="n">sdk</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;s3 = AWS::S3.new</span>
+</span><span class='line'><span class="sr">obj = s3.buckets[&amp;lsquo;my-bucket&amp;rsquo;].objects[&amp;lsquo;my/o</span><span class="n">bject</span><span class="o">.</span><span class="n">txt</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="o">]</span>
+</span><span class='line'><span class="n">file_content</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">read</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;file &amp;lsquo;/</span><span class="n">tmp</span><span class="o">/</span><span class="n">myobject</span><span class="o">.</span><span class="n">txt</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">content</span> <span class="n">file_content</span>
+</span><span class='line'>  <span class="n">action</span> <span class="ss">:create</span>
+</span><span class='line'><span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;exists = File.file?(&amp;lsquo;/</span><span class="n">tmp</span><span class="o">/</span><span class="n">myobject</span><span class="o">.</span><span class="n">txt</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;)</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;log &amp;ldquo;File exists: </span><span class="si">#{</span><span class="n">exists</span><span class="si">}</span><span class="sr">&amp;rdquo; do</span>
+</span><span class='line'><span class="sr">    level :info</span>
+</span><span class='line'><span class="sr">end</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The log will report <code>File exists: false</code>, as the file resource hasn&rsquo;t been executed by the time <code>File.file?</code> is called.</p>
+
+<p>The consequences of this should generally be insignificant given that usually you&rsquo;d want the S3 file to be downloaded first,
+ however if you need to delay code to converge time for any reason you can simply wrap it in a <a href="https://docs.chef.io/resource_ruby_block.html">ruby_block resource</a>.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Lazy Processing Images Using S3 and Redirection Rules]]></title>
@@ -158,44 +455,36 @@
     <link href="http://hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/"/>
     <updated>2014-06-22T17:44:02+10:00</updated>
     <id>http://hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks</id>
-    <content type="html"><![CDATA[<p>
-    Say you wanted to manage some configuration file in your OpsWorks stack – typically you&#8217;d create a custom Chef recipe,
+    <content type="html"><![CDATA[<p><p>
+<strong>You may also be interested in my new post <a href="/blog/2015/01/03/revisited-retrieving-files-from-s3-using-chef-on-opsworks/">Revisited: Retrieving Files From S3 Using Chef on OpsWorks</a>
+ which includes support for IAM instance roles.</strong>
+<p></p>
+
+<p><p>
+    Say you wanted to manage some configuration file in your OpsWorks stack – typically you&rsquo;d create a custom Chef recipe,
     make your configuration file a template and store it within your custom cookbook repository. This approach works well
     in most instances, but what if the file is something not suited to version control such as a large binary file or
     perhaps a programmatically generated artifact of your system?
 </p>
-
-
 <p>
     In these cases you may prefer to store the file in an S3 bucket and automatically download a copy of the file
     as part of a custom recipe. In my case I wanted to have a dynamically generated (by a separate system)
     vhost configuration file which could be deployed to a stack using a simple recipe.
 </p>
-
-
 <!-- more -->
+<h2>Adding AWS cookbook via Berkshelf</h2></p>
 
-
-<h2>Adding AWS cookbook via Berkshelf</h2>
-
-
-
-
-<p>
-    The first thing you&#8217;ll need to do is add the OpsCode <a target="_blank" href="http://community.opscode.com/cookbooks/aws">AWS
+<p><p>
+    The first thing you&rsquo;ll need to do is add the OpsCode <a target="_blank" href="http://community.opscode.com/cookbooks/aws">AWS
     cookbook</a> to your Berkfile. Note that Berkshelf is only supported on Chef 11.10 or higher on OpsWorks, so if your
-    OpsWorks stack has an older version selected you&#8217;ll have to either upgrade or include the whole AWS cookbook in your
+    OpsWorks stack has an older version selected you&rsquo;ll have to either upgrade or include the whole AWS cookbook in your
     custom cookbook repository.
 </p>
-
-
 <p>
-    If you don&#8217;t already have a Berkfile you&#8217;ll need to create one in your custom cookbook repository, otherwise simply
+    If you don&rsquo;t already have a Berkfile you&rsquo;ll need to create one in your custom cookbook repository, otherwise simply
     add the AWS cookbook. Your Berkfile should look something like this:
 </p>
-
-
-<p><figure class='code'><figcaption><span>Berksfile </span></figcaption>
+<figure class='code'><figcaption><span>Berksfile </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -204,26 +493,19 @@
 </span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="n">cookbook</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">aws</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;,</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&gt;=</span> <span class="mi">2</span><span class="o">.</span><span class="mi">2</span><span class="o">.</span><span class="mi">2</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
-<h2>Creating an S3 bucket and a user which can access it</h2>
-
-
+<p><h2>Creating an S3 bucket and a user which can access it</h2>
 <p>
-    You can probably figure out how to create a bucket on your own. In my case I have a bucket called &#8216;test-site-config&#8217;
-    and a file in there called &#8216;vhost.map&#8217; which I want to download via Chef.
+    You can probably figure out how to create a bucket on your own. In my case I have a bucket called &lsquo;test-site-config&rsquo;
+    and a file in there called &lsquo;vhost.map&rsquo; which I want to download via Chef.
 </p>
-
-
-<p> <img src="/images/posts/s3_chef_opsworks/bucket.png"></p>
-
+ <img src="/images/posts/s3_chef_opsworks/bucket.png">
 <p>
-    Next you&#8217;ll need some AWS credentials for Chef to use while downloading the file. You can use your root account
-    but I&#8217;d strongly suggest using an IAM user limited to your bucket instead. If you create a new IAM user you can
+    Next you&rsquo;ll need some AWS credentials for Chef to use while downloading the file. You can use your root account
+    but I&rsquo;d strongly suggest using an IAM user limited to your bucket instead. If you create a new IAM user you can
     use the following policy which will only permit reading objects from the specified S3 bucket (obviously replace
-    &#8216;test-site-config&#8217; with your own bucket name:
+    &lsquo;test-site-config&rsquo; with your own bucket name:
 </p>
-
-
-<p><figure class='code'><figcaption><span>IAM policy </span></figcaption>
+<figure class='code'><figcaption><span>IAM policy </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -256,17 +538,13 @@
 </span><span class='line'><span class="err">}</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
-<h2>Passing AWS credentials via custom JSON</h2>
-
-
+<p><h2>Passing AWS credentials via custom JSON</h2>
 <p>
-    Now navigate to your stack in the OpsWorks console, click &#8216;Stack Settings&#8217; then &#8216;Edit&#8217; and modify the Custom JSON
-    field to include variables for your access and secret key. If you already have custom JSON values then you&#8217;ll
+    Now navigate to your stack in the OpsWorks console, click &lsquo;Stack Settings&rsquo; then &lsquo;Edit&rsquo; and modify the Custom JSON
+    field to include variables for your access and secret key. If you already have custom JSON values then you&rsquo;ll
     need to merge the new values with your existing JSON, otherwise you can use the code below:
 </p>
-
-
-<p><figure class='code'><figcaption><span>Custom JSON </span></figcaption>
+<figure class='code'><figcaption><span>Custom JSON </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -278,21 +556,15 @@
 </span></code></pre></td></tr></table></div></figure>
 <img src="/images/posts/s3_chef_opsworks/edit_stack.png"></p>
 
-<h2>Creating your custom recipe</h2>
-
-
+<p><h2>Creating your custom recipe</h2>
 <p>
-    In this instance I&#8217;ll create a new recipe called &#8216;deployfile&#8217; which does nothing but download my file and save it to the specified
+    In this instance I&rsquo;ll create a new recipe called &lsquo;deployfile&rsquo; which does nothing but download my file and save it to the specified
     location, however you could just as easily include this code within an existing recipe.
 </p>
-
-
 <p>
     Create the following file structure and use the code below in your custom cookbook repository:
 </p>
-
-
-<p><figure class='code'><figcaption><span>File Structure </span></figcaption>
+<figure class='code'><figcaption><span>File Structure </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>deployfile/metadata.rb
@@ -334,40 +606,23 @@
 </span><span class='line'><span class="k">end</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
-<p>
+<p><p>
     Substitute <code>/etc/apache2/vhost.map</code> with the destination on your nodes, the bucket name and the remote
     path as required. You can also use other attributes belonging to the <a target="_blank" href="http://docs.opscode.com/resource_file.html">Chef
     file resource</a>.
-</p>
+</p></p>
 
+<p><h2>Updating stack and executing recipe</h2>
+<p>Once the code above has been committed and pushed back to your repository you&rsquo;re finally ready to execute the recipe.</p></p>
 
-
-
-<h2>Updating stack and executing recipe</h2>
-
-
-<p>Once the code above has been committed and pushed back to your repository you&#8217;re finally ready to execute the recipe.</p>
-
-
-
-
-<p>Go to your stack and click &#8216;Run Command&#8217;, select &#8216;Update Custom Cookbooks&#8217;:</p>
-
-
-<p><img src="/images/posts/s3_chef_opsworks/update_cookbook.png"></p>
-
-<p>Once OpsWorks has finished updating your custom cookbooks go back to &#8216;Run Command&#8217; and select &#8216;Execute Recipes&#8217;.
-Enter the name of your recipe into the &#8216;Recipes to execute&#8217; field:</p>
-
-
-<p><img src="/images/posts/s3_chef_opsworks/deploy_file.png"></p>
-
+<p><p>Go to your stack and click &lsquo;Run Command&rsquo;, select &lsquo;Update Custom Cookbooks&rsquo;:</p>
+<img src="/images/posts/s3_chef_opsworks/update_cookbook.png">
+<p>Once OpsWorks has finished updating your custom cookbooks go back to &lsquo;Run Command&rsquo; and select &lsquo;Execute Recipes&rsquo;.
+Enter the name of your recipe into the &lsquo;Recipes to execute&rsquo; field:</p>
+<img src="/images/posts/s3_chef_opsworks/deploy_file.png">
 <p>Alternatively you can add your recipe to a layer life-cycle event (such as setup) and execute that life-cycle event
 instead</p>
-
-
-<p>Once that recipe has finished executing the file downloaded from S3 should now be present on your system!</p>
-
+<p>Once that recipe has finished executing the file downloaded from S3 should now be present on your system!</p></p>
 ]]></content>
   </entry>
   
