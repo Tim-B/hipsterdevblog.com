@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Load Balancer | :HIPSTER_DEV_BLOG]]></title>
+  <link href="http://hipsterdevblog.com/blog/categories/load-balancer/atom.xml" rel="self"/>
+  <link href="http://hipsterdevblog.com/"/>
+  <updated>2015-01-23T20:25:59+10:00</updated>
+  <id>http://hipsterdevblog.com/</id>
+  <author>
+    <name><![CDATA[Tim B.]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Automated HAProxy Failover on OpsWorks]]></title>
+    <link href="http://hipsterdevblog.com/blog/2015/01/23/automated-haproxy-failover-on-opsworks/"/>
+    <updated>2015-01-23T11:27:10+10:00</updated>
+    <id>http://hipsterdevblog.com/blog/2015/01/23/automated-haproxy-failover-on-opsworks</id>
+    <content type="html"><![CDATA[<p>Without a doubt ELB is the simplest load balancing solution on AWS, however it may not be suitable for all users
+ given it doesn&rsquo;t support features such as a static IP. Fortunately OpsWorks makes it only marginally more complicated
+ to <a href="http://docs.aws.amazon.com/opsworks/latest/userguide/workinglayers-load.html">set up HAProxy</a> as an alternative.</p>
+
+<p>The AWS ecosystem encourages you to implement redundancy across availability zones and to avoid a single point of
+failure (SPOF). HAProxy will give you many additional features over ELB, however it is difficult to achieve cross-zone redundancy
+ and automated failover as supported natively by ELB. DNS round-robbin can help balance load across multiple HAProxy instances
+ to achieve scalability, however solution does not help to achieve high availability.</p>
+
+<p>This blog post will demonstrate how to implement automated failover using a self-monitoring pair of HAProxy instances in an
+ active/standby configuration. When a failure is detected the healthy standby will automatically take control of the
+ elastic IP (EIP) assigned to the pair and ensure the service can continue to function. A notification will also be triggered
+ via SNS to alert you that a failover has taken place.</p>
+
+<!-- more -->
+
+
+<h1>Getting started</h1>
+
+<p>I&rsquo;ll assume you&rsquo;re starting with a working OpsWorks stack including both an application server and HAProxy layer. I recommend
+ disabling automatic assignment of an EIP in the HAProxy layer settings (make sure public address assignment is enabled though)
+ then <a href="http://docs.aws.amazon.com/opsworks/latest/userguide/resources-attach.html#resources-attach-eip">manually register</a> a single EIP
+ with your stack and assign it to one of your HAProxy instances. I&rsquo;ll also assume you have a custom cookbook repository setup.
+ Also, I&rsquo;ll assume you have a pre-existing SNS topic for failover notifications to be published to.</p>
+
+<h1>Chef recipe</h1>
+
+<p>Create the following files within a custom cookbook:</p>
+
+<p><figure class='code'><figcaption><span>haproxyfailover/recipes/setup.rb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">service</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">monit</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">supports</span> <span class="ss">:status</span> <span class="o">=&gt;</span> <span class="kp">false</span><span class="p">,</span> <span class="ss">:restart</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:reload</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">action</span> <span class="o">[</span><span class="ss">:enable</span><span class="p">,</span> <span class="ss">:start</span><span class="o">]</span>
+</span><span class='line'><span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;template &amp;lsquo;/e</span><span class="n">tc</span><span class="o">/</span><span class="n">failtome</span><span class="o">.</span><span class="n">sh</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">source</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">failtome</span><span class="o">.</span><span class="n">sh</span><span class="o">.</span><span class="n">erb</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">owner</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">group</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">mode</span> <span class="mo">0755</span>
+</span><span class='line'><span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;template &amp;lsquo;/e</span><span class="n">tc</span><span class="o">/</span><span class="n">monit</span><span class="o">.</span><span class="n">d</span><span class="o">/</span><span class="n">haproxywatch</span><span class="o">.</span><span class="n">monitrc</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">source</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">haproxywatch</span><span class="o">.</span><span class="n">monitrc</span><span class="o">.</span><span class="n">erb</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">owner</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">group</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">mode</span> <span class="mo">0440</span>
+</span><span class='line'>  <span class="n">notifies</span> <span class="ss">:reload</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">service</span><span class="o">[</span><span class="n">monit</span><span class="o">]&amp;</span><span class="n">rdquo</span><span class="p">;,</span> <span class="ss">:immediately</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><figcaption><span>haproxyfailover/templates/default/failtome.sh.erb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h1&gt;!/bin/sh&lt;/h1&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h1&gt;Check current instance IP externally&lt;/h1&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;OUT<span class="o">=</span><span class="k">$(</span> curl -qSfsw <span class="p">&amp;</span>lsquo<span class="p">;</span><span class="se">\n</span><span class="p">&amp;</span>rsquo<span class="p">;</span> &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;http://checkip.amazonaws.com&quot;</span>&gt;http://checkip.amazonaws.com&lt;/a&gt; <span class="k">)</span> 2&gt;/dev/null
+</span><span class='line'><span class="nv">RET</span><span class="o">=</span><span class="nv">$?</span>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h1&gt;Check that current IP isn<span class="p">&amp;</span>rsquo<span class="p">;</span>t target IP and that request didn<span class="p">&amp;</span>rsquo<span class="p">;</span>t fail&lt;/h1&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;if <span class="o">[</span> <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">$RET</span><span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="o">=</span> <span class="p">&amp;</span>lsquo<span class="p">;</span>0<span class="p">&amp;</span>rsquo<span class="p">;</span> -a <span class="p">&amp;</span>ldquo<span class="p">;</span><span class="nv">$OUT</span><span class="p">&amp;</span>rdquo<span class="p">;</span> !<span class="o">=</span> <span class="p">&amp;</span>lsquo<span class="p">;&amp;</span>lt<span class="p">;</span>%<span class="o">=</span> node<span class="o">[</span>:stack<span class="o">][</span>:primary_ip<span class="o">]</span> %&gt;<span class="p">&amp;</span>rsquo<span class="p">;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt; <span class="c"># Swap EIP</span>
+</span><span class='line'> aws <span class="p">&amp;</span>ndash<span class="p">;</span>region <span class="p">&amp;</span>lt<span class="p">;</span>%<span class="o">=</span> node<span class="o">[</span>:opsworks<span class="o">][</span>:instance<span class="o">][</span>:region<span class="o">]</span> %&gt; opsworks associate-elastic-ip <span class="se">\</span>
+</span><span class='line'>  <span class="p">&amp;</span>ndash<span class="p">;</span>elastic-ip <span class="p">&amp;</span>lt<span class="p">;</span>%<span class="o">=</span> node<span class="o">[</span>:stack<span class="o">][</span>:primary_ip<span class="o">]</span> %&gt; <span class="se">\</span>
+</span><span class='line'>  <span class="p">&amp;</span>ndash<span class="p">;</span>instance-id <span class="p">&amp;</span>lt<span class="p">;</span>%<span class="o">=</span> node<span class="o">[</span>:opsworks<span class="o">][</span>:instance<span class="o">][</span>:id<span class="o">]</span> %&gt;&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt; <span class="c"># Send notification</span>
+</span><span class='line'> aws <span class="p">&amp;</span>ndash<span class="p">;</span>region <span class="p">&amp;</span>lt<span class="p">;</span>%<span class="o">=</span> node<span class="o">[</span>:opsworks<span class="o">][</span>:instance<span class="o">][</span>:region<span class="o">]</span> %&gt; sns publish <span class="se">\</span>
+</span><span class='line'>  <span class="p">&amp;</span>ndash<span class="p">;</span>topic-arn <span class="p">&amp;</span>lt<span class="p">;</span>%<span class="o">=</span> node<span class="o">[</span>:stack<span class="o">][</span>:failover_topic<span class="o">]</span> %&gt; <span class="se">\</span>
+</span><span class='line'>  <span class="p">&amp;</span>ndash<span class="p">;</span>subject <span class="p">&amp;</span>ldquo<span class="p">;</span>HAProxy failover notification<span class="p">&amp;</span>rdquo<span class="p">;</span> <span class="se">\</span>
+</span><span class='line'>  <span class="p">&amp;</span>ndash<span class="p">;</span>message <span class="se">\</span>
+</span><span class='line'>  <span class="p">&amp;</span>ldquo<span class="p">;</span>Instance <span class="p">&amp;</span>lt<span class="p">;</span>%<span class="o">=</span> node<span class="o">[</span>:opsworks<span class="o">][</span>:instance<span class="o">][</span>:id<span class="o">]</span> %&gt; took over <span class="p">&amp;</span>lt<span class="p">;</span>%<span class="o">=</span> node<span class="o">[</span>:stack<span class="o">][</span>:primary_ip<span class="o">]</span> %&gt;<span class="p">&amp;</span>rdquo<span class="p">;</span>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;fi
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><figcaption><span>haproxyfailover/templates/default/haproxywatch.monitrc.erb </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='erb'><span class='line'><span class="x">check host &amp;lt;%= node[:stack][:primary_ip] </span><span class="err">%&gt;</span><span class="x"> with address &amp;lt;%= node[:stack][:primary_ip] </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">    if failed</span>
+</span><span class='line'><span class="x">        port 80</span>
+</span><span class='line'><span class="x">        protocol HTTP</span>
+</span><span class='line'><span class="x">        request /</span>
+</span><span class='line'><span class="x">        timeout 30 seconds</span>
+</span><span class='line'><span class="x">        for 3 cycles</span>
+</span><span class='line'><span class="x">        then exec &amp;ldquo;/etc/failtome.sh</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Add the <code>haproxyfailover::setup</code> recipe to the setup lifecycle event of your HAProxy layer.</p>
+
+<h1>IAM permissions</h1>
+
+<p>Next you need to add additional policies to the EC2 IAM role used by your HAProxy instances. There&rsquo;s more details on
+ finding your instance role in one of my <a href="/blog/2015/01/03/revisited-retrieving-files-from-s3-using-chef-on-opsworks/">previous posts</a>.</p>
+
+<p><figure class='code'><figcaption><span>remap_eip </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;Version&amp;rdquo;:</span> <span class="err">&amp;ldquo;2012-10-17&amp;rdquo;,</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;Statement&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>    <span class="err">{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Sid&amp;rdquo;:</span> <span class="err">&amp;ldquo;Stmt1421894206000&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Effect&amp;rdquo;:</span> <span class="err">&amp;ldquo;Allow&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Action&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;opsworks:AssociateElasticIp&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">],</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Resource&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;arn:aws:opsworks:&lt;em&gt;:&lt;/em&gt;:stack/&lt;my</span> <span class="err">stack</span> <span class="err">ID&gt;/*&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">]</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="err">]</span>
+</span><span class='line'><span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><figure class='code'><figcaption><span>sns_alert </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;Version&amp;rdquo;:</span> <span class="err">&amp;ldquo;2012-10-17&amp;rdquo;,</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;Statement&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>    <span class="err">{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Sid&amp;rdquo;:</span> <span class="err">&amp;ldquo;Stmt1421894344000&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Effect&amp;rdquo;:</span> <span class="err">&amp;ldquo;Allow&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Action&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;sns:Publish&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">],</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;Resource&amp;rdquo;:</span> <span class="err">[</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;&lt;my</span> <span class="err">SNS</span> <span class="err">ARN&gt;&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">]</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="err">]</span>
+</span><span class='line'><span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Don&rsquo;t forget to replace <code>&lt;my stack ID&gt;</code> and <code>&lt;my SNS ARN&gt;</code> with your own values.</p>
+
+<h1>Editing custom stack JSON</h1>
+
+<p>Edit your stack settings and add the following to your custom JSON.</p>
+
+<p><figure class='code'><figcaption><span>custom_json </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;stack&amp;rdquo;:</span> <span class="err">{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;primary_ip&amp;rdquo;:&amp;ldquo;&lt;my</span> <span class="err">EIP&gt;&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;failover_topic&amp;rdquo;:&amp;ldquo;&lt;my</span> <span class="err">SNS</span> <span class="err">ARN&gt;&amp;rdquo;</span>
+</span><span class='line'>   <span class="p">}</span>
+</span><span class='line'><span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Don&rsquo;t forget to replace <code>&lt;my EIP&gt;</code> and <code>&lt;my SNS ARN&gt;</code> with your own values. Afterwards your custom JSON
+ should look something like this:</p>
+
+<p><img src="/images/posts/haproxyfailover/customjson.png"></p>
+
+<h1>Testing failover</h1>
+
+<p>After running the setup event again we&rsquo;re now ready to test our failover. You&rsquo;ll see that 54.173.141.243 is
+ assigned to neptune initially:</p>
+
+<p><img src="/images/posts/haproxyfailover/stage1.png"></p>
+
+<p>After stopping neptune 54.173.141.243 is still assigned to it because the failover hasn&rsquo;t triggered yet:</p>
+
+<p><img src="/images/posts/haproxyfailover/stage2.png"></p>
+
+<p>Once the failover triggers 54.173.141.243 is now assigned to saturn:</p>
+
+<p><img src="/images/posts/haproxyfailover/stage3.png"></p>
+
+<p>Also the following notification is received:</p>
+
+<p><img src="/images/posts/haproxyfailover/stage4.png"></p>
+
+<p>Saturn will retain the IP even if neptune is brought back online, unless it is manually reassigned or saturn fails.</p>
+
+<h1>Discussion</h1>
+
+<p><strong>Use of monit</strong></p>
+
+<p><a href="http://mmonit.com/monit/">moinit</a> is used on each instance to check that the primary IP is online. The
+ OpsWorks agent itself uses monit and therefore it doesn&rsquo;t need to be installed on the instance. In the default OpsWorks
+ configuration monit runs every 60 seconds. monit has a built in email alerting function, however in my opinion
+ SNS is more manageable as alert recipients can easily be updated via the AWS console.</p>
+
+<p><strong>Failover delay</strong></p>
+
+<p>The monit configuration above specifies <code>for 3 cycles</code>, meaning that a failover won&rsquo;t be triggered unless
+ 3 consecutive monit runs fail. Therefore a failover could take about 4 minutes. This is an acceptable trade-off in most
+ scenarios as a failover should be rare and you&rsquo;d rather avoid failing over unnecessarily for an issue that resolves itself
+ within a minute or two. You can however remove the <code>for 3 cycles</code> line to failover immediately if you&rsquo;d prefer.</p>
+
+<p><strong>Checking external IP</strong></p>
+
+<p>To avoid the active instance attempting to failover to itself it first checks
+ its IP against <code>http://checkip.amazonaws.com</code> when a failover occurs. An instance will only attempt to take over if the
+ external IP returned isn&rsquo;t the primary IP. This also serves to verify the instance taking over has external connectivity,
+ otherwise it might attempt to take over the IP when its own connectivity is causing the health check to fail.</p>
+]]></content>
+  </entry>
+  
+</feed>
