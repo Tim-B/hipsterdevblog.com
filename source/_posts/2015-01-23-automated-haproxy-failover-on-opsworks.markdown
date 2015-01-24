@@ -19,7 +19,7 @@ Without a doubt ELB is the simplest load balancing solution on AWS, however it m
 The AWS ecosystem encourages you to implement redundancy across availability zones and to avoid a single point of
 failure (SPOF). HAProxy will give you many additional features over ELB, however it is difficult to achieve cross-zone redundancy
  and automated failover as supported natively by ELB. DNS round-robbin can help balance load across multiple HAProxy instances
- to achieve scalability, however solution does not help to achieve high availability.
+ to achieve scalability, however this solution does not help to achieve high availability.
 
 This blog post will demonstrate how to implement automated failover using a self-monitoring pair of HAProxy instances in an
  active/standby configuration. When a failure is detected the healthy standby will automatically take control of the
