@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Load Balancer | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/load-balancer/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-01-24T16:10:28+10:00</updated>
+  <updated>2015-01-24T16:47:57+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -286,7 +286,7 @@ failure (SPOF). HAProxy will give you many additional features over ELB, however
 
 <p><strong>Use of monit</strong></p>
 
-<p><a href="http://mmonit.com/monit/">moinit</a> is used on each instance to check that the primary IP is online. The
+<p><a href="http://mmonit.com/monit/">monit</a> is used on each instance to check that the primary IP is online. The
  OpsWorks agent itself uses monit and therefore it doesn&rsquo;t need to be installed on the instance. In the default OpsWorks
  configuration monit runs every 60 seconds. monit has a built in email alerting function, however in my opinion
  SNS is more manageable as alert recipients can easily be updated via the AWS console.</p>
