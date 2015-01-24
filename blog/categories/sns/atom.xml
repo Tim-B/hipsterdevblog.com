@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Sns | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/sns/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-01-23T20:25:59+10:00</updated>
+  <updated>2015-01-24T16:10:28+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -25,7 +25,7 @@
 <p>The AWS ecosystem encourages you to implement redundancy across availability zones and to avoid a single point of
 failure (SPOF). HAProxy will give you many additional features over ELB, however it is difficult to achieve cross-zone redundancy
  and automated failover as supported natively by ELB. DNS round-robbin can help balance load across multiple HAProxy instances
- to achieve scalability, however solution does not help to achieve high availability.</p>
+ to achieve scalability, however this solution does not help to achieve high availability.</p>
 
 <p>This blog post will demonstrate how to implement automated failover using a self-monitoring pair of HAProxy instances in an
  active/standby configuration. When a failure is detected the healthy standby will automatically take control of the
