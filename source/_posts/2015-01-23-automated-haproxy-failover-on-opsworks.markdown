@@ -186,7 +186,7 @@ Saturn will retain the IP even if neptune is brought back online, unless it is m
 
 **Use of monit**
 
-<a href="http://mmonit.com/monit/">moinit</a> is used on each instance to check that the primary IP is online. The
+<a href="http://mmonit.com/monit/">monit</a> is used on each instance to check that the primary IP is online. The
  OpsWorks agent itself uses monit and therefore it doesn't need to be installed on the instance. In the default OpsWorks
  configuration monit runs every 60 seconds. monit has a built in email alerting function, however in my opinion
  SNS is more manageable as alert recipients can easily be updated via the AWS console.
