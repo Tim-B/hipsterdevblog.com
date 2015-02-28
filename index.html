@@ -9,7 +9,7 @@
   <meta name="author" content="Tim B.">
 
   
-  <meta name="description" content="Without a doubt ELB is the simplest load balancing solution on AWS, however it may not be suitable for all users given it doesn&rsquo;t support &hellip;">
+  <meta name="description" content="You&rsquo;ve just discovered one of your instances has been hacked! A new instance is being launched to replace it, but you have no idea how the &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,64 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Part 1: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-02-24T19:47:52+10:00" pubdate data-updated="true">Feb 24<sup>th</sup>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>You&rsquo;ve just discovered one of your instances has been <em>hacked</em>! A new instance is being launched to replace it,
+ but you have no idea how the attacker got access in the first place and you need to stop it happening again. The clues
+ are hidden somewhere in your HTTP access logs which are conveniently sitting in CloudWatch logs. Unfortunately accessing
+ and analysing those logs from CloudWatch isn&rsquo;t as simple as you thought. The only refinement available is by ingestion
+ time and there&rsquo;s no way you can trawl through days of logs by hand. You&rsquo;ll need to analyse the logs externally
+ but that&rsquo;s a challenge too - there&rsquo;s no automated export to S3 and the GetLogEvents API action is limited to pages of 1MB
+ and 10 requests per second. Once you get the logs out you have to figure out how to analyse them, what you&rsquo;re looking for
+ is too complex for simple text searches and loading tens of GB of logs into an RDBMS would be tedious.</p>
+
+<p>Fortunately you found this blog post! <a href="http://aws.amazon.com/elasticmapreduce/">Elastic Map Reduce (EMR)</a> allows you to
+quickly and conveniently create a Hadoop cluster running Hive. It might seem like overkill to use Hadoop to process
+just a few GB of logs once-off, but Hive provides a convenient SQL-like interface and works perfectly fine at small scale.
+Plus, considering you pay by the hour the cost is almost negligible.</p>
+
+<p>The only question is how to get your logs out of CloudWatch and into S3 for EMR to process, so I recently wrote a small
+tool called <a href="https://github.com/Tim-B/cwlogs-s3">cwlogs-s3</a> to help with this process. Part 1 of this blog post will
+cover how to export your logs to S3 using cwlogs-s3 and Data Pipeline, then Part 2 will cover how to analyse those
+logs with Hive on EMR.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -544,51 +602,6 @@ delegating the configuration management to OpsWorks and the deployment functiona
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/06/27/ny-taxi-data-visualized/">NY Taxi Data Visualized</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-27T11:58:54+10:00" pubdate data-updated="true">Jun 27<sup>th</sup>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Recently a massive dataset of <a href="http://chriswhong.com/open-data/foil_nyc_taxi/">NYC Taxi Data</a> was made public. There are torrents available but at 19gb the data can be quite unwieldy to manage on a home machine. /r/BigQuery have <a href="http://www.reddit.com/r/bigquery/comments/28ialf/173_million_2013_nyc_taxi_rides_shared_on_bigquery/">uploaded</a> the dataset to Google&rsquo;s BigQuery service.</p>
-
-<p>BQ provides a simple way to get insights out of this dataset without tearing through your internet usage or waiting for your home machine to query 173 million records. For example on reddit they have already discovered some <a href="https://medium.com/@vijayp/of-taxis-and-rainbows-f6bc289679a1">anonymization issues</a>.</p>
-
-<p>I&rsquo;ve taken some of the popular Queries and charted them.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/06/27/ny-taxi-data-visualized/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -604,6 +617,10 @@ delegating the configuration management to OpsWorks and the deployment functiona
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Part 1: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/01/23/automated-haproxy-failover-on-opsworks/">Automated HAProxy Failover on OpsWorks</a>
       </li>
     
@@ -617,10 +634,6 @@ delegating the configuration management to OpsWorks and the deployment functiona
     
       <li class="post">
         <a href="/blog/2014/12/21/monitoring-per-application-metrics-with-cloudwatch-logs-and-opsworks/">Monitoring Per Application Metrics With CloudWatch Logs and OpsWorks</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/12/19/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro/">How Far Can You Go With HAProxy and a t2.micro</a>
       </li>
     
   </ul>

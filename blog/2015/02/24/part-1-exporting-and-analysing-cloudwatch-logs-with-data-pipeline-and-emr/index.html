@@ -1,0 +1,481 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Part 1: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR - :HIPSTER_DEV_BLOG</title>
+  <meta name="author" content="Tim B.">
+
+  
+  <meta name="description" content="You&rsquo;ve just discovered one of your instances has been hacked! A new instance is being launched to replace it, but you have no idea how the &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://hipsterdevblog.com/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title=":HIPSTER_DEV_BLOG" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-52141399-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">:HIPSTER_DEV_BLOG</a></h1>
+  
+    <h2>Another Octopress blog about programming and infrastructure.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:hipsterdevblog.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Part 1: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-02-24T19:47:52+10:00" pubdate data-updated="true">Feb 24<sup>th</sup>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>You&rsquo;ve just discovered one of your instances has been <em>hacked</em>! A new instance is being launched to replace it,
+ but you have no idea how the attacker got access in the first place and you need to stop it happening again. The clues
+ are hidden somewhere in your HTTP access logs which are conveniently sitting in CloudWatch logs. Unfortunately accessing
+ and analysing those logs from CloudWatch isn&rsquo;t as simple as you thought. The only refinement available is by ingestion
+ time and there&rsquo;s no way you can trawl through days of logs by hand. You&rsquo;ll need to analyse the logs externally
+ but that&rsquo;s a challenge too - there&rsquo;s no automated export to S3 and the GetLogEvents API action is limited to pages of 1MB
+ and 10 requests per second. Once you get the logs out you have to figure out how to analyse them, what you&rsquo;re looking for
+ is too complex for simple text searches and loading tens of GB of logs into an RDBMS would be tedious.</p>
+
+<p>Fortunately you found this blog post! <a href="http://aws.amazon.com/elasticmapreduce/">Elastic Map Reduce (EMR)</a> allows you to
+quickly and conveniently create a Hadoop cluster running Hive. It might seem like overkill to use Hadoop to process
+just a few GB of logs once-off, but Hive provides a convenient SQL-like interface and works perfectly fine at small scale.
+Plus, considering you pay by the hour the cost is almost negligible.</p>
+
+<p>The only question is how to get your logs out of CloudWatch and into S3 for EMR to process, so I recently wrote a small
+tool called <a href="https://github.com/Tim-B/cwlogs-s3">cwlogs-s3</a> to help with this process. Part 1 of this blog post will
+cover how to export your logs to S3 using cwlogs-s3 and Data Pipeline, then Part 2 will cover how to analyse those
+logs with Hive on EMR.</p>
+
+<!-- more -->
+
+
+<h1>Getting started</h1>
+
+<p>The first step is to create an AWS Data Pipeline to run <a href="https://github.com/Tim-B/cwlogs-s3">cwlogs-s3</a>, which is a
+command line utility written in Ruby and available as a gem.</p>
+
+<p>You could of course run this gem manually on an EC2 instance or your own workstation, however <a href="http://aws.amazon.com/datapipeline/">AWS data pipeline</a>
+provides a simple way to orchestrate creating an EC2 instance, installing the gem, running it, then terminating the instance
+upon conclusion.</p>
+
+<p>The other benefit of Data Pipeline is that it&rsquo;s hugely extensible, therefore you could easily convert this into
+an automated log-processing routine that runs on a schedule.</p>
+
+<h1>Creating destination S3 bucket</h1>
+
+<p>Create an S3 bucket for the exported logs and the Data Pipeline logs. I&rsquo;ve called mine <code>cwlogs-destination</code> and inside
+ I&rsquo;ve created two folders called <code>dplogs</code> and <code>exportedlogs</code>.</p>
+
+<h1>Granting IAM access to resource role</h1>
+
+<p>The IAM resource role requires read access to CloudWatch logs and read/write access to S3. By default the resource role
+is called <code>DataPipelineDefaultResourceRole</code>. I&rsquo;ve attached the <code>AmazonS3FullAccess</code> and <code>CloudWatchLogsReadOnlyAccess</code>
+managed policies to the default role in this example, however you can create a more specific policy (which might limit
+access only to specific buckets or log groups) and attach it to a custom resource role if desired.</p>
+
+<p><img src="/images/posts/cwlogexport/iamroles.png"></p>
+
+<p><em>Note: If you haven&rsquo;t created a pipeline before the default resource role may not have been created. It should be created
+ after the first pipeline you create.</em></p>
+
+<h1>Creating pipeline definition</h1>
+
+<p>Copy paste the following pipeline definition into a file called <code>pipeline.json</code> and save it on your workstation:</p>
+
+<figure class='code'><figcaption><span>pipeline.json </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nt">&quot;objects&quot;</span> <span class="p">:</span>  <span class="p">[</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="nt">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;ExportActivity&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;schedule&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="nt">&quot;ref&quot;</span> <span class="p">:</span> <span class="s2">&quot;DefaultSchedule&quot;</span> <span class="p">},</span>
+</span><span class='line'>      <span class="nt">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Export Logs&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;command&quot;</span> <span class="p">:</span> <span class="s2">&quot;sudo yum -y install rubygems; sudo gem install cwlogs-s3; cwlogs-s3 -g &#39;#{my_source_group}&#39;  -p &#39;#{my_export_period}&#39; -e &#39;#{my_export_ending}&#39; -s &#39;#{my_s3_path}&#39;&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;runsOn&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="nt">&quot;ref&quot;</span> <span class="p">:</span> <span class="s2">&quot;ExportInstance&quot;</span> <span class="p">},</span>
+</span><span class='line'>      <span class="nt">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;ShellCommandActivity&quot;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="nt">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;ExportInstance&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;terminateAfter&quot;</span> <span class="p">:</span> <span class="s2">&quot;1 hour&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;instanceType&quot;</span> <span class="p">:</span> <span class="s2">&quot;t1.micro&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;schedule&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="nt">&quot;ref&quot;</span> <span class="p">:</span> <span class="s2">&quot;DefaultSchedule&quot;</span> <span class="p">},</span>
+</span><span class='line'>      <span class="nt">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;EC2-instance&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;role&quot;</span> <span class="p">:</span> <span class="s2">&quot;DataPipelineDefaultRole&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;Ec2Resource&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;resourceRole&quot;</span> <span class="p">:</span> <span class="s2">&quot;DataPipelineDefaultResourceRole&quot;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="nt">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;DefaultSchedule&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Every 1 day&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;occurrences&quot;</span> <span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;startAt&quot;</span> <span class="p">:</span> <span class="s2">&quot;FIRST_ACTIVATION_DATE_TIME&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;Schedule&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;period&quot;</span> <span class="p">:</span> <span class="s2">&quot;1 Hour&quot;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="nt">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;Default&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;scheduleType&quot;</span> <span class="p">:</span> <span class="s2">&quot;cron&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;failureAndRerunMode&quot;</span> <span class="p">:</span> <span class="s2">&quot;CASCADE&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;schedule&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="nt">&quot;ref&quot;</span> <span class="p">:</span> <span class="s2">&quot;DefaultSchedule&quot;</span> <span class="p">},</span>
+</span><span class='line'>      <span class="nt">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Default&quot;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">],</span>
+</span><span class='line'>  <span class="nt">&quot;parameters&quot;</span> <span class="p">:</span>  <span class="p">[</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;my_source_group&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Source Log Group&quot;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;my_export_period&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Period to export&quot;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;my_export_ending&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;End of export period&quot;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;my_s3_path&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Destination S3 path for exported logs&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;AWS::S3::ObjectKey&quot;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">],</span>
+</span><span class='line'>  <span class="nt">&quot;values&quot;</span> <span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>Creating Pipeline</h1>
+
+<p>Go to the AWS Data Pipeline console and create a new pipeline.</p>
+
+<p><img src="/images/posts/cwlogexport/dp1.png"></p>
+
+<p>Enter a name for the pipeline and choose to import a definition by loading the <code>pipeline.json</code> file you created earlier.</p>
+
+<p><img src="/images/posts/cwlogexport/dp2.png"></p>
+
+<p>Fill out the parameters. You can browse to the folder within the S3 bucket you created earlier. The format of the
+ period and end parameters can be any format supported by <a href="hhttps://github.com/hpoydar/chronic_duration">chronic duration</a>
+ and <a href="https://github.com/mojombo/chronic">chronic</a> respectively.</p>
+
+<p><img src="/images/posts/cwlogexport/dp3.png"></p>
+
+<p>Leave the schedule as default, select the other folder you created as the logging destination and leave the IAM roles
+as default.</p>
+
+<p>Finally, click &ldquo;Activate&rdquo;.</p>
+
+<h1>Monitoring Execution</h1>
+
+<p>Data Pipeline will now run through the process of spinning up a new EC2 instance, installing cwlogs-s3, running
+it with the supplied parameters, then terminating the instance. You can follow the process by clicking the refresh
+button at the top right of the pipeline view in the Data Pipeline console.</p>
+
+<p><img src="/images/posts/cwlogexport/running.png"></p>
+
+<p>The status should progress through steps such as <code>WAITING_FOR_RUNNER</code>, <code>RUNNING</code> and <code>FINISHED</code>.</p>
+
+<p><img src="/images/posts/cwlogexport/finished.png"></p>
+
+<p>Once the task has been finished you should also have the option to view logs such as Stdout and Stderr. This is useful
+to debug any issues that might cause the task to fail.</p>
+
+<h1>Viewing exported data</h1>
+
+<p><img src="/images/posts/cwlogexport/outputs3.png"></p>
+
+<p>If you browse the destination in the S3 console you should now see a series of .log files containing your exported
+logs. The files each have a randomised prefix to improve S3 performance, however the suffix indicates the order
+ in which they were exported.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Tim B.</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-02-24T19:47:52+10:00" pubdate data-updated="true">Feb 24<sup>th</sup>, 2015</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/cloudwatch/'>cloudwatch</a>, <a class='category' href='/blog/categories/data-pipeline/'>data pipeline</a>, <a class='category' href='/blog/categories/emr/'>emr</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://hipsterdevblog.com/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/" data-via="" data-counturl="http://hipsterdevblog.com/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/01/23/automated-haproxy-failover-on-opsworks/" title="Previous Post: Automated HAProxy failover on OpsWorks">&laquo; Automated HAProxy failover on OpsWorks</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Part 1: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/01/23/automated-haproxy-failover-on-opsworks/">Automated HAProxy Failover on OpsWorks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/01/03/revisited-retrieving-files-from-s3-using-chef-on-opsworks/">Revisited: Retrieving Files From S3 Using Chef on OpsWorks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/01/01/my-2015-aws-wish-list/">My 2015 AWS Wish List</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/12/21/monitoring-per-application-metrics-with-cloudwatch-logs-and-opsworks/">Monitoring Per Application Metrics With CloudWatch Logs and OpsWorks</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015.
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> and
+    <a href="https://github.com/vladigleba/readify">Readify</a></span>.
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'hipsterdevblog';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://hipsterdevblog.com/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/';
+        var disqus_url = 'http://hipsterdevblog.com/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
