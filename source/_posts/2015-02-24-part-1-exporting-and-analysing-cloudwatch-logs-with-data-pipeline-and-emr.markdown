@@ -9,6 +9,8 @@ categories:
  - Data Pipeline
  - Logs
  - Exporting and analysing CloudWatch logs with Data Pipeline and EMR
+ - Apache
+ - Hive
 ---
 
 You've just discovered one of your instances has been *hacked*! A new instance is being launched to replace it,
@@ -174,6 +176,11 @@ to debug any issues that might cause the task to fail.
 If you browse the destination in the S3 console you should now see a series of .log files containing your exported
 logs. The files each have a randomised prefix to improve S3 performance, however the suffix indicates the order
  in which they were exported.
+
+# Part 2
+
+[Click here](/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/) to continue to
+Part 2.
 
 
 
