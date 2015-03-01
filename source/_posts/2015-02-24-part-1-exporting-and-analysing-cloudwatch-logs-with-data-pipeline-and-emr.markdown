@@ -7,6 +7,8 @@ categories:
  - CloudWatch
  - EMR
  - Data Pipeline
+ - Logs
+ - Exporting and analysing CloudWatch logs with Data Pipeline and EMR
 ---
 
 You've just discovered one of your instances has been *hacked*! A new instance is being launched to replace it,
@@ -70,7 +72,7 @@ Copy paste the following pipeline definition into a file called `pipeline.json` 
       "id" : "ExportActivity",
       "schedule" : { "ref" : "DefaultSchedule" },
       "name" : "Export Logs",
-      "command" : "sudo yum -y install rubygems; sudo gem install cwlogs-s3; cwlogs-s3 -g '#{my_source_group}'  -p '#{my_export_period}' -e '#{my_export_ending}' -s '#{my_s3_path}'",
+      "command" : "sudo yum -y install rubygems; sudo gem install cwlogs-s3; cwlogs-s3 -g '#{my_source_group}'  -p '#{my_export_period}' -r '#{my_region}' -e '#{my_export_ending}' -s '#{my_s3_path}'",
       "runsOn" : { "ref" : "ExportInstance" },
       "type" : "ShellCommandActivity"
     },
@@ -117,12 +119,16 @@ Copy paste the following pipeline definition into a file called `pipeline.json` 
       "id": "my_s3_path",
       "description": "Destination S3 path for exported logs",
       "type": "AWS::S3::ObjectKey"
+    },
+    {
+      "id": "my_region",
+      "description": "Bucket / CloudWatch region",
+      "default": "us-east-1"
     }
   ],
   "values" : {
   }
 }
-
 {% endcodeblock %}
 
 # Creating Pipeline
@@ -136,7 +142,7 @@ Enter a name for the pipeline and choose to import a definition by loading the `
 {% img /images/posts/cwlogexport/dp2.png %}
 
 Fill out the parameters. You can browse to the folder within the S3 bucket you created earlier. The format of the
- period and end parameters can be any format supported by [chronic duration](hhttps://github.com/hpoydar/chronic_duration)
+ period and end parameters can be any format supported by [chronic duration](https://github.com/hpoydar/chronic_duration)
  and [chronic](https://github.com/mojombo/chronic) respectively.
 
 {% img /images/posts/cwlogexport/dp3.png %}
