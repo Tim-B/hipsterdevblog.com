@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Apache | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/apache/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-02-28T15:42:37+10:00</updated>
+  <updated>2015-03-01T19:20:09+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -12,6 +12,430 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Part 2: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR]]></title>
+    <link href="http://hipsterdevblog.com/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/"/>
+    <updated>2015-03-01T16:54:54+10:00</updated>
+    <id>http://hipsterdevblog.com/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr</id>
+    <content type="html"><![CDATA[<p>If you followed <a href="/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Part 1</a>
+you&rsquo;ll now have your CloudWatch logs sitting conveniently in S3 to be analysed. You could now download them
+and search each file individually using grep or a similar tool, but it would be much nicer to be able to search
+by field and construct complex queries with multiple conditions.</p>
+
+<p>Thankfully you have <a href="http://aws.amazon.com/elasticmapreduce/">Elastic Map Reduce</a> (EMR) at your disposal, which can
+help you analyse your logs straight from S3 using a nice UI (Hue) and with an SQL-like query language you&rsquo;re already
+familiar with (Hive). EMR is typically employed to process terabytes of data, but it works well on relatively small
+data-sets too and will easily scale up if you happen to have a huge amount of logs to process. Running an on-demand
+EMR cluster for 6 hours also only costs less than $2.</p>
+
+<p>This blog post will cover setting up an EMR cluster, logging into Hue, then using Hive to format and query the Apache
+HTTP access logs exported from CloudWatch in Part 1.</p>
+
+<!-- more -->
+
+
+<h1>Creating your EMR cluster</h1>
+
+<p>From the EMR console click &ldquo;Create cluster&rdquo;.</p>
+
+<p><img src="/images/posts/cwlogexport/log_cluster.png"></p>
+
+<p>Fill out the basic options such as cluster name, disable termination protection and enable logging and debugging.</p>
+
+<p>Leave Tags, Software Configuration and File System Configuration as Default.</p>
+
+<p><img src="/images/posts/cwlogexport/main_config.png"></p>
+
+<p>For a minimal sized cluster select only a single master and core node. The c1.medium instance type is a good place
+to start if you want the smallest cluster possible.</p>
+
+<p>I&rsquo;d strongly recommend assigning an EC2 key pair so you can log in via SSH. If you don&rsquo;t already have a key pair
+then you can add one in advance by following <a href="https://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/emr-plan-access-ssh.html">these instructions</a>.</p>
+
+<p>The network, IAM and role configuration can stay as default unless you&rsquo;d prefer stricter security policies than default.</p>
+
+<p><img src="/images/posts/cwlogexport/steps.png"></p>
+
+<p>Leave the Steps as-is, but ensure Auto-terminate is set to <em>no</em> as we&rsquo;ll be using the cluster interactively and will terminate
+it manually.</p>
+
+<p>Finally, click <em>Create cluster</em>.</p>
+
+<h1>Wait for your cluster to be provisioned</h1>
+
+<p>It can take about 15 minutes for your cluster to be fully provisioned.</p>
+
+<p><img src="/images/posts/cwlogexport/complete.png"></p>
+
+<p>Once provisioned the status should change to <em>waiting</em>.</p>
+
+<p><img src="/images/posts/cwlogexport/steps-complete.png"></p>
+
+<p>The steps should also all have a Status of <em>complete</em>.</p>
+
+<h1>Connecting to Hue web UI</h1>
+
+<p>The Hue UI is accessible at <code>http://[your master public DNS]:8888</code>. For example in my case the URL is <code>http://ec2-54-152-224-205.compute-1.amazonaws.com:8888</code>.</p>
+
+<p>By default the security groups prevent external access to the Hue UI. You have two options to enable access:</p>
+
+<h2>Option 1: SSH tunneling</h2>
+
+<p>The most secure method is to use SSH tunneling to access the web UI. Detailed instructions are available <a href="https://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/emr-ssh-tunnel-local.html">here</a>.
+This will require the key pair you specified when creating the cluster.</p>
+
+<h2>Option 2: Opening up security group</h2>
+
+<p>Another alternative is to open up the security group rules to allow access to your public IP. This is perhaps the
+easiest but keep in mind there will be <strong>no encryption</strong> of your connection.</p>
+
+<p><img src="/images/posts/cwlogexport/rule.png"></p>
+
+<p>Go to the EC2 console and edit the inbound rules for the <em>ElasticMapReduce-master</em> security group. Add a rule to allow
+ all traffic from your IP.</p>
+
+<h2>Logging into Hue</h2>
+
+<p><img src="/images/posts/cwlogexport/huelogin.png"></p>
+
+<p>Open the Hue UI url in your web browser and follow the instructions to set a password and log in.</p>
+
+<h1>Creating table for logs</h1>
+
+<p>Once logged in dismiss the set-up prompt and select <em>Hive</em> under the <em>Query Editors</em> drop down.</p>
+
+<p><img src="/images/posts/cwlogexport/table_query.png"></p>
+
+<p>Enter the following query into the query editor:</p>
+
+<p><figure class='code'><figcaption><span>query.sql </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">CREATE</span> <span class="k">EXTERNAL</span> <span class="k">TABLE</span> <span class="n">access_log_s3</span> <span class="p">(</span>
+</span><span class='line'>        <span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">ip</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span>                <span class="n">STRING</span><span class="p">,</span>
+</span><span class='line'>        <span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">time_local</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span>        <span class="n">STRING</span><span class="p">,</span>
+</span><span class='line'>        <span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="k">method</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span>            <span class="n">STRING</span><span class="p">,</span>
+</span><span class='line'>        <span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">uri</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span>               <span class="n">STRING</span><span class="p">,</span>
+</span><span class='line'>        <span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">protocol</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span>          <span class="n">STRING</span><span class="p">,</span>
+</span><span class='line'>        <span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">status</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span>            <span class="n">STRING</span><span class="p">,</span>
+</span><span class='line'>        <span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">bytes_sent</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span>        <span class="n">STRING</span><span class="p">,</span>
+</span><span class='line'>        <span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">referer</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span>           <span class="n">STRING</span><span class="p">,</span>
+</span><span class='line'>        <span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">useragent</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span>         <span class="n">STRING</span>
+</span><span class='line'>        <span class="p">)</span>
+</span><span class='line'>    <span class="k">ROW</span> <span class="n">FORMAT</span> <span class="n">SERDE</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">org</span><span class="p">.</span><span class="n">apache</span><span class="p">.</span><span class="n">hadoop</span><span class="p">.</span><span class="n">hive</span><span class="p">.</span><span class="n">serde2</span><span class="p">.</span><span class="n">RegexSerDe</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">WITH</span> <span class="n">SERDEPROPERTIES</span> <span class="p">(</span>
+</span><span class='line'>    <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="k">input</span><span class="p">.</span><span class="n">regex</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="o">=&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="o">^</span><span class="p">(</span><span class="err">\</span><span class="n">S</span><span class="o">+</span><span class="p">)</span> <span class="err">\</span><span class="n">S</span><span class="o">+</span> <span class="err">\</span><span class="n">S</span><span class="o">+</span> <span class="err">\</span><span class="p">[([</span><span class="o">^</span><span class="err">\</span><span class="p">[]</span><span class="o">+</span><span class="p">)</span><span class="err">\</span><span class="p">]</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;(</span><span class="err">\</span><span class="n">w</span><span class="o">+</span><span class="p">)</span> <span class="p">(</span><span class="err">\</span><span class="n">S</span><span class="o">+</span><span class="p">)</span> <span class="p">(</span><span class="err">\</span><span class="n">S</span><span class="o">+</span><span class="p">)</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span> <span class="p">(</span><span class="err">\</span><span class="n">d</span><span class="o">+</span><span class="p">)</span> <span class="p">(</span><span class="err">\</span><span class="n">d</span><span class="o">+</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;([</span><span class="o">^&amp;</span><span class="n">rdquo</span><span class="p">;]</span><span class="o">+</span><span class="p">)</span><span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span> <span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;([</span><span class="o">^&amp;</span><span class="n">ldquo</span><span class="p">;]</span><span class="o">+</span><span class="p">)</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;.</span><span class="o">*&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'><span class="p">)</span>
+</span><span class='line'><span class="n">STORED</span> <span class="k">AS</span> <span class="n">TEXTFILE</span>
+</span><span class='line'><span class="k">LOCATION</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">s3</span><span class="p">:</span><span class="o">//</span><span class="n">logexport</span><span class="o">/</span><span class="n">apache</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Replace <code>s3://logexport/apache</code> with your own bucket path. If you have a different log format then you can customise
+the regular expression and columns to suit.</p>
+
+<p>Click Execute.</p>
+
+<p><img src="/images/posts/cwlogexport/data.png"></p>
+
+<p>If you refresh the table list in the left column you should now see your new table. You can click the preview icon
+to see a sample of your formatted data.</p>
+
+<h1>Querying logs</h1>
+
+<p>You&rsquo;re now ready to begin analysing your logs! You can find a full reference on the Hive query language <a href="https://cwiki.apache.org/confluence/display/Hive/LanguageManual+Select">here</a>
+, however it should be very familiar if you know basic SQL.</p>
+
+<p>For example, if I run:</p>
+
+<p><figure class='code'><figcaption><span>query.sql </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">access_log_s3</span> <span class="k">WHERE</span> <span class="n">uri</span> <span class="k">LIKE</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">%</span><span class="n">var</span><span class="o">=</span><span class="mi">80</span><span class="o">%&amp;</span><span class="n">rdquo</span><span class="p">;</span> <span class="k">AND</span> <span class="n">time_local</span> <span class="k">LIKE</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">%</span><span class="mi">28</span><span class="o">/</span><span class="n">Feb</span><span class="o">/</span><span class="mi">2015</span><span class="p">:</span><span class="mi">07</span><span class="p">:</span><span class="mi">42</span><span class="p">:</span><span class="o">%&amp;</span><span class="n">rdquo</span><span class="p">;;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>I can see the returned logs under the results tab.</p>
+
+<p><img src="/images/posts/cwlogexport/refined.png"></p>
+
+<p>In my case it took around 60 seconds to process and return the query, however this will depend on how many logs you have,
+the query you&rsquo;re running, and the instance types you&rsquo;re using.</p>
+
+<p>From the results tab you can easily export your results as a CSV or create a new table to refine further.</p>
+
+<h1>Cleaning up</h1>
+
+<p><img src="/images/posts/cwlogexport/terminate.png"></p>
+
+<p>Once you&rsquo;re finished simply return to the EMR console and terminate the cluster.</p>
+
+<p>You may also want to delete the S3 bucket and Data Pipeline.</p>
+
+<h1>Automating periodic analysis</h1>
+
+<p>This blog post describes an ad-hoc scenario where you might want to occupationally perform manual analysis. However,
+Data Pipeline is the perfect tool for automating periodic log analysis. You can leverage the <a href="http://docs.aws.amazon.com/datapipeline/latest/DeveloperGuide/dp-object-hiveactivity.html">Hive Activity</a>
+to build a Pipeline which automatically exports the logs then runs then analyses them on a schedule.</p>
+
+<h1>Part 1</h1>
+
+<p><a href="/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Click here</a> to revisit Part 1.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Part 1: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR]]></title>
+    <link href="http://hipsterdevblog.com/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/"/>
+    <updated>2015-02-24T19:47:52+10:00</updated>
+    <id>http://hipsterdevblog.com/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr</id>
+    <content type="html"><![CDATA[<p>You&rsquo;ve just discovered one of your instances has been <em>hacked</em>! A new instance is being launched to replace it,
+ but you have no idea how the attacker got access in the first place and you need to stop it happening again. The clues
+ are hidden somewhere in your HTTP access logs which are conveniently sitting in CloudWatch logs. Unfortunately accessing
+ and analysing those logs from CloudWatch isn&rsquo;t as simple as you thought. The only refinement available is by ingestion
+ time and there&rsquo;s no way you can trawl through days of logs by hand. You&rsquo;ll need to analyse the logs externally
+ but that&rsquo;s a challenge too - there&rsquo;s no automated export to S3 and the GetLogEvents API action is limited to pages of 1MB
+ and 10 requests per second. Once you get the logs out you have to figure out how to analyse them, what you&rsquo;re looking for
+ is too complex for simple text searches and loading tens of GB of logs into an RDBMS would be tedious.</p>
+
+<p>Fortunately you found this blog post! <a href="http://aws.amazon.com/elasticmapreduce/">Elastic Map Reduce (EMR)</a> allows you to
+quickly and conveniently create a Hadoop cluster running Hive. It might seem like overkill to use Hadoop to process
+just a few GB of logs once-off, but Hive provides a convenient SQL-like interface and works perfectly fine at small scale.
+Plus, considering you pay by the hour the cost is almost negligible.</p>
+
+<p>The only question is how to get your logs out of CloudWatch and into S3 for EMR to process, so I recently wrote a small
+tool called <a href="https://github.com/Tim-B/cwlogs-s3">cwlogs-s3</a> to help with this process. Part 1 of this blog post will
+cover how to export your logs to S3 using cwlogs-s3 and Data Pipeline, then Part 2 will cover how to analyse those
+logs with Hive on EMR.</p>
+
+<!-- more -->
+
+
+<h1>Getting started</h1>
+
+<p>The first step is to create an AWS Data Pipeline to run <a href="https://github.com/Tim-B/cwlogs-s3">cwlogs-s3</a>, which is a
+command line utility written in Ruby and available as a gem.</p>
+
+<p>You could of course run this gem manually on an EC2 instance or your own workstation, however <a href="http://aws.amazon.com/datapipeline/">AWS data pipeline</a>
+provides a simple way to orchestrate creating an EC2 instance, installing the gem, running it, then terminating the instance
+upon conclusion.</p>
+
+<p>The other benefit of Data Pipeline is that it&rsquo;s hugely extensible, therefore you could easily convert this into
+an automated log-processing routine that runs on a schedule.</p>
+
+<h1>Creating destination S3 bucket</h1>
+
+<p>Create an S3 bucket for the exported logs and the Data Pipeline logs. I&rsquo;ve called mine <code>cwlogs-destination</code> and inside
+ I&rsquo;ve created two folders called <code>dplogs</code> and <code>exportedlogs</code>.</p>
+
+<h1>Granting IAM access to resource role</h1>
+
+<p>The IAM resource role requires read access to CloudWatch logs and read/write access to S3. By default the resource role
+is called <code>DataPipelineDefaultResourceRole</code>. I&rsquo;ve attached the <code>AmazonS3FullAccess</code> and <code>CloudWatchLogsReadOnlyAccess</code>
+managed policies to the default role in this example, however you can create a more specific policy (which might limit
+access only to specific buckets or log groups) and attach it to a custom resource role if desired.</p>
+
+<p><img src="/images/posts/cwlogexport/iamroles.png"></p>
+
+<p><em>Note: If you haven&rsquo;t created a pipeline before the default resource role may not have been created. It should be created
+ after the first pipeline you create.</em></p>
+
+<h1>Creating pipeline definition</h1>
+
+<p>Copy paste the following pipeline definition into a file called <code>pipeline.json</code> and save it on your workstation:</p>
+
+<p><figure class='code'><figcaption><span>pipeline.json </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;objects&amp;rdquo;</span> <span class="err">:</span>  <span class="err">[</span>
+</span><span class='line'>    <span class="err">{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;id&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;ExportActivity&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;schedule&amp;rdquo;</span> <span class="err">:</span> <span class="err">{</span> <span class="err">&amp;ldquo;ref&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;DefaultSchedule&amp;rdquo;</span> <span class="p">}</span><span class="err">,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;name&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;Export</span> <span class="err">Logs&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;command&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;sudo</span> <span class="err">yum</span> <span class="err">-y</span> <span class="err">install</span> <span class="err">rubygems;</span> <span class="err">sudo</span> <span class="err">gem</span> <span class="err">install</span> <span class="err">cwlogs-s</span><span class="mi">3</span><span class="err">;</span> <span class="err">cwlogs-s</span><span class="mi">3</span> <span class="err">-g</span> <span class="err">&amp;lsquo;#</span><span class="p">{</span><span class="err">my_source_group</span><span class="p">}</span><span class="err">&amp;rsquo;</span>  <span class="err">-p</span> <span class="err">&amp;lsquo;#</span><span class="p">{</span><span class="err">my_export_period</span><span class="p">}</span><span class="err">&amp;rsquo;</span> <span class="err">-r</span> <span class="err">&amp;lsquo;#</span><span class="p">{</span><span class="err">my_region</span><span class="p">}</span><span class="err">&amp;rsquo;</span> <span class="err">-e</span> <span class="err">&amp;lsquo;#</span><span class="p">{</span><span class="err">my_export_ending</span><span class="p">}</span><span class="err">&amp;rsquo;</span> <span class="err">-s</span> <span class="err">&amp;lsquo;#</span><span class="p">{</span><span class="err">my_s3_path</span><span class="p">}</span><span class="err">&amp;rsquo;&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;runsOn&amp;rdquo;</span> <span class="err">:</span> <span class="p">{</span> <span class="err">&amp;ldquo;ref&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;ExportInstance&amp;rdquo;</span> <span class="p">}</span><span class="err">,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;type&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;ShellCommandActivity&amp;rdquo;</span>
+</span><span class='line'>    <span class="err">},</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;id&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;ExportInstance&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;terminateAfter&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;1</span> <span class="err">hour&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;instanceType&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;t1.micro&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;schedule&amp;rdquo;</span> <span class="err">:</span> <span class="err">{</span> <span class="err">&amp;ldquo;ref&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;DefaultSchedule&amp;rdquo;</span> <span class="p">}</span><span class="err">,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;name&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;EC</span><span class="mi">2</span><span class="err">-instance&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;role&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;DataPipelineDefaultRole&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;type&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;Ec</span><span class="mi">2</span><span class="err">Resource&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;resourceRole&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;DataPipelineDefaultResourceRole&amp;rdquo;</span>
+</span><span class='line'>    <span class="err">},</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;id&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;DefaultSchedule&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;name&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;Every</span> <span class="err">1</span> <span class="err">day&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;occurrences&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;1&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;startAt&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;FIRST_ACTIVATION_DATE_TIME&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;type&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;Schedule&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;period&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;1</span> <span class="err">Hour&amp;rdquo;</span>
+</span><span class='line'>    <span class="p">}</span><span class="err">,</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;id&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;Default&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;scheduleType&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;cron&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;failureAndRerunMode&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;CASCADE&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;schedule&amp;rdquo;</span> <span class="err">:</span> <span class="err">{</span> <span class="err">&amp;ldquo;ref&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;DefaultSchedule&amp;rdquo;</span> <span class="p">}</span><span class="err">,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;name&amp;rdquo;</span> <span class="err">:</span> <span class="err">&amp;ldquo;Default&amp;rdquo;</span>
+</span><span class='line'>    <span class="err">}</span>
+</span><span class='line'>  <span class="err">],</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;parameters&amp;rdquo;</span> <span class="err">:</span>  <span class="p">[</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;id&amp;rdquo;:</span> <span class="err">&amp;ldquo;my_source_group&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;description&amp;rdquo;:</span> <span class="err">&amp;ldquo;Source</span> <span class="err">Log</span> <span class="err">Group&amp;rdquo;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;id&amp;rdquo;:</span> <span class="err">&amp;ldquo;my_export_period&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;description&amp;rdquo;:</span> <span class="err">&amp;ldquo;Period</span> <span class="err">to</span> <span class="err">export&amp;rdquo;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;id&amp;rdquo;:</span> <span class="err">&amp;ldquo;my_export_ending&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;description&amp;rdquo;:</span> <span class="err">&amp;ldquo;End</span> <span class="err">of</span> <span class="err">export</span> <span class="err">period&amp;rdquo;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;id&amp;rdquo;:</span> <span class="err">&amp;ldquo;my_s3_path&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;description&amp;rdquo;:</span> <span class="err">&amp;ldquo;Destination</span> <span class="err">S3</span> <span class="err">path</span> <span class="err">for</span> <span class="err">exported</span> <span class="err">logs&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;type&amp;rdquo;:</span> <span class="err">&amp;ldquo;AWS::S3::ObjectKey&amp;rdquo;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;id&amp;rdquo;:</span> <span class="err">&amp;ldquo;my_region&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;description&amp;rdquo;:</span> <span class="err">&amp;ldquo;Bucket</span> <span class="err">/</span> <span class="err">CloudWatch</span> <span class="err">region&amp;rdquo;,</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;default&amp;rdquo;:</span> <span class="err">&amp;ldquo;us-east-1&amp;rdquo;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">]</span><span class="err">,</span>
+</span><span class='line'>  <span class="err">&amp;ldquo;values&amp;rdquo;</span> <span class="err">:</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h1>Creating Pipeline</h1>
+
+<p>Go to the AWS Data Pipeline console and create a new pipeline.</p>
+
+<p><img src="/images/posts/cwlogexport/dp1.png"></p>
+
+<p>Enter a name for the pipeline and choose to import a definition by loading the <code>pipeline.json</code> file you created earlier.</p>
+
+<p><img src="/images/posts/cwlogexport/dp2.png"></p>
+
+<p>Fill out the parameters. You can browse to the folder within the S3 bucket you created earlier. The format of the
+ period and end parameters can be any format supported by <a href="https://github.com/hpoydar/chronic_duration">chronic duration</a>
+ and <a href="https://github.com/mojombo/chronic">chronic</a> respectively.</p>
+
+<p><img src="/images/posts/cwlogexport/dp3.png"></p>
+
+<p>Leave the schedule as default, select the other folder you created as the logging destination and leave the IAM roles
+as default.</p>
+
+<p>Finally, click &ldquo;Activate&rdquo;.</p>
+
+<h1>Monitoring Execution</h1>
+
+<p>Data Pipeline will now run through the process of spinning up a new EC2 instance, installing cwlogs-s3, running
+it with the supplied parameters, then terminating the instance. You can follow the process by clicking the refresh
+button at the top right of the pipeline view in the Data Pipeline console.</p>
+
+<p><img src="/images/posts/cwlogexport/running.png"></p>
+
+<p>The status should progress through steps such as <code>WAITING_FOR_RUNNER</code>, <code>RUNNING</code> and <code>FINISHED</code>.</p>
+
+<p><img src="/images/posts/cwlogexport/finished.png"></p>
+
+<p>Once the task has been finished you should also have the option to view logs such as Stdout and Stderr. This is useful
+to debug any issues that might cause the task to fail.</p>
+
+<h1>Viewing exported data</h1>
+
+<p><img src="/images/posts/cwlogexport/outputs3.png"></p>
+
+<p>If you browse the destination in the S3 console you should now see a series of .log files containing your exported
+logs. The files each have a randomised prefix to improve S3 performance, however the suffix indicates the order
+ in which they were exported.</p>
+
+<h1>Part 2</h1>
+
+<p><a href="/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Click here</a> to continue to
+Part 2.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Monitoring Per Application Metrics With CloudWatch Logs and OpsWorks]]></title>

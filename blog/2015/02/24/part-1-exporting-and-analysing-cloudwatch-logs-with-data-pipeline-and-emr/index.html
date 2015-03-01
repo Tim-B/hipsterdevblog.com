@@ -218,13 +218,18 @@ access only to specific buckets or log groups) and attach it to a custom resourc
 <span class='line-number'>56</span>
 <span class='line-number'>57</span>
 <span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
 </pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
 </span><span class='line'>  <span class="nt">&quot;objects&quot;</span> <span class="p">:</span>  <span class="p">[</span>
 </span><span class='line'>    <span class="p">{</span>
 </span><span class='line'>      <span class="nt">&quot;id&quot;</span> <span class="p">:</span> <span class="s2">&quot;ExportActivity&quot;</span><span class="p">,</span>
 </span><span class='line'>      <span class="nt">&quot;schedule&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="nt">&quot;ref&quot;</span> <span class="p">:</span> <span class="s2">&quot;DefaultSchedule&quot;</span> <span class="p">},</span>
 </span><span class='line'>      <span class="nt">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Export Logs&quot;</span><span class="p">,</span>
-</span><span class='line'>      <span class="nt">&quot;command&quot;</span> <span class="p">:</span> <span class="s2">&quot;sudo yum -y install rubygems; sudo gem install cwlogs-s3; cwlogs-s3 -g &#39;#{my_source_group}&#39;  -p &#39;#{my_export_period}&#39; -e &#39;#{my_export_ending}&#39; -s &#39;#{my_s3_path}&#39;&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;command&quot;</span> <span class="p">:</span> <span class="s2">&quot;sudo yum -y install rubygems; sudo gem install cwlogs-s3; cwlogs-s3 -g &#39;#{my_source_group}&#39;  -p &#39;#{my_export_period}&#39; -r &#39;#{my_region}&#39; -e &#39;#{my_export_ending}&#39; -s &#39;#{my_s3_path}&#39;&quot;</span><span class="p">,</span>
 </span><span class='line'>      <span class="nt">&quot;runsOn&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="nt">&quot;ref&quot;</span> <span class="p">:</span> <span class="s2">&quot;ExportInstance&quot;</span> <span class="p">},</span>
 </span><span class='line'>      <span class="nt">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;ShellCommandActivity&quot;</span>
 </span><span class='line'>    <span class="p">},</span>
@@ -271,6 +276,11 @@ access only to specific buckets or log groups) and attach it to a custom resourc
 </span><span class='line'>      <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;my_s3_path&quot;</span><span class="p">,</span>
 </span><span class='line'>      <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Destination S3 path for exported logs&quot;</span><span class="p">,</span>
 </span><span class='line'>      <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;AWS::S3::ObjectKey&quot;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;my_region&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Bucket / CloudWatch region&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;us-east-1&quot;</span>
 </span><span class='line'>    <span class="p">}</span>
 </span><span class='line'>  <span class="p">],</span>
 </span><span class='line'>  <span class="nt">&quot;values&quot;</span> <span class="p">:</span> <span class="p">{</span>
@@ -290,7 +300,7 @@ access only to specific buckets or log groups) and attach it to a custom resourc
 <p><img src="/images/posts/cwlogexport/dp2.png"></p>
 
 <p>Fill out the parameters. You can browse to the folder within the S3 bucket you created earlier. The format of the
- period and end parameters can be any format supported by <a href="hhttps://github.com/hpoydar/chronic_duration">chronic duration</a>
+ period and end parameters can be any format supported by <a href="https://github.com/hpoydar/chronic_duration">chronic duration</a>
  and <a href="https://github.com/mojombo/chronic">chronic</a> respectively.</p>
 
 <p><img src="/images/posts/cwlogexport/dp3.png"></p>
@@ -322,6 +332,11 @@ to debug any issues that might cause the task to fail.</p>
 <p>If you browse the destination in the S3 console you should now see a series of .log files containing your exported
 logs. The files each have a randomised prefix to improve S3 performance, however the suffix indicates the order
  in which they were exported.</p>
+
+<h1>Part 2</h1>
+
+<p><a href="/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Click here</a> to continue to
+Part 2.</p>
 </div>
 
 
@@ -349,7 +364,7 @@ logs. The files each have a randomised prefix to improve S3 performance, however
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/cloudwatch/'>cloudwatch</a>, <a class='category' href='/blog/categories/data-pipeline/'>data pipeline</a>, <a class='category' href='/blog/categories/emr/'>emr</a>
+    <a class='category' href='/blog/categories/apache/'>apache</a>, <a class='category' href='/blog/categories/cloudwatch/'>cloudwatch</a>, <a class='category' href='/blog/categories/data-pipeline/'>data pipeline</a>, <a class='category' href='/blog/categories/emr/'>emr</a>, <a class='category' href='/blog/categories/exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/'>exporting and analysing cloudwatch logs with data pipeline and emr</a>, <a class='category' href='/blog/categories/hive/'>hive</a>, <a class='category' href='/blog/categories/logs/'>logs</a>
   
 </span>
 
@@ -372,6 +387,8 @@ logs. The files each have a randomised prefix to improve S3 performance, however
         <a class="basic-alignment left" href="/blog/2015/01/23/automated-haproxy-failover-on-opsworks/" title="Previous Post: Automated HAProxy failover on OpsWorks">&laquo; Automated HAProxy failover on OpsWorks</a>
       
       
+        <a class="basic-alignment right" href="/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/" title="Next Post: Part 2: Exporting and analysing CloudWatch logs with Data Pipeline and EMR">Part 2: Exporting and analysing CloudWatch logs with Data Pipeline and EMR &raquo;</a>
+      
     </p>
   </footer>
 </article>
@@ -391,6 +408,10 @@ logs. The files each have a randomised prefix to improve S3 performance, however
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Part 2: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Part 1: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR</a>
       </li>
     
@@ -404,10 +425,6 @@ logs. The files each have a randomised prefix to improve S3 performance, however
     
       <li class="post">
         <a href="/blog/2015/01/01/my-2015-aws-wish-list/">My 2015 AWS Wish List</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/12/21/monitoring-per-application-metrics-with-cloudwatch-logs-and-opsworks/">Monitoring Per Application Metrics With CloudWatch Logs and OpsWorks</a>
       </li>
     
   </ul>

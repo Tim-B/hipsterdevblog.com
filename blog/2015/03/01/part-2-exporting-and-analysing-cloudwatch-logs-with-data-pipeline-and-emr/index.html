@@ -1,0 +1,443 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Part 2: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR - :HIPSTER_DEV_BLOG</title>
+  <meta name="author" content="Tim B.">
+
+  
+  <meta name="description" content="If you followed Part 1
+you&rsquo;ll now have your CloudWatch logs sitting conveniently in S3 to be analysed. You could now download them
+and search &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://hipsterdevblog.com/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title=":HIPSTER_DEV_BLOG" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-52141399-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">:HIPSTER_DEV_BLOG</a></h1>
+  
+    <h2>Another Octopress blog about programming and infrastructure.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:hipsterdevblog.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Part 2: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-03-01T16:54:54+10:00" pubdate data-updated="true">Mar 1<sup>st</sup>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>If you followed <a href="/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Part 1</a>
+you&rsquo;ll now have your CloudWatch logs sitting conveniently in S3 to be analysed. You could now download them
+and search each file individually using grep or a similar tool, but it would be much nicer to be able to search
+by field and construct complex queries with multiple conditions.</p>
+
+<p>Thankfully you have <a href="http://aws.amazon.com/elasticmapreduce/">Elastic Map Reduce</a> (EMR) at your disposal, which can
+help you analyse your logs straight from S3 using a nice UI (Hue) and with an SQL-like query language you&rsquo;re already
+familiar with (Hive). EMR is typically employed to process terabytes of data, but it works well on relatively small
+data-sets too and will easily scale up if you happen to have a huge amount of logs to process. Running an on-demand
+EMR cluster for 6 hours also only costs less than $2.</p>
+
+<p>This blog post will cover setting up an EMR cluster, logging into Hue, then using Hive to format and query the Apache
+HTTP access logs exported from CloudWatch in Part 1.</p>
+
+<!-- more -->
+
+
+<h1>Creating your EMR cluster</h1>
+
+<p>From the EMR console click &ldquo;Create cluster&rdquo;.</p>
+
+<p><img src="/images/posts/cwlogexport/log_cluster.png"></p>
+
+<p>Fill out the basic options such as cluster name, disable termination protection and enable logging and debugging.</p>
+
+<p>Leave Tags, Software Configuration and File System Configuration as Default.</p>
+
+<p><img src="/images/posts/cwlogexport/main_config.png"></p>
+
+<p>For a minimal sized cluster select only a single master and core node. The c1.medium instance type is a good place
+to start if you want the smallest cluster possible.</p>
+
+<p>I&rsquo;d strongly recommend assigning an EC2 key pair so you can log in via SSH. If you don&rsquo;t already have a key pair
+then you can add one in advance by following <a href="https://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/emr-plan-access-ssh.html">these instructions</a>.</p>
+
+<p>The network, IAM and role configuration can stay as default unless you&rsquo;d prefer stricter security policies than default.</p>
+
+<p><img src="/images/posts/cwlogexport/steps.png"></p>
+
+<p>Leave the Steps as-is, but ensure Auto-terminate is set to <em>no</em> as we&rsquo;ll be using the cluster interactively and will terminate
+it manually.</p>
+
+<p>Finally, click <em>Create cluster</em>.</p>
+
+<h1>Wait for your cluster to be provisioned</h1>
+
+<p>It can take about 15 minutes for your cluster to be fully provisioned.</p>
+
+<p><img src="/images/posts/cwlogexport/complete.png"></p>
+
+<p>Once provisioned the status should change to <em>waiting</em>.</p>
+
+<p><img src="/images/posts/cwlogexport/steps-complete.png"></p>
+
+<p>The steps should also all have a Status of <em>complete</em>.</p>
+
+<h1>Connecting to Hue web UI</h1>
+
+<p>The Hue UI is accessible at <code>http://[your master public DNS]:8888</code>. For example in my case the URL is <code>http://ec2-54-152-224-205.compute-1.amazonaws.com:8888</code>.</p>
+
+<p>By default the security groups prevent external access to the Hue UI. You have two options to enable access:</p>
+
+<h2>Option 1: SSH tunneling</h2>
+
+<p>The most secure method is to use SSH tunneling to access the web UI. Detailed instructions are available <a href="https://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/emr-ssh-tunnel-local.html">here</a>.
+This will require the key pair you specified when creating the cluster.</p>
+
+<h2>Option 2: Opening up security group</h2>
+
+<p>Another alternative is to open up the security group rules to allow access to your public IP. This is perhaps the
+easiest but keep in mind there will be <strong>no encryption</strong> of your connection.</p>
+
+<p><img src="/images/posts/cwlogexport/rule.png"></p>
+
+<p>Go to the EC2 console and edit the inbound rules for the <em>ElasticMapReduce-master</em> security group. Add a rule to allow
+ all traffic from your IP.</p>
+
+<h2>Logging into Hue</h2>
+
+<p><img src="/images/posts/cwlogexport/huelogin.png"></p>
+
+<p>Open the Hue UI url in your web browser and follow the instructions to set a password and log in.</p>
+
+<h1>Creating table for logs</h1>
+
+<p>Once logged in dismiss the set-up prompt and select <em>Hive</em> under the <em>Query Editors</em> drop down.</p>
+
+<p><img src="/images/posts/cwlogexport/table_query.png"></p>
+
+<p>Enter the following query into the query editor:</p>
+
+<figure class='code'><figcaption><span>query.sql </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">CREATE</span> <span class="k">EXTERNAL</span> <span class="k">TABLE</span> <span class="n">access_log_s3</span> <span class="p">(</span>
+</span><span class='line'>        <span class="o">`</span><span class="n">ip</span><span class="o">`</span>                <span class="n">STRING</span><span class="p">,</span>
+</span><span class='line'>        <span class="o">`</span><span class="n">time_local</span><span class="o">`</span>        <span class="n">STRING</span><span class="p">,</span>
+</span><span class='line'>        <span class="o">`</span><span class="k">method</span><span class="o">`</span>            <span class="n">STRING</span><span class="p">,</span>
+</span><span class='line'>        <span class="o">`</span><span class="n">uri</span><span class="o">`</span>               <span class="n">STRING</span><span class="p">,</span>
+</span><span class='line'>        <span class="o">`</span><span class="n">protocol</span><span class="o">`</span>          <span class="n">STRING</span><span class="p">,</span>
+</span><span class='line'>        <span class="o">`</span><span class="n">status</span><span class="o">`</span>            <span class="n">STRING</span><span class="p">,</span>
+</span><span class='line'>        <span class="o">`</span><span class="n">bytes_sent</span><span class="o">`</span>        <span class="n">STRING</span><span class="p">,</span>
+</span><span class='line'>        <span class="o">`</span><span class="n">referer</span><span class="o">`</span>           <span class="n">STRING</span><span class="p">,</span>
+</span><span class='line'>        <span class="o">`</span><span class="n">useragent</span><span class="o">`</span>         <span class="n">STRING</span>
+</span><span class='line'>        <span class="p">)</span>
+</span><span class='line'>    <span class="k">ROW</span> <span class="n">FORMAT</span> <span class="n">SERDE</span> <span class="s1">&#39;org.apache.hadoop.hive.serde2.RegexSerDe&#39;</span>
+</span><span class='line'>    <span class="k">WITH</span> <span class="n">SERDEPROPERTIES</span> <span class="p">(</span>
+</span><span class='line'>    <span class="s1">&#39;input.regex&#39;</span><span class="o">=</span><span class="s1">&#39;^(\\S+) \\S+ \\S+ \\[([^\\[]+)\\] &quot;(\\w+) (\\S+) (\\S+)&quot; (\\d+) (\\d+) &quot;([^&quot;]+)&quot; &quot;([^&quot;]+)&quot;.*&#39;</span>
+</span><span class='line'><span class="p">)</span>
+</span><span class='line'><span class="n">STORED</span> <span class="k">AS</span> <span class="n">TEXTFILE</span>
+</span><span class='line'><span class="k">LOCATION</span> <span class="s1">&#39;s3://logexport/apache&#39;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Replace <code>s3://logexport/apache</code> with your own bucket path. If you have a different log format then you can customise
+the regular expression and columns to suit.</p>
+
+<p>Click Execute.</p>
+
+<p><img src="/images/posts/cwlogexport/data.png"></p>
+
+<p>If you refresh the table list in the left column you should now see your new table. You can click the preview icon
+to see a sample of your formatted data.</p>
+
+<h1>Querying logs</h1>
+
+<p>You&rsquo;re now ready to begin analysing your logs! You can find a full reference on the Hive query language <a href="https://cwiki.apache.org/confluence/display/Hive/LanguageManual+Select">here</a>
+, however it should be very familiar if you know basic SQL.</p>
+
+<p>For example, if I run:</p>
+
+<figure class='code'><figcaption><span>query.sql </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">access_log_s3</span> <span class="k">WHERE</span> <span class="n">uri</span> <span class="k">LIKE</span> <span class="ss">&quot;%var=80%&quot;</span> <span class="k">AND</span> <span class="n">time_local</span> <span class="k">LIKE</span> <span class="ss">&quot;%28/Feb/2015:07:42:%&quot;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I can see the returned logs under the results tab.</p>
+
+<p><img src="/images/posts/cwlogexport/refined.png"></p>
+
+<p>In my case it took around 60 seconds to process and return the query, however this will depend on how many logs you have,
+the query you&rsquo;re running, and the instance types you&rsquo;re using.</p>
+
+<p>From the results tab you can easily export your results as a CSV or create a new table to refine further.</p>
+
+<h1>Cleaning up</h1>
+
+<p><img src="/images/posts/cwlogexport/terminate.png"></p>
+
+<p>Once you&rsquo;re finished simply return to the EMR console and terminate the cluster.</p>
+
+<p>You may also want to delete the S3 bucket and Data Pipeline.</p>
+
+<h1>Automating periodic analysis</h1>
+
+<p>This blog post describes an ad-hoc scenario where you might want to occupationally perform manual analysis. However,
+Data Pipeline is the perfect tool for automating periodic log analysis. You can leverage the <a href="http://docs.aws.amazon.com/datapipeline/latest/DeveloperGuide/dp-object-hiveactivity.html">Hive Activity</a>
+to build a Pipeline which automatically exports the logs then runs then analyses them on a schedule.</p>
+
+<h1>Part 1</h1>
+
+<p><a href="/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Click here</a> to revisit Part 1.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Tim B.</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-03-01T16:54:54+10:00" pubdate data-updated="true">Mar 1<sup>st</sup>, 2015</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/apache/'>apache</a>, <a class='category' href='/blog/categories/cloudwatch/'>cloudwatch</a>, <a class='category' href='/blog/categories/data-pipeline/'>data pipeline</a>, <a class='category' href='/blog/categories/emr/'>emr</a>, <a class='category' href='/blog/categories/exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/'>exporting and analysing cloudwatch logs with data pipeline and emr</a>, <a class='category' href='/blog/categories/hive/'>hive</a>, <a class='category' href='/blog/categories/logs/'>logs</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://hipsterdevblog.com/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/" data-via="" data-counturl="http://hipsterdevblog.com/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/" title="Previous Post: Part 1: Exporting and analysing CloudWatch logs with Data Pipeline and EMR">&laquo; Part 1: Exporting and analysing CloudWatch logs with Data Pipeline and EMR</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Part 2: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Part 1: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/01/23/automated-haproxy-failover-on-opsworks/">Automated HAProxy Failover on OpsWorks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/01/03/revisited-retrieving-files-from-s3-using-chef-on-opsworks/">Revisited: Retrieving Files From S3 Using Chef on OpsWorks</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/01/01/my-2015-aws-wish-list/">My 2015 AWS Wish List</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015.
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> and
+    <a href="https://github.com/vladigleba/readify">Readify</a></span>.
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'hipsterdevblog';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://hipsterdevblog.com/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/';
+        var disqus_url = 'http://hipsterdevblog.com/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

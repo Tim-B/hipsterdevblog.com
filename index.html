@@ -9,7 +9,9 @@
   <meta name="author" content="Tim B.">
 
   
-  <meta name="description" content="You&rsquo;ve just discovered one of your instances has been hacked! A new instance is being launched to replace it, but you have no idea how the &hellip;">
+  <meta name="description" content="If you followed Part 1
+you&rsquo;ll now have your CloudWatch logs sitting conveniently in S3 to be analysed. You could now download them
+and search &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +80,59 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Part 2: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-03-01T16:54:54+10:00" pubdate data-updated="true">Mar 1<sup>st</sup>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>If you followed <a href="/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Part 1</a>
+you&rsquo;ll now have your CloudWatch logs sitting conveniently in S3 to be analysed. You could now download them
+and search each file individually using grep or a similar tool, but it would be much nicer to be able to search
+by field and construct complex queries with multiple conditions.</p>
+
+<p>Thankfully you have <a href="http://aws.amazon.com/elasticmapreduce/">Elastic Map Reduce</a> (EMR) at your disposal, which can
+help you analyse your logs straight from S3 using a nice UI (Hue) and with an SQL-like query language you&rsquo;re already
+familiar with (Hive). EMR is typically employed to process terabytes of data, but it works well on relatively small
+data-sets too and will easily scale up if you happen to have a huge amount of logs to process. Running an on-demand
+EMR cluster for 6 hours also only costs less than $2.</p>
+
+<p>This blog post will cover setting up an EMR cluster, logging into Hue, then using Hive to format and query the Apache
+HTTP access logs exported from CloudWatch in Part 1.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -553,55 +608,6 @@ the definition of small? How about the smallest EC2 instance on offer - the <a h
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Part 1: Integrating OpsWorks and CodeDeploy</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-11-23T11:09:28+10:00" pubdate data-updated="true">Nov 23<sup>rd</sup>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Amazon <a href="http://aws.amazon.com/blogs/aws/code-management-and-deployment/">recently announced</a> a new deployment service
-called <a href="http://aws.amazon.com/codedeploy/">CodeDeploy</a>. <a href="http://aws.amazon.com/opsworks/">OpsWorks</a> is another application
- management product which provides excellent configuration management via <a href="https://www.getchef.com/">Chef</a>, however it
-lacks the advanced deployment functionality of CodeDeploy. It therefore makes sense to integrate these two products,
-delegating the configuration management to OpsWorks and the deployment functionality to CodeDeploy.</p>
-
-<p>This is part 1 of <a href="/blog/categories/integrating-opsworks-and-codedeploy/">integrating OpsWorks and CodeDeploy</a>.</p>
-
-<p>This section provides an introduction to OpsWorks and CodeDeploy, and the basic configuration required to get started.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -617,6 +623,10 @@ delegating the configuration management to OpsWorks and the deployment functiona
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Part 2: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Part 1: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR</a>
       </li>
     
@@ -630,10 +640,6 @@ delegating the configuration management to OpsWorks and the deployment functiona
     
       <li class="post">
         <a href="/blog/2015/01/01/my-2015-aws-wish-list/">My 2015 AWS Wish List</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/12/21/monitoring-per-application-metrics-with-cloudwatch-logs-and-opsworks/">Monitoring Per Application Metrics With CloudWatch Logs and OpsWorks</a>
       </li>
     
   </ul>
