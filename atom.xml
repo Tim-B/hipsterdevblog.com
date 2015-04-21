@@ -4,7 +4,7 @@
   <title><![CDATA[:HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-03-01T19:20:09+10:00</updated>
+  <updated>2015-04-21T20:40:53+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -12,6 +12,261 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Building ZeroC Ice 3.5 Projects With Gradle and IntelliJ]]></title>
+    <link href="http://hipsterdevblog.com/blog/2015/04/21/building-zeroc-ice-projects-with-gradle-and-intellij/"/>
+    <updated>2015-04-21T19:35:35+10:00</updated>
+    <id>http://hipsterdevblog.com/blog/2015/04/21/building-zeroc-ice-projects-with-gradle-and-intellij</id>
+    <content type="html"><![CDATA[<p><a href="https://zeroc.com/">ZeroC Ice</a> is a distributed computing platform supporting many languages including Java. Building
+an Ice project requires compiling &ldquo;slice&rdquo; data structure definitions into a compatible Java interface. Most often
+it is recommended to use the <a href="https://zeroc.com/eclipse.html">Eclipse plugin</a>, however I prefer to use IntelliJ and
+a build tool which is IDE agnostic. Official Gradle support <a href="https://doc.zeroc.com/display/Ice36/Gradle+Slice+Plug-in">is coming</a>
+ in Ice 3.6, but that&rsquo;s still in beta. Fortunately it&rsquo;s quite easy to invoke te slice2java tool from Gradle and
+ develop Ice 3.5 projects on Gradle and IntelliJ by extension.</p>
+
+<!-- more -->
+
+
+<h1>Project structure</h1>
+
+<p>You should set up your project using the standard Gradle structure:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>src/main/java
+</span><span class='line'>src/main/slice
+</span><span class='line'>build.gradle</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Put your Java sources in the <code>java</code> folder and your slice files in the <code>slice</code> folder.</p>
+
+<h1>build.gradle</h1>
+
+<p>Populate your <code>build.gradle</code> using this base:</p>
+
+<figure class='code'><figcaption><span>build.gradle </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+</pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">apply</span> <span class="nl">plugin:</span> <span class="s1">&#39;java&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">sourceSets</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">main</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">java</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">srcDir</span> <span class="s1">&#39;slice&#39;</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">repositories</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">mavenLocal</span><span class="o">()</span>
+</span><span class='line'>    <span class="n">mavenCentral</span><span class="o">()</span>
+</span><span class='line'>    <span class="n">maven</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">url</span> <span class="s1">&#39;https://repo.zeroc.com/nexus/content/repositories/releases&#39;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">dependencies</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">compile</span> <span class="s1">&#39;com.zeroc:ice:3.5.0&#39;</span>
+</span><span class='line'>    <span class="n">compile</span> <span class="s1">&#39;com.zeroc:icestorm:3.5.0&#39;</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">task</span> <span class="nf">compileSlice</span><span class="o">(</span><span class="nl">type:</span> <span class="n">Exec</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kt">def</span> <span class="n">sliceDir</span> <span class="o">=</span> <span class="k">new</span> <span class="n">File</span><span class="o">(</span><span class="s2">&quot;${projectDir}/slice/main/java&quot;</span><span class="o">)</span>
+</span><span class='line'>    <span class="n">sliceDir</span><span class="o">.</span><span class="na">mkdirs</span><span class="o">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">commandLine</span> <span class="s1">&#39;slice2java&#39;</span><span class="o">,</span> <span class="s1">&#39;--output-dir&#39;</span><span class="o">,</span> <span class="s2">&quot;${projectDir}/slice/main/java&quot;</span><span class="o">,</span> <span class="s2">&quot;${projectDir}/src/main/slice/MySliceFile.ice&quot;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">standardOutput</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ByteArrayOutputStream</span><span class="o">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">ext</span><span class="o">.</span><span class="na">output</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">println</span> <span class="n">standardOutput</span><span class="o">.</span><span class="na">toString</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">gradle</span><span class="o">.</span><span class="na">projectsEvaluated</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">compileJava</span><span class="o">.</span><span class="na">dependsOn</span><span class="o">(</span><span class="n">compileSlice</span><span class="o">)</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">String</span> <span class="nf">getRuntimeClasspath</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">sourceSets</span><span class="o">.</span><span class="na">main</span><span class="o">.</span><span class="na">runtimeClasspath</span><span class="o">.</span><span class="na">collect</span> <span class="o">{</span> <span class="n">it</span><span class="o">.</span><span class="na">absolutePath</span> <span class="o">}.</span><span class="na">join</span><span class="o">(</span><span class="s1">&#39;:&#39;</span><span class="o">)</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Replace <code>MySliceFile.ice</code> with the name of your slice file.</p>
+
+<h1>Building the project</h1>
+
+<p>You should now be able to run <code>gradle compileSlice</code> which will generate a new folder called <code>slice/main/java</code>,
+compile the slice file and output the result to that new folder.</p>
+
+<p><code>compileSlice</code> is also a dependency of <code>compileJava</code> so you only have to run <code>gradle build</code> which will compile the
+slice files then your Java source including the generated Java from the slice compiler in one go.</p>
+
+<p>It is assumed that <code>slice2java</code> is in your path, if the build fails with a message such as
+<code>A problem occurred starting process 'command 'slice2java''</code> check that it&rsquo;s in your path by running <code>which slice2java</code>.</p>
+
+<h2>Optional: Building distributable packages</h2>
+
+<p>You can alsop use the Gradle <a href="http://gradle.org/docs/current/userguide/application_plugin.html">application plugin</a>
+to generate distributable packages of your Ice application, including a bundled copy of <code>ice-3.5.0.jar</code>.</p>
+
+<p>Update your <code>build.gradle</code>:</p>
+
+<figure class='code'><figcaption><span>build.gradle </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+</pre></td><td class='code'><pre><code class='groovy'><span class='line'><span class="n">apply</span> <span class="nl">plugin:</span> <span class="s1">&#39;application&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Include the base build.gradle content here</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">mainClassName</span> <span class="o">=</span> <span class="s1">&#39;com.mydomain.myproject.MyClass&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// If you have multiple other components / entry classes </span>
+</span><span class='line'><span class="c1">// (eg. a client and a server that need to be invoked independently)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">task</span> <span class="nf">createAllStartScripts</span><span class="o">()</span> <span class="o">&lt;&lt;</span> <span class="o">{}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">def</span> <span class="n">scripts</span> <span class="o">=</span> <span class="o">[</span><span class="s1">&#39;MyOtherClass1&#39;</span> <span class="o">:</span> <span class="s1">&#39;com.mydomain.myproject.MyOtherClass1&#39;</span><span class="o">,</span>
+</span><span class='line'>               <span class="s1">&#39;MyOtherClass2&#39;</span> <span class="o">:</span> <span class="s1">&#39;com.mydomain.myproject.MyOtherClass2&#39;</span><span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">scripts</span><span class="o">.</span><span class="na">each</span><span class="o">()</span> <span class="o">{</span> <span class="n">scriptName</span><span class="o">,</span> <span class="n">className</span> <span class="o">-&gt;</span>
+</span><span class='line'>    <span class="kt">def</span> <span class="n">t</span> <span class="o">=</span> <span class="n">tasks</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="nl">name:</span> <span class="n">scriptName</span> <span class="o">+</span> <span class="s1">&#39;StartScript&#39;</span><span class="o">,</span> <span class="nl">type:</span> <span class="n">CreateStartScripts</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">mainClassName</span> <span class="o">=</span> <span class="n">className</span>
+</span><span class='line'>        <span class="n">applicationName</span> <span class="o">=</span> <span class="n">scriptName</span>
+</span><span class='line'>        <span class="n">outputDir</span> <span class="o">=</span> <span class="k">new</span> <span class="n">File</span><span class="o">(</span><span class="n">project</span><span class="o">.</span><span class="na">buildDir</span><span class="o">,</span> <span class="s1">&#39;scripts&#39;</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">classpath</span> <span class="o">=</span> <span class="n">jar</span><span class="o">.</span><span class="na">outputs</span><span class="o">.</span><span class="na">files</span> <span class="o">+</span> <span class="n">project</span><span class="o">.</span><span class="na">configurations</span><span class="o">.</span><span class="na">runtime</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="n">applicationDistribution</span><span class="o">.</span><span class="na">into</span><span class="o">(</span><span class="s2">&quot;bin&quot;</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">from</span><span class="o">(</span><span class="n">t</span><span class="o">)</span>
+</span><span class='line'>        <span class="n">fileMode</span> <span class="o">=</span> <span class="mi">0755</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="n">createAllStartScripts</span><span class="o">.</span><span class="na">dependsOn</span><span class="o">(</span><span class="n">t</span><span class="o">)</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// If you want to include other files with your distributable</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">applicationDistribution</span><span class="o">.</span><span class="na">from</span><span class="o">(</span><span class="k">new</span> <span class="n">File</span><span class="o">(</span><span class="s2">&quot;${projectDir}/config&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">into</span> <span class="s2">&quot;bin/config&quot;</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">applicationDistribution</span><span class="o">.</span><span class="na">from</span><span class="o">(</span><span class="k">new</span> <span class="n">File</span><span class="o">(</span><span class="s2">&quot;${projectDir}/data&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">into</span> <span class="s2">&quot;bin/data&quot;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Substitute your own class names as applicable in the code above.</p>
+
+<p>Build your distributable by running <code>gradle distZip</code>, you should find the output under <code>build/distributions/MyProject.zip</code>.</p>
+
+<h1>Using IntelliJ</h1>
+
+<p>You should now be able to import your Gradle project into IntelliJ like any other Gradle project: <code>File</code> > <code>New</code> >
+<code>Project from Existing Sources...</code> > browse to and select <code>build.gradle</code>.</p>
+
+<p>Create a new gradle run configuration for the <code>gradle build</code> task:</p>
+
+<p><img src="http://hipsterdevblog.com/images/posts/icegradle/build.png"></p>
+
+<p>Also add a run configuration to run your application:</p>
+
+<p><img src="http://hipsterdevblog.com/images/posts/icegradle/run.png"></p>
+
+<p>You should now be able to both build and run your application directly from IntelliJ.</p>
+
+<h2>Caveat on OSX</h2>
+
+<p>It&rsquo;s a <a href="http://apple.stackexchange.com/questions/51677/how-to-set-path-for-finder-launched-applications">well</a>
+<a href="http://emmanuelbernard.com/blog/2012/05/09/setting-global-variables-intellij/">documented</a>
+ <a href="http://stackoverflow.com/questions/15201763/intellij-does-not-recognize-path-">issue</a> that IntelliJ does not inherit
+ the path variable of the user on OSX. This means that when
+you run <code>gradle build</code> from IntelliJ it won&rsquo;t be able to find <code>slice2java</code> and you&rsquo;ll get an error like
+<code>A problem occurred starting process 'command 'slice2java''</code>. The easiest solution is just to use an absolute path
+in <code>commandLine 'slice2java'</code> such as <code>commandLine '/usr/bin/slice2java'</code>, alternatively you can explore some of the
+solutions mentioned in the links above.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Part 2: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR]]></title>
