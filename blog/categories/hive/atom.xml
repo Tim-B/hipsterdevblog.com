@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Hive | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/hive/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-04-21T20:40:53+10:00</updated>
+  <updated>2015-05-31T17:09:04+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -12,6 +12,649 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Analysing DynamoDB Index Usage in Hive Queries]]></title>
+    <link href="http://hipsterdevblog.com/blog/2015/05/30/analysing-dynamodb-index-usage-in-hive-queries/"/>
+    <updated>2015-05-30T19:55:11+10:00</updated>
+    <id>http://hipsterdevblog.com/blog/2015/05/30/analysing-dynamodb-index-usage-in-hive-queries</id>
+    <content type="html"><![CDATA[<p>Elastic Map Reduce allows you to conveniently <a href="http://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/EMRforDynamoDB.html">run SQL-like queries against DynamoDB using Hive</a>.
+This overcomes many of the limitations of the built-in DynamoDB query functionality and makes it significantly
+more useful for storing raw analytical data.</p>
+
+<p>While the abstraction provided by this handler is pretty good, it is still subject to the same underlying throughput
+and indexing limitations faced when accessing data through the DynamoDB API directly. In particular, access efficiency
+is extremely sensitive to the use of appropriate indexes - full table scans are both slow and expensive.</p>
+
+<p>The documentation provides <a href="http://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/EMR_Hive_Optimizing.html">some guidance</a>
+with regard to performance optimisation, however it does not go into how the handler maps a Hive query to
+a DynamoDB scan or query, nor under what circumstances indexes will be used to avoid scanning the entire table.</p>
+
+<p>In this blog post you&rsquo;ll find several Hive queries run against an example DynamoDB table, along with the resulting
+DynamoDB request to observe which indexes are used.</p>
+
+<!-- more -->
+
+
+<h1>Setup</h1>
+
+<h2>Example Table</h2>
+
+<p>These queries were run against the following example table:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>+&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+&mdash;&mdash;+&mdash;&mdash;+
+</span><span class='line'>| product | sequence_number | host | time |
+</span><span class='line'>+&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+&mdash;&mdash;+&mdash;&mdash;+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The following index structure was used:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>+&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>| Primary Index          | product, sequence_number (range) |
+</span><span class='line'>| Global Secondary Index | host, sequence_number (range)    |
+</span><span class='line'>| Local Secondary Index  | time                             |
+</span><span class='line'>+&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Hive Table</h2>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">CREATE</span> <span class="k">EXTERNAL</span> <span class="k">TABLE</span> <span class="n">product_views</span> <span class="p">(</span>
+</span><span class='line'>    <span class="n">product</span> <span class="nb">bigint</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">sequence_number</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>    <span class="k">host</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">time</span> <span class="nb">bigint</span>
+</span><span class='line'><span class="p">)</span> <span class="n">STORED</span> <span class="k">BY</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">org</span><span class="p">.</span><span class="n">apache</span><span class="p">.</span><span class="n">hadoop</span><span class="p">.</span><span class="n">hive</span><span class="p">.</span><span class="n">dynamodb</span><span class="p">.</span><span class="n">DynamoDBStorageHandler</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
+</span><span class='line'><span class="n">TBLPROPERTIES</span> <span class="p">(</span>
+</span><span class='line'>    <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">dynamodb</span><span class="p">.</span><span class="n">endpoint</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span><span class="o">=&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="ss">&quot;http://dynamodb.us-east-1.amazonaws.com&quot;</span><span class="o">&gt;</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">dynamodb</span><span class="p">.</span><span class="n">us</span><span class="o">-</span><span class="n">east</span><span class="o">-</span><span class="mi">1</span><span class="p">.</span><span class="n">amazonaws</span><span class="p">.</span><span class="n">com</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;&amp;</span><span class="n">rdquo</span><span class="p">;,</span>
+</span><span class='line'>    <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">dynamodb</span><span class="p">.</span><span class="k">table</span><span class="p">.</span><span class="n">name</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span><span class="o">=&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">web</span><span class="o">-</span><span class="n">analytics</span><span class="o">-</span><span class="n">raw</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;,</span>
+</span><span class='line'>    <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">dynamodb</span><span class="p">.</span><span class="k">column</span><span class="p">.</span><span class="n">mapping</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">sequence_number</span><span class="p">:</span><span class="n">sequence_number</span><span class="p">,</span>
+</span><span class='line'>    <span class="k">host</span><span class="p">:</span><span class="k">host</span><span class="p">,</span><span class="n">product</span><span class="p">:</span><span class="n">product</span><span class="p">,</span><span class="n">time</span><span class="p">:</span><span class="n">time</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
+</span><span class='line'><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Note that the endpoint has been made the http (as oppose to https) to make the requests easier to observe without
+encryption.</p>
+
+<h2>Observing HTTP requests with wireshark</h2>
+
+<p>First, SSH into a core task node (it&rsquo;s easiest if you only run one) and run <code>sudo yum install tcpdump</code>, then from your
+local machine:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>mkfifo /tmp/wireshark
+</span><span class='line'><span class="nv">$ </span>ssh -i ~/.ssh/keypair.pem &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#x61;&amp;#105;&amp;#108;&amp;#x74;&amp;#111;&amp;#58;&amp;#x68;&amp;#x61;&amp;#x64;&amp;#111;&amp;#111;&amp;#112;&amp;#64;&amp;#101;&amp;#x63;&amp;#x32;&amp;#45;&amp;#49;&amp;#50;&amp;#x33;&amp;#x2e;&amp;#x34;&amp;#53;&amp;#x36;&amp;#x2e;&amp;#x31;&amp;#x32;&amp;#x33;&amp;#x2e;&amp;#x34;&amp;#53;&amp;#x2e;&amp;#x63;&amp;#111;&amp;#109;&amp;#112;&amp;#x75;&amp;#x74;&amp;#x65;&amp;#45;&amp;#49;&amp;#x2e;&amp;#x61;&amp;#109;&amp;#x61;&amp;#122;&amp;#x6f;&amp;#110;&amp;#x61;&amp;#119;&amp;#x73;&amp;#46;&amp;#x63;&amp;#x6f;&amp;#x6d;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x68;&amp;#97;&amp;#100;&amp;#111;&amp;#111;&amp;#112;&amp;#x40;&amp;#x65;&amp;#x63;&amp;#x32;&amp;#x2d;&amp;#x31;&amp;#50;&amp;#x33;&amp;#x2e;&amp;#x34;&amp;#x35;&amp;#54;&amp;#46;&amp;#x31;&amp;#50;&amp;#51;&amp;#46;&amp;#52;&amp;#x35;&amp;#46;&amp;#x63;&amp;#x6f;&amp;#109;&amp;#112;&amp;#117;&amp;#x74;&amp;#101;&amp;#x2d;&amp;#x31;&amp;#46;&amp;#x61;&amp;#109;&amp;#x61;&amp;#122;&amp;#111;&amp;#x6e;&amp;#97;&amp;#119;&amp;#115;&amp;#x2e;&amp;#x63;&amp;#x6f;&amp;#x6d;&lt;/a&gt; &amp;ldquo;sudo tcpdump -i eth0 -s 0 -U -w - not port 22&amp;rdquo; &gt; /tmp/wireshark</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Finally, run the following in another terminal:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>wireshark -k -i /tmp/wireshark
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h1>Queries</h1>
+
+<h2>Simple query on primary index key.</h2>
+
+<p>Hive Query:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">product_views</span> <span class="k">WHERE</span> <span class="n">product</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>DynamoDB Request:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TableName&amp;rdquo;:&amp;ldquo;web-analytics-raw&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Limit&amp;rdquo;:2147483647,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;KeyConditions&amp;rdquo;:{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;product&amp;rdquo;:{</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;AttributeValueList&amp;rdquo;:[</span>
+</span><span class='line'>            <span class="err">{</span>
+</span><span class='line'>               <span class="err">&amp;ldquo;N&amp;rdquo;:&amp;ldquo;3&amp;rdquo;</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>         <span class="err">],</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;ComparisonOperator&amp;rdquo;:&amp;ldquo;EQ&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">}</span>
+</span><span class='line'>   <span class="err">},</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;ReturnConsumedCapacity&amp;rdquo;:&amp;ldquo;TOTAL&amp;rdquo;</span>
+</span><span class='line'><span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Consumed capacity: 0.5</p>
+
+<p>As you&rsquo;d expect the handler is able to query for a specific key and save a full scan.</p>
+
+<h2>Simple query on primary range key</h2>
+
+<p>Hive Query:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">product_views</span> <span class="k">WHERE</span> <span class="n">product</span> <span class="o">=</span> <span class="mi">3</span>
+</span><span class='line'><span class="k">AND</span> <span class="n">sequence_number</span> <span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="mi">49551126539595599111737467812411851738953944699026538498</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>DynamoDB Request:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TableName&amp;rdquo;:&amp;ldquo;web-analytics-raw&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Limit&amp;rdquo;:2147483647,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;KeyConditions&amp;rdquo;:{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;sequence_number&amp;rdquo;:{</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;AttributeValueList&amp;rdquo;:[</span>
+</span><span class='line'>            <span class="err">{</span>
+</span><span class='line'>               <span class="err">&amp;ldquo;S&amp;rdquo;:&amp;ldquo;49551126539595599111737467812411851738953944699026538498&amp;rdquo;</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>         <span class="err">],</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;ComparisonOperator&amp;rdquo;:&amp;ldquo;GT&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">},</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;product&amp;rdquo;:</span><span class="p">{</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;AttributeValueList&amp;rdquo;:[</span>
+</span><span class='line'>            <span class="err">{</span>
+</span><span class='line'>               <span class="err">&amp;ldquo;N&amp;rdquo;:&amp;ldquo;3&amp;rdquo;</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>         <span class="err">],</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;ComparisonOperator&amp;rdquo;:&amp;ldquo;EQ&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">}</span>
+</span><span class='line'>   <span class="err">},</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;ReturnConsumedCapacity&amp;rdquo;:&amp;ldquo;TOTAL&amp;rdquo;</span>
+</span><span class='line'><span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Consumed capacity: 0.5</p>
+
+<p>Likewise, a query is used for both the primary and range key.</p>
+
+<h2>Query on primary key with limit</h2>
+
+<p>Hive Query:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">product_views</span> <span class="k">WHERE</span> <span class="n">product</span> <span class="o">=</span> <span class="mi">4</span> <span class="k">LIMIT</span> <span class="mi">3</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>DynamoDB Request:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TableName&amp;rdquo;:&amp;ldquo;web-analytics-raw&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Limit&amp;rdquo;:1933,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;KeyConditions&amp;rdquo;:{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;product&amp;rdquo;:{</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;AttributeValueList&amp;rdquo;:[</span>
+</span><span class='line'>            <span class="err">{</span>
+</span><span class='line'>               <span class="err">&amp;ldquo;N&amp;rdquo;:&amp;ldquo;4&amp;rdquo;</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>         <span class="err">],</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;ComparisonOperator&amp;rdquo;:&amp;ldquo;EQ&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">}</span>
+</span><span class='line'>   <span class="err">},</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;ReturnConsumedCapacity&amp;rdquo;:&amp;ldquo;TOTAL&amp;rdquo;</span>
+</span><span class='line'><span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Consumed capacity: 0.5</p>
+
+<p>It appears however that limit conditions do not affect the DynamoDB query, and all results for the key
+are returned regardless.</p>
+
+<h2>Query on local index</h2>
+
+<p>Hive Query:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">product_views</span> <span class="k">WHERE</span> <span class="n">product</span> <span class="o">=</span> <span class="mi">3</span> <span class="k">AND</span> <span class="n">time</span> <span class="o">&gt;</span> <span class="mi">1432979370486</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>DynamoDB Request:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TableName&amp;rdquo;:&amp;ldquo;web-analytics-raw&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Limit&amp;rdquo;:2147483647,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;KeyConditions&amp;rdquo;:{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;product&amp;rdquo;:{</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;AttributeValueList&amp;rdquo;:[</span>
+</span><span class='line'>            <span class="err">{</span>
+</span><span class='line'>               <span class="err">&amp;ldquo;N&amp;rdquo;:&amp;ldquo;3&amp;rdquo;</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>         <span class="err">],</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;ComparisonOperator&amp;rdquo;:&amp;ldquo;EQ&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">}</span>
+</span><span class='line'>   <span class="err">},</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;ReturnConsumedCapacity&amp;rdquo;:&amp;ldquo;TOTAL&amp;rdquo;</span>
+</span><span class='line'><span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Consumed capacity: 0.5</p>
+
+<p>Unfortunately it doesn&rsquo;t seem local indexes are recognised, instead it just queries on the primary key and
+filters the time from the returned results.</p>
+
+<h2>Query on secondary global index</h2>
+
+<p>Hive Query:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">product_views</span> <span class="k">WHERE</span> <span class="k">host</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">site</span><span class="o">-</span><span class="mi">8</span><span class="p">.</span><span class="n">com</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>DynamoDB Request:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TableName&amp;rdquo;:&amp;ldquo;web-analytics-raw&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Limit&amp;rdquo;:2147483647,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;ReturnConsumedCapacity&amp;rdquo;:&amp;ldquo;TOTAL&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TotalSegments&amp;rdquo;:1,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Segment&amp;rdquo;:0</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Consumed capacity: 2.5</p>
+
+<p>It seems secondary global indexes aren&rsquo;t supported either, leading to a full table scan in the absence of any
+conditions on the primary key.</p>
+
+<h2>Greater than query on primary index</h2>
+
+<p>Hive Query:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">product_views</span> <span class="k">WHERE</span> <span class="n">product</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>DynamoDB Request:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TableName&amp;rdquo;:&amp;ldquo;web-analytics-raw&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Limit&amp;rdquo;:2147483647,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;ReturnConsumedCapacity&amp;rdquo;:&amp;ldquo;TOTAL&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TotalSegments&amp;rdquo;:1,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Segment&amp;rdquo;:0</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Consumed capacity: 2.5</p>
+
+<p>Unsurprisingly this results in a full scan given that you can only apply greater than conditions to a range key.</p>
+
+<h2>Using OR to select multiple primary keys</h2>
+
+<p>Hive Query:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">product_views</span> <span class="k">WHERE</span> <span class="n">product</span> <span class="o">=</span> <span class="mi">5</span> <span class="k">OR</span> <span class="n">product</span> <span class="o">=</span> <span class="mi">6</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>DynamoDB Request:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TableName&amp;rdquo;:&amp;ldquo;web-analytics-raw&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Limit&amp;rdquo;:2147483647,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;ReturnConsumedCapacity&amp;rdquo;:&amp;ldquo;TOTAL&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TotalSegments&amp;rdquo;:1,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Segment&amp;rdquo;:0</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Consumed capacity: 2.5</p>
+
+<p>This results in a full scan also, which isn&rsquo;t much of a surprise seeing as you can only query on one key at a time.</p>
+
+<h2>Using multiple range key values with OR</h2>
+
+<p>Hive Query:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">product_views</span> <span class="k">WHERE</span> <span class="n">product</span> <span class="o">=</span> <span class="mi">6</span> <span class="k">AND</span>
+</span><span class='line'><span class="p">(</span><span class="n">sequence_number</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="mi">49551126539595599111737467812353823299612434595900817410</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span> <span class="k">OR</span>
+</span><span class='line'><span class="n">sequence_number</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="mi">49551126539595599111737467812437239181165855278949728258</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;);</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>DynamoDB Request:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TableName&amp;rdquo;:&amp;ldquo;web-analytics-raw&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Limit&amp;rdquo;:2147483647,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;KeyConditions&amp;rdquo;:{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;product&amp;rdquo;:{</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;AttributeValueList&amp;rdquo;:[</span>
+</span><span class='line'>            <span class="err">{</span>
+</span><span class='line'>               <span class="err">&amp;ldquo;N&amp;rdquo;:&amp;ldquo;6&amp;rdquo;</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>         <span class="err">],</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;ComparisonOperator&amp;rdquo;:&amp;ldquo;EQ&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">}</span>
+</span><span class='line'>   <span class="err">},</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;ReturnConsumedCapacity&amp;rdquo;:&amp;ldquo;TOTAL&amp;rdquo;</span>
+</span><span class='line'><span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Consumed capacity: 0.5</p>
+
+<p>It starts by simply querying on the primary key then filtering the results, nothing fancy like selecting only those
+greater than the smallest to reduce the returned results.</p>
+
+<h2>Querying on range key alone</h2>
+
+<p>Hive Query:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">product_views</span>
+</span><span class='line'><span class="k">WHERE</span> <span class="n">sequence_number</span> <span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="mi">49551126539595599111737467812411851738953944699026538498</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>DynamoDB Request:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TableName&amp;rdquo;:&amp;ldquo;web-analytics-raw&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Limit&amp;rdquo;:2147483647,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;ReturnConsumedCapacity&amp;rdquo;:&amp;ldquo;TOTAL&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TotalSegments&amp;rdquo;:1,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Segment&amp;rdquo;:0</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Consumed capacity: 2.5</p>
+
+<p>Full scan, which is expected as you can&rsquo;t query on a range key without specifying a primary key.</p>
+
+<h2>Like query on range key</h2>
+
+<p>Hive Query:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">product_views</span> <span class="k">WHERE</span> <span class="n">product</span> <span class="o">=</span> <span class="mi">3</span>
+</span><span class='line'><span class="k">AND</span> <span class="n">sequence_number</span> <span class="k">LIKE</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="mi">49551126539595599111737467812411851738953944699026</span><span class="o">%&amp;</span><span class="n">rsquo</span><span class="p">;;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>DynamoDB Request:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TableName&amp;rdquo;:&amp;ldquo;web-analytics-raw&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Limit&amp;rdquo;:2147483647,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;KeyConditions&amp;rdquo;:{</span>
+</span><span class='line'>      <span class="err">&amp;ldquo;product&amp;rdquo;:{</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;AttributeValueList&amp;rdquo;:[</span>
+</span><span class='line'>            <span class="err">{</span>
+</span><span class='line'>               <span class="err">&amp;ldquo;N&amp;rdquo;:&amp;ldquo;3&amp;rdquo;</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>         <span class="err">],</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;ComparisonOperator&amp;rdquo;:&amp;ldquo;EQ&amp;rdquo;</span>
+</span><span class='line'>      <span class="err">}</span>
+</span><span class='line'>   <span class="err">},</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;ReturnConsumedCapacity&amp;rdquo;:&amp;ldquo;TOTAL&amp;rdquo;</span>
+</span><span class='line'><span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Consumed capacity: 0.5</p>
+
+<p>Although there is support for BEGINS_WITH in the KeyConditions field it appears this isn&rsquo;t used. Instead it just queries
+on the primary key and filters the results for the range key condition.</p>
+
+<h2>Primary key ID expressed indirectly through multiple conditions</h2>
+
+<p>Hive Query:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">product_views</span> <span class="k">WHERE</span> <span class="n">product</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="k">AND</span> <span class="n">product</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span> <span class="mi">4</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>DynamoDB Request:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TableName&amp;rdquo;:&amp;ldquo;web-analytics-raw&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Limit&amp;rdquo;:1933,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;ReturnConsumedCapacity&amp;rdquo;:&amp;ldquo;TOTAL&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TotalSegments&amp;rdquo;:1,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Segment&amp;rdquo;:0</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Consumed capacity: 2.5</p>
+
+<p>No luck on this one either, it doesn&rsquo;t recognise that the only key value can be 3 - although I&rsquo;m not too surprised about that.
+Be sure that your key values are explicit enough for the handler to recognise.</p>
+
+<h2>Primary key using IN condition</h2>
+
+<p>Hive Query:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">product_views</span> <span class="k">WHERE</span> <span class="n">product</span> <span class="k">IN</span> <span class="p">(</span><span class="mi">3</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>DynamoDB Request:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TableName&amp;rdquo;:&amp;ldquo;web-analytics-raw&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Limit&amp;rdquo;:1933,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;ReturnConsumedCapacity&amp;rdquo;:&amp;ldquo;TOTAL&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TotalSegments&amp;rdquo;:1,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Segment&amp;rdquo;:0</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Consumed capacity: 2.5</p>
+
+<p>It will not recognise a single ID in an IN statement either, resulting in a full scan.</p>
+
+<h2>Subquery on primary key</h2>
+
+<p>Hive Query:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">product_views</span> <span class="k">AS</span> <span class="n">p1</span> <span class="k">WHERE</span> <span class="n">p1</span><span class="p">.</span><span class="n">product</span> <span class="k">IN</span> <span class="p">(</span><span class="k">SELECT</span> <span class="n">p2</span><span class="p">.</span><span class="n">product</span> <span class="k">FROM</span> <span class="n">product_views</span> <span class="k">AS</span> <span class="n">p2</span> <span class="k">WHERE</span> <span class="n">p2</span><span class="p">.</span><span class="n">product</span> <span class="o">=</span> <span class="mi">4</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>DynamoDB Request:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TableName&amp;rdquo;:&amp;ldquo;web-analytics-raw&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Limit&amp;rdquo;:1933,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;ReturnConsumedCapacity&amp;rdquo;:&amp;ldquo;TOTAL&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;TotalSegments&amp;rdquo;:1,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Segment&amp;rdquo;:0</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Consumed capacity: 2.5</p>
+
+<p>Surprisingly only one scan request was made as far as I could tell, so while unfortunately it wasn&rsquo;t able to issue
+   this as two queries at least it didn&rsquo;t issue two scans.</p>
+
+<h1>Conclusion</h1>
+
+<p>Unfortunately it seems that neither global secondary indexes or local indexes are supported, however scenarios involving
+a query on a single primary key are recognised pretty well. This makes it practical to use a primary key as a method
+of partitioning your data to avoid EMR queries taking longer over time as the table grows.</p>
+
+<p>With that in mind you may also be able to design queries which avoid a full scan but still achieve the same outcome.</p>
+
+<p>For example:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">product_views</span> <span class="k">WHERE</span> <span class="n">product</span> <span class="o">=</span> <span class="mi">5</span> <span class="k">OR</span> <span class="n">product</span> <span class="o">=</span> <span class="mi">6</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Could be achieved with:
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">DROP</span> <span class="k">TABLE</span> <span class="n">IF</span> <span class="k">EXISTS</span> <span class="n">tmptable</span><span class="p">;</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">tmptable</span> <span class="p">(</span>
+</span><span class='line'>  <span class="n">product</span> <span class="nb">bigint</span><span class="p">,</span>
+</span><span class='line'>  <span class="n">sequence_number</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="k">host</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="n">time</span> <span class="nb">bigint</span>
+</span><span class='line'><span class="p">);</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">INSERT</span> <span class="k">INTO</span> <span class="k">TABLE</span> <span class="n">tmptable</span> <span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">product_views</span> <span class="k">WHERE</span> <span class="n">product</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+</span><span class='line'><span class="k">INSERT</span> <span class="k">INTO</span> <span class="k">TABLE</span> <span class="n">tmptable</span> <span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">product_views</span> <span class="k">WHERE</span> <span class="n">product</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">tmptable</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Which would require two query requests instead of one scan.</p>
+
+<p>It&rsquo;s also worth noting that filtering on the DynamoDB side is never used, although that isn&rsquo;t a huge issue seeing
+  as throughput consumption is calculated before any filters are applied.</p>
+
+<p>You can also use the EXPLAIN Hive command to give you some clue about how a query will be executed, however as far as
+I&rsquo;m aware the raw DynamoDB request isn&rsquo;t exposed in either the EXPLAIN output or the query logs. I&rsquo;d be glad to know if there
+is a more convenient way to view the raw DynamoDB request than inspecting the network traffic.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Part 2: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR]]></title>

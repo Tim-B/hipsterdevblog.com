@@ -9,8 +9,8 @@
   <meta name="author" content="Tim B.">
 
   
-  <meta name="description" content="ZeroC Ice is a distributed computing platform supporting many languages including Java. Building
-an Ice project requires compiling &ldquo;slice&rdquo &hellip;">
+  <meta name="description" content="Elastic Map Reduce allows you to conveniently run SQL-like queries against DynamoDB using Hive.
+This overcomes many of the limitations of the built- &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +79,60 @@ an Ice project requires compiling &ldquo;slice&rdquo &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/05/30/analysing-dynamodb-index-usage-in-hive-queries/">Analysing DynamoDB Index Usage in Hive Queries</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-05-30T19:55:11+10:00" pubdate data-updated="true">May 30<sup>th</sup>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Elastic Map Reduce allows you to conveniently <a href="http://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/EMRforDynamoDB.html">run SQL-like queries against DynamoDB using Hive</a>.
+This overcomes many of the limitations of the built-in DynamoDB query functionality and makes it significantly
+more useful for storing raw analytical data.</p>
+
+<p>While the abstraction provided by this handler is pretty good, it is still subject to the same underlying throughput
+and indexing limitations faced when accessing data through the DynamoDB API directly. In particular, access efficiency
+is extremely sensitive to the use of appropriate indexes - full table scans are both slow and expensive.</p>
+
+<p>The documentation provides <a href="http://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/EMR_Hive_Optimizing.html">some guidance</a>
+with regard to performance optimisation, however it does not go into how the handler maps a Hive query to
+a DynamoDB scan or query, nor under what circumstances indexes will be used to avoid scanning the entire table.</p>
+
+<p>In this blog post you&rsquo;ll find several Hive queries run against an example DynamoDB table, along with the resulting
+DynamoDB request to observe which indexes are used.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2015/05/30/analysing-dynamodb-index-usage-in-hive-queries/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -565,50 +619,6 @@ the definition of small? How about the smallest EC2 instance on offer - the <a h
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/">Part 3: Integrating OpsWorks and CodeDeploy</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-11-25T11:43:36+10:00" pubdate data-updated="true">Nov 25<sup>th</sup>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>This is part 3 of <a href="/blog/categories/integrating-opsworks-and-codedeploy/">integrating OpsWorks and CodeDeploy</a>.</p>
-
-<p>This section covers creating the CodeDeploy deployment, deploying it to the configured OpsWorks stack and demonstrating the results of the integration.
- <a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Click here</a> for Part 1.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -624,6 +634,10 @@ the definition of small? How about the smallest EC2 instance on offer - the <a h
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/05/30/analysing-dynamodb-index-usage-in-hive-queries/">Analysing DynamoDB Index Usage in Hive Queries</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/04/21/building-zeroc-ice-projects-with-gradle-and-intellij/">Building ZeroC Ice 3.5 Projects With Gradle and IntelliJ</a>
       </li>
     
@@ -637,10 +651,6 @@ the definition of small? How about the smallest EC2 instance on offer - the <a h
     
       <li class="post">
         <a href="/blog/2015/01/23/automated-haproxy-failover-on-opsworks/">Automated HAProxy Failover on OpsWorks</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/01/03/revisited-retrieving-files-from-s3-using-chef-on-opsworks/">Revisited: Retrieving Files From S3 Using Chef on OpsWorks</a>
       </li>
     
   </ul>
