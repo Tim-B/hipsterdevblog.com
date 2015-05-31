@@ -10,7 +10,7 @@ categories:
  - DynamoDB
 ---
 
-Elastic Map Reduce provides a convenient DynamoDB storage handler, allowing you to [run SQL-like queries on DynamoDB using Hive](http://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/EMRforDynamoDB.html).
+Elastic Map Reduce allows you to conveniently [run SQL-like queries against DynamoDB using Hive](http://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/EMRforDynamoDB.html).
 This overcomes many of the limitations of the built-in DynamoDB query functionality and makes it significantly
 more useful for storing raw analytical data.
 
@@ -75,8 +75,7 @@ local machine:
 
 {% codeblock lang:bash %}
 $ mkfifo /tmp/wireshark
-$ ssh -i ~/.ssh/keypair.pem hadoop@ec2-123.456.123.45.compute-1.amazonaws.com \ 
-"sudo tcpdump -i eth0 -s 0 -U -w - not port 22" > /tmp/wireshark
+$ ssh -i ~/.ssh/keypair.pem hadoop@ec2-123.456.123.45.compute-1.amazonaws.com "sudo tcpdump -i eth0 -s 0 -U -w - not port 22" > /tmp/wireshark
 {% endcodeblock %}
 
 Finally, run the following in another terminal:
@@ -154,6 +153,37 @@ DynamoDB Request:
 Consumed capacity: 0.5
 
 Likewise, a query is used for both the primary and range key.
+
+## Query on primary key with limit
+
+Hive Query:
+{% codeblock lang:sql %}
+SELECT * FROM product_views WHERE product = 4 LIMIT 3;
+{% endcodeblock %}
+
+DynamoDB Request:
+{% codeblock lang:json %}
+{
+   "TableName":"web-analytics-raw",
+   "Limit":1933,
+   "KeyConditions":{
+      "product":{
+         "AttributeValueList":[
+            {
+               "N":"4"
+            }
+         ],
+         "ComparisonOperator":"EQ"
+      }
+   },
+   "ReturnConsumedCapacity":"TOTAL"
+}
+{% endcodeblock %}
+
+Consumed capacity: 0.5
+
+It appears however that limit conditions do not affect the DynamoDB query, and all results for the key
+are returned regardless.
 
 ## Query on local index
 
@@ -251,7 +281,7 @@ DynamoDB Request:
 
 Consumed capacity: 2.5
 
-This results in a full scan also, which isn't much of a surprise.   
+This results in a full scan also, which isn't much of a surprise seeing as you can only query on one key at a time.   
 
 ## Using multiple range key values with OR
 
@@ -341,12 +371,81 @@ Consumed capacity: 0.5
 Although there is support for BEGINS_WITH in the KeyConditions field it appears this isn't used. Instead it just queries
 on the primary key and filters the results for the range key condition.
 
+## Primary key ID expressed indirectly through multiple conditions
+
+Hive Query:
+{% codeblock lang:sql %}
+SELECT * FROM product_views WHERE product > 2 AND product < 4;
+{% endcodeblock %}
+
+DynamoDB Request:
+{% codeblock lang:json %}
+{
+   "TableName":"web-analytics-raw",
+   "Limit":1933,
+   "ReturnConsumedCapacity":"TOTAL",
+   "TotalSegments":1,
+   "Segment":0
+}
+{% endcodeblock %}
+
+Consumed capacity: 2.5
+
+No luck on this one either, it doesn't recognise that the only key value can be 3 - although I'm not too surprised about that.
+Be sure that your key values are explicit enough for the handler to recognise.
+
+## Primary key using IN condition
+
+Hive Query:
+{% codeblock lang:sql %}
+SELECT * FROM product_views WHERE product IN (3);
+{% endcodeblock %}
+
+DynamoDB Request:
+{% codeblock lang:json %}
+{
+   "TableName":"web-analytics-raw",
+   "Limit":1933,
+   "ReturnConsumedCapacity":"TOTAL",
+   "TotalSegments":1,
+   "Segment":0
+}
+{% endcodeblock %}
+
+Consumed capacity: 2.5
+
+It will not recognise a single ID in an IN statement either, resulting in a full scan.
+
+## Subquery on primary key
+
+Hive Query:
+{% codeblock lang:sql %}
+SELECT * FROM product_views AS p1 WHERE p1.product IN (SELECT p2.product FROM product_views AS p2 WHERE p2.product = 4);
+{% endcodeblock %}
+
+DynamoDB Request:
+{% codeblock lang:json %}
+{
+   "TableName":"web-analytics-raw",
+   "Limit":1933,
+   "ReturnConsumedCapacity":"TOTAL",
+   "TotalSegments":1,
+   "Segment":0
+}
+{% endcodeblock %}
+
+Consumed capacity: 2.5
+
+Surprisingly only one scan request was made as far as I could tell, so while unfortunately it wasn't able to issue
+   this as two queries at least it didn't issue two scans.
+
 # Conclusion
 
-Unfortunately it seems that neither global secondary indexes or local indexes are supported, however scenarios which
-can be queried using a primary key are recognised pretty well.
+Unfortunately it seems that neither global secondary indexes or local indexes are supported, however scenarios involving
+a query on a single primary key are recognised pretty well. This makes it practical to use a primary key as a method
+of partitioning your data to avoid EMR queries taking longer over time as the table grows.
 
-With that in mind it may be possible to design queries which avoid a full scan but still achieve the same outcome.
+With that in mind you may also be able to design queries which avoid a full scan but still achieve the same outcome.
 
 For example:
 {% codeblock lang:sql %}
@@ -371,6 +470,15 @@ SELECT * FROM tmptable;
 {% endcodeblock %}
 
 Which would require two query requests instead of one scan.
+
+It's also worth noting that filtering on the DynamoDB side is never used, although that isn't a huge issue seeing
+  as throughput consumption is calculated before any filters are applied.
+
+You can also use the EXPLAIN Hive command to give you some clue about how a query will be executed, however as far as
+I'm aware the raw DynamoDB request isn't exposed in either the EXPLAIN output or the query logs. I'd be glad to know if there
+is a more convenient way to view the raw DynamoDB request than inspecting the network traffic.
+
+
 
 
 
