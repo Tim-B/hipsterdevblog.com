@@ -201,7 +201,7 @@
 </span><span class='line'>    <span class="p">},</span>
 </span><span class='line'>    <span class="nx">lambda_deploy</span><span class="o">:</span> <span class="p">{</span>
 </span><span class='line'>        <span class="k">default</span><span class="o">:</span> <span class="p">{</span>
-</span><span class='line'>            <span class="kd">function</span><span class="o">:</span> <span class="s1">&#39;link-scraper&#39;</span>
+</span><span class='line'>            <span class="nx">arn</span><span class="o">:</span> <span class="s1">&#39;arn:aws:lambda:us-east-1:123456781234:function:my-function&#39;</span>
 </span><span class='line'>        <span class="p">}</span>
 </span><span class='line'>    <span class="p">},</span>
 </span><span class='line'>    <span class="nx">lambda_package</span><span class="o">:</span> <span class="p">{</span>
@@ -330,7 +330,7 @@
 </span><span class='line'><span class="p">}</span><span class="err">,</span>
 </span><span class='line'><span class="s2">&quot;devDependencies&quot;</span><span class="err">:</span> <span class="p">{</span>
 </span><span class='line'>    <span class="nt">&quot;grunt&quot;</span><span class="p">:</span> <span class="s2">&quot;0.4.*&quot;</span><span class="p">,</span>
-</span><span class='line'>    <span class="nt">&quot;grunt-aws-lambda&quot;</span><span class="p">:</span> <span class="s2">&quot;0.3.0&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;grunt-aws-lambda&quot;</span><span class="p">:</span> <span class="s2">&quot;0.8.0&quot;</span><span class="p">,</span>
 </span><span class='line'>    <span class="nt">&quot;aws-sdk&quot;</span><span class="p">:</span> <span class="s2">&quot;2.0.23&quot;</span>
 </span><span class='line'><span class="p">}</span><span class="err">,</span>
 </span><span class='line'><span class="s2">&quot;bundledDependencies&quot;</span><span class="err">:</span> <span class="p">[</span>
@@ -563,7 +563,7 @@
 <h1>Deploying to Lambda</h1>
 
 <p>Before running the deploy task in grunt, go to the Lambda section of the AWS console and create a function which matches
- the name in the lambda_deploy section of your Gruntfile. In the example above the function name is <code>link-scraper</code>.</p>
+ the name in the lambda_deploy section of your Gruntfile. In the example above the function ARN is <code>arn:aws:lambda:us-east-1:123456781234:function:my-function</code>.</p>
 
 <p>When creating the function select the &ldquo;Hello World&rdquo; template, as the code will be overwritten when we deploy a zip.</p>
 

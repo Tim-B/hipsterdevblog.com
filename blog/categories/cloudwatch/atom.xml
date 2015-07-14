@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Cloudwatch | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/cloudwatch/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-05-31T17:09:04+10:00</updated>
+  <updated>2015-07-14T21:13:19+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -100,7 +100,7 @@ local machine:</p>
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>mkfifo /tmp/wireshark
-</span><span class='line'><span class="nv">$ </span>ssh -i ~/.ssh/keypair.pem &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#109;&amp;#97;&amp;#x69;&amp;#x6c;&amp;#x74;&amp;#111;&amp;#x3a;&amp;#x68;&amp;#x61;&amp;#100;&amp;#x6f;&amp;#111;&amp;#112;&amp;#x40;&amp;#101;&amp;#x63;&amp;#x32;&amp;#x2d;&amp;#49;&amp;#x32;&amp;#51;&amp;#46;&amp;#52;&amp;#x35;&amp;#54;&amp;#46;&amp;#49;&amp;#50;&amp;#x33;&amp;#46;&amp;#52;&amp;#x35;&amp;#46;&amp;#x63;&amp;#x6f;&amp;#x6d;&amp;#112;&amp;#117;&amp;#x74;&amp;#x65;&amp;#45;&amp;#49;&amp;#x2e;&amp;#x61;&amp;#x6d;&amp;#97;&amp;#122;&amp;#x6f;&amp;#x6e;&amp;#97;&amp;#119;&amp;#x73;&amp;#46;&amp;#99;&amp;#111;&amp;#109;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#104;&amp;#97;&amp;#x64;&amp;#x6f;&amp;#x6f;&amp;#x70;&amp;#x40;&amp;#x65;&amp;#x63;&amp;#50;&amp;#x2d;&amp;#x31;&amp;#50;&amp;#51;&amp;#46;&amp;#52;&amp;#53;&amp;#x36;&amp;#x2e;&amp;#x31;&amp;#x32;&amp;#x33;&amp;#46;&amp;#x34;&amp;#x35;&amp;#46;&amp;#99;&amp;#x6f;&amp;#109;&amp;#x70;&amp;#117;&amp;#x74;&amp;#x65;&amp;#x2d;&amp;#49;&amp;#46;&amp;#97;&amp;#x6d;&amp;#97;&amp;#x7a;&amp;#x6f;&amp;#x6e;&amp;#97;&amp;#x77;&amp;#x73;&amp;#46;&amp;#99;&amp;#x6f;&amp;#109;&lt;/a&gt; &amp;ldquo;sudo tcpdump -i eth0 -s 0 -U -w - not port 22&amp;rdquo; &gt; /tmp/wireshark</span>
+</span><span class='line'><span class="nv">$ </span>ssh -i ~/.ssh/keypair.pem &lt;a <span class="nv">href</span><span class="o">=</span><span class="s2">&quot;&amp;#x6d;&amp;#x61;&amp;#105;&amp;#x6c;&amp;#x74;&amp;#111;&amp;#58;&amp;#104;&amp;#97;&amp;#x64;&amp;#111;&amp;#x6f;&amp;#112;&amp;#64;&amp;#x65;&amp;#99;&amp;#50;&amp;#45;&amp;#49;&amp;#50;&amp;#51;&amp;#46;&amp;#52;&amp;#x35;&amp;#x36;&amp;#x2e;&amp;#49;&amp;#x32;&amp;#x33;&amp;#x2e;&amp;#52;&amp;#53;&amp;#46;&amp;#x63;&amp;#111;&amp;#109;&amp;#x70;&amp;#117;&amp;#116;&amp;#x65;&amp;#45;&amp;#x31;&amp;#46;&amp;#97;&amp;#x6d;&amp;#x61;&amp;#122;&amp;#x6f;&amp;#x6e;&amp;#97;&amp;#x77;&amp;#115;&amp;#x2e;&amp;#99;&amp;#x6f;&amp;#109;&quot;</span>&gt;<span class="p">&amp;</span><span class="c">#x68;&amp;#x61;&amp;#100;&amp;#111;&amp;#111;&amp;#112;&amp;#x40;&amp;#x65;&amp;#x63;&amp;#x32;&amp;#x2d;&amp;#49;&amp;#x32;&amp;#x33;&amp;#x2e;&amp;#x34;&amp;#53;&amp;#x36;&amp;#x2e;&amp;#x31;&amp;#x32;&amp;#x33;&amp;#46;&amp;#52;&amp;#53;&amp;#46;&amp;#99;&amp;#x6f;&amp;#109;&amp;#x70;&amp;#x75;&amp;#x74;&amp;#101;&amp;#x2d;&amp;#x31;&amp;#x2e;&amp;#97;&amp;#109;&amp;#97;&amp;#x7a;&amp;#x6f;&amp;#x6e;&amp;#97;&amp;#x77;&amp;#115;&amp;#x2e;&amp;#99;&amp;#x6f;&amp;#x6d;&lt;/a&gt; &amp;ldquo;sudo tcpdump -i eth0 -s 0 -U -w - not port 22&amp;rdquo; &gt; /tmp/wireshark</span>
 </span></code></pre></td></tr></table></div></figure></p>
 
 <p>Finally, run the following in another terminal:
@@ -1122,7 +1122,7 @@ although starting an EC2 instance just to do this is quite expensive. Also, the 
  message fan-out to queues and delivery retires so the only component missing is something to submit those messages
  at a specified time. Azure has a <a href="http://azure.microsoft.com/en-us/services/scheduler/">similar solution</a> already.</p>
 
-<h1>#3 - Search for CloudWatch logs</h1>
+<h1>#3 - <del>Search for CloudWatch logs</del></h1>
 
 <p>CloudWatch logs provides a convenient way to manage logs across multiple instances without having to leave the AWS ecosystem.
  It&rsquo;s still a new product, but it feels like it hasn&rsquo;t yet achieved its full potential.</p>
@@ -1137,7 +1137,9 @@ other than the ability to filter by time!
  with the likes of Logentries and Loggly. Even integration with CloudSearch would be enough for users
  who have a large enough log volume to justify a dedicated search instance.</p>
 
-<h1>#4 - HTTP endpoint triggers for Lambda functions</h1>
+<p><strong>Update: <a href="http://aws.amazon.com/about-aws/whats-new/2015/06/amazon-cloudwatch-logs-search-and-console-updates/">Search has been added!</a></strong></p>
+
+<h1>#4 - <del>HTTP endpoint triggers for Lambda functions</del></h1>
 
 <p>It&rsquo;s easy to think of opportunities where the new Lambda service could help &ldquo;glue&rdquo; different systems together. Unfortunately
  we&rsquo;re currently limited by how a Lambda function can be invoked - it either has to be done manually via the AWS API
@@ -1147,6 +1149,8 @@ other than the ability to filter by time!
  without authentication. Obviously a lack of authentication isn&rsquo;t ideal, but it&rsquo;d make it much easier to integrate
  with 3rd parties that support web-hook functionality. Imagine being able to trigger Lambda functions
  using a BitBucket commit hook, or a stored email notification from Mailgun.</p>
+
+<p> <strong>Update: <a href="http://aws.amazon.com/about-aws/whats-new/2015/07/invoke-aws-lambda-functions-over-https/">You can now trigger Lambda functions over HTTPS using Amazon API Gateway</a></strong></p>
 
 <h1>#5 - Zone tagging in Route53</h1>
 
@@ -1161,6 +1165,8 @@ other than the ability to filter by time!
  have dozens of zones and several users that change regularly. It would make things much easier if zones could be tagged
  with a particular customer, then accounts can be limited to zones tagged with that customer.</p>
 
+<p><strong>Update: <a href="http://aws.amazon.com/about-aws/whats-new/2015/02/11/amazon-route-53-announces-aws-cloudtrail-integration-tagging-health-check-features/">You can now tag hosted zones, although you can&rsquo;t create IAM policies using them</a></strong></p>
+
 <h1>Worth a mention</h1>
 
 <p>Here are some other features I&rsquo;d love to see but didn&rsquo;t make it into my top 5.</p>
@@ -1170,6 +1176,8 @@ other than the ability to filter by time!
 
 <p><strong>Trigger Lambda functions with SQS and SNS</strong> - Being able to process SQS and SNS messages with Lambda would be great too,
  although if you could trigger a Lambda function with a HTTP endpoint then you could subscribe that to SNS instead.</p>
+
+<p> <strong>Update: <a href="http://docs.aws.amazon.com/sns/latest/dg/sns-lambda.html">You can now trigger Lambda functions via SNS</a></strong></p>
 
 <p><strong>HTTP request routing via ELB</strong> - I can live without this, but many users would find it useful to route certain paths
  to different sets of back end instances. <a href="https://cloud.google.com/compute/docs/load-balancing/http/content-based-example">Google Cloud</a>

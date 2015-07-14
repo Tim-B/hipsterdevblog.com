@@ -4,7 +4,7 @@
   <title><![CDATA[:HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-05-31T17:09:04+10:00</updated>
+  <updated>2015-07-14T21:13:19+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -2032,7 +2032,7 @@ although starting an EC2 instance just to do this is quite expensive. Also, the 
  message fan-out to queues and delivery retires so the only component missing is something to submit those messages
  at a specified time. Azure has a <a href="http://azure.microsoft.com/en-us/services/scheduler/">similar solution</a> already.</p>
 
-<h1>#3 - Search for CloudWatch logs</h1>
+<h1>#3 - <del>Search for CloudWatch logs</del></h1>
 
 <p>CloudWatch logs provides a convenient way to manage logs across multiple instances without having to leave the AWS ecosystem.
  It&rsquo;s still a new product, but it feels like it hasn&rsquo;t yet achieved its full potential.</p>
@@ -2047,7 +2047,9 @@ other than the ability to filter by time!
  with the likes of Logentries and Loggly. Even integration with CloudSearch would be enough for users
  who have a large enough log volume to justify a dedicated search instance.</p>
 
-<h1>#4 - HTTP endpoint triggers for Lambda functions</h1>
+<p><strong>Update: <a href="http://aws.amazon.com/about-aws/whats-new/2015/06/amazon-cloudwatch-logs-search-and-console-updates/">Search has been added!</a></strong></p>
+
+<h1>#4 - <del>HTTP endpoint triggers for Lambda functions</del></h1>
 
 <p>It&rsquo;s easy to think of opportunities where the new Lambda service could help &ldquo;glue&rdquo; different systems together. Unfortunately
  we&rsquo;re currently limited by how a Lambda function can be invoked - it either has to be done manually via the AWS API
@@ -2057,6 +2059,8 @@ other than the ability to filter by time!
  without authentication. Obviously a lack of authentication isn&rsquo;t ideal, but it&rsquo;d make it much easier to integrate
  with 3rd parties that support web-hook functionality. Imagine being able to trigger Lambda functions
  using a BitBucket commit hook, or a stored email notification from Mailgun.</p>
+
+<p> <strong>Update: <a href="http://aws.amazon.com/about-aws/whats-new/2015/07/invoke-aws-lambda-functions-over-https/">You can now trigger Lambda functions over HTTPS using Amazon API Gateway</a></strong></p>
 
 <h1>#5 - Zone tagging in Route53</h1>
 
@@ -2071,6 +2075,8 @@ other than the ability to filter by time!
  have dozens of zones and several users that change regularly. It would make things much easier if zones could be tagged
  with a particular customer, then accounts can be limited to zones tagged with that customer.</p>
 
+<p><strong>Update: <a href="http://aws.amazon.com/about-aws/whats-new/2015/02/11/amazon-route-53-announces-aws-cloudtrail-integration-tagging-health-check-features/">You can now tag hosted zones, although you can&rsquo;t create IAM policies using them</a></strong></p>
+
 <h1>Worth a mention</h1>
 
 <p>Here are some other features I&rsquo;d love to see but didn&rsquo;t make it into my top 5.</p>
@@ -2080,6 +2086,8 @@ other than the ability to filter by time!
 
 <p><strong>Trigger Lambda functions with SQS and SNS</strong> - Being able to process SQS and SNS messages with Lambda would be great too,
  although if you could trigger a Lambda function with a HTTP endpoint then you could subscribe that to SNS instead.</p>
+
+<p> <strong>Update: <a href="http://docs.aws.amazon.com/sns/latest/dg/sns-lambda.html">You can now trigger Lambda functions via SNS</a></strong></p>
 
 <p><strong>HTTP request routing via ELB</strong> - I can live without this, but many users would find it useful to route certain paths
  to different sets of back end instances. <a href="https://cloud.google.com/compute/docs/load-balancing/http/content-based-example">Google Cloud</a>
@@ -2839,7 +2847,7 @@ request is about 50 kB the approximate limit should be <code>(180 * 1024 * 1024)
 </span><span class='line'>    <span class="p">},</span>
 </span><span class='line'>    <span class="nx">lambda_deploy</span><span class="o">:</span> <span class="p">{</span>
 </span><span class='line'>        <span class="k">default</span><span class="o">:</span> <span class="p">{</span>
-</span><span class='line'>            <span class="kd">function</span><span class="o">:</span> <span class="s1">&#39;link-scraper&#39;</span>
+</span><span class='line'>            <span class="nx">arn</span><span class="o">:</span> <span class="s1">&#39;arn:aws:lambda:us-east-1:123456781234:function:my-function&#39;</span>
 </span><span class='line'>        <span class="p">}</span>
 </span><span class='line'>    <span class="p">},</span>
 </span><span class='line'>    <span class="nx">lambda_package</span><span class="o">:</span> <span class="p">{</span>
@@ -2968,7 +2976,7 @@ request is about 50 kB the approximate limit should be <code>(180 * 1024 * 1024)
 </span><span class='line'><span class="p">}</span><span class="err">,</span>
 </span><span class='line'><span class="s2">&quot;devDependencies&quot;</span><span class="err">:</span> <span class="p">{</span>
 </span><span class='line'>    <span class="nt">&quot;grunt&quot;</span><span class="p">:</span> <span class="s2">&quot;0.4.*&quot;</span><span class="p">,</span>
-</span><span class='line'>    <span class="nt">&quot;grunt-aws-lambda&quot;</span><span class="p">:</span> <span class="s2">&quot;0.3.0&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;grunt-aws-lambda&quot;</span><span class="p">:</span> <span class="s2">&quot;0.8.0&quot;</span><span class="p">,</span>
 </span><span class='line'>    <span class="nt">&quot;aws-sdk&quot;</span><span class="p">:</span> <span class="s2">&quot;2.0.23&quot;</span>
 </span><span class='line'><span class="p">}</span><span class="err">,</span>
 </span><span class='line'><span class="s2">&quot;bundledDependencies&quot;</span><span class="err">:</span> <span class="p">[</span>
@@ -3201,7 +3209,7 @@ request is about 50 kB the approximate limit should be <code>(180 * 1024 * 1024)
 <h1>Deploying to Lambda</h1>
 
 <p>Before running the deploy task in grunt, go to the Lambda section of the AWS console and create a function which matches
- the name in the lambda_deploy section of your Gruntfile. In the example above the function name is <code>link-scraper</code>.</p>
+ the name in the lambda_deploy section of your Gruntfile. In the example above the function ARN is <code>arn:aws:lambda:us-east-1:123456781234:function:my-function</code>.</p>
 
 <p>When creating the function select the &ldquo;Hello World&rdquo; template, as the code will be overwritten when we deploy a zip.</p>
 

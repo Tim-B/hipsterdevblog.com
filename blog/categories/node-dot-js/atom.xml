@@ -4,7 +4,7 @@
   <title><![CDATA[Category: node.js | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/node-dot-js/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-05-31T17:09:04+10:00</updated>
+  <updated>2015-07-14T21:13:19+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -114,7 +114,7 @@
 </span><span class='line'>    <span class="p">},</span>
 </span><span class='line'>    <span class="nx">lambda_deploy</span><span class="o">:</span> <span class="p">{</span>
 </span><span class='line'>        <span class="k">default</span><span class="o">:</span> <span class="p">{</span>
-</span><span class='line'>            <span class="kd">function</span><span class="o">:</span> <span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">link</span><span class="o">-</span><span class="nx">scraper</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;</span>
+</span><span class='line'>            <span class="nx">arn</span><span class="o">:</span> <span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">arn</span><span class="o">:</span><span class="nx">aws</span><span class="o">:</span><span class="nx">lambda</span><span class="o">:</span><span class="nx">us</span><span class="o">-</span><span class="nx">east</span><span class="o">-</span><span class="mi">1</span><span class="o">:</span><span class="mi">123456781234</span><span class="o">:</span><span class="kd">function</span><span class="o">:</span><span class="nx">my</span><span class="o">-</span><span class="kd">function</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;</span>
 </span><span class='line'>        <span class="p">}</span>
 </span><span class='line'>    <span class="p">},</span>
 </span><span class='line'>    <span class="nx">lambda_package</span><span class="o">:</span> <span class="p">{</span>
@@ -237,7 +237,7 @@
 </span><span class='line'><span class="p">}</span><span class="err">,</span>
 </span><span class='line'><span class="err">&amp;ldquo;devDependencies&amp;rdquo;:</span> <span class="p">{</span>
 </span><span class='line'>    <span class="err">&amp;ldquo;grunt&amp;rdquo;:</span> <span class="err">&amp;ldquo;0.4.*&amp;rdquo;,</span>
-</span><span class='line'>    <span class="err">&amp;ldquo;grunt-aws-lambda&amp;rdquo;:</span> <span class="err">&amp;ldquo;0.3.0&amp;rdquo;,</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;grunt-aws-lambda&amp;rdquo;:</span> <span class="err">&amp;ldquo;0.8.0&amp;rdquo;,</span>
 </span><span class='line'>    <span class="err">&amp;ldquo;aws-sdk&amp;rdquo;:</span> <span class="err">&amp;ldquo;2.0.23&amp;rdquo;</span>
 </span><span class='line'><span class="p">}</span><span class="err">,</span>
 </span><span class='line'><span class="err">&amp;ldquo;bundledDependencies&amp;rdquo;:</span> <span class="p">[</span>
@@ -484,7 +484,7 @@
 <h1>Deploying to Lambda</h1>
 
 <p>Before running the deploy task in grunt, go to the Lambda section of the AWS console and create a function which matches
- the name in the lambda_deploy section of your Gruntfile. In the example above the function name is <code>link-scraper</code>.</p>
+ the name in the lambda_deploy section of your Gruntfile. In the example above the function ARN is <code>arn:aws:lambda:us-east-1:123456781234:function:my-function</code>.</p>
 
 <p>When creating the function select the &ldquo;Hello World&rdquo; template, as the code will be overwritten when we deploy a zip.</p>
 
@@ -506,7 +506,7 @@
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>Running &ldquo;lambda_package:default&rdquo; (lambda_package) task
-</span><span class='line'>&lt;a href="&#109;&#97;&#x69;&#x6c;&#116;&#111;&#58;&#x6c;&#105;&#110;&#107;&#45;&#115;&#99;&#114;&#97;&#x70;&#x65;&#114;&#x40;&#x31;&#46;&#x30;&#46;&#48;">&#108;&#x69;&#x6e;&#x6b;&#45;&#115;&#x63;&#x72;&#97;&#x70;&#x65;&#114;&#x40;&#49;&#46;&#x30;&#x2e;&#48;&lt;/a> ../../../../../../tmp/1417936030856.854/node_modules/link-scraper
+</span><span class='line'>&lt;a href="&#x6d;&#97;&#x69;&#108;&#116;&#x6f;&#58;&#108;&#105;&#x6e;&#107;&#x2d;&#115;&#99;&#x72;&#x61;&#112;&#x65;&#x72;&#64;&#49;&#x2e;&#48;&#46;&#48;">&#x6c;&#105;&#110;&#x6b;&#45;&#115;&#99;&#114;&#97;&#x70;&#x65;&#x72;&#x40;&#x31;&#x2e;&#48;&#46;&#48;&lt;/a> ../../../../../../tmp/1417936030856.854/node_modules/link-scraper
 </span><span class='line'>Created package at dist/link-scraper_1-0-0_2014-11-7-17-7-10.zip&lt;/p>
 </span><span class='line'>
 </span><span class='line'>&lt;p>Running &ldquo;lambda_deploy:default&rdquo; (lambda_deploy) task
