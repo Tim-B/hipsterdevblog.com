@@ -48,7 +48,7 @@ A managed scheduling service that allows you to submit messages to an SNS topic 
  message fan-out to queues and delivery retires so the only component missing is something to submit those messages
  at a specified time. Azure has a [similar solution](http://azure.microsoft.com/en-us/services/scheduler/) already.
 
-# #3 - Search for CloudWatch logs
+# #3 - ~~Search for CloudWatch logs~~
 
 CloudWatch logs provides a convenient way to manage logs across multiple instances without having to leave the AWS ecosystem.
  It's still a new product, but it feels like it hasn't yet achieved its full potential.
@@ -62,8 +62,10 @@ These limitations mean most users will probably have to use a second log aggrega
  log searches and extraction. However, a search function would make a huge difference and enable CloudWatch to compete
  with the likes of Logentries and Loggly. Even integration with CloudSearch would be enough for users
  who have a large enough log volume to justify a dedicated search instance.
+ 
+**Update: [Search has been added!](http://aws.amazon.com/about-aws/whats-new/2015/06/amazon-cloudwatch-logs-search-and-console-updates/)**
 
-# #4 - HTTP endpoint triggers for Lambda functions
+# #4 - ~~HTTP endpoint triggers for Lambda functions~~
 
 It's easy to think of opportunities where the new Lambda service could help "glue" different systems together. Unfortunately
  we're currently limited by how a Lambda function can be invoked - it either has to be done manually via the AWS API
@@ -73,6 +75,8 @@ Lambda would become significantly more useful if functions could be triggered as
  without authentication. Obviously a lack of authentication isn't ideal, but it'd make it much easier to integrate
  with 3rd parties that support web-hook functionality. Imagine being able to trigger Lambda functions
  using a BitBucket commit hook, or a stored email notification from Mailgun.
+ 
+ **Update: [You can now trigger Lambda functions over HTTPS using Amazon API Gateway](http://aws.amazon.com/about-aws/whats-new/2015/07/invoke-aws-lambda-functions-over-https/)**
 
 # #5 - Zone tagging in Route53
 
@@ -86,7 +90,10 @@ Users who manage DNS on behalf of some of their customers via Route53 would appr
 You can currently restrict IAM accounts to a list of zone IDs, but maintaining this list is impractical when some customers
  have dozens of zones and several users that change regularly. It would make things much easier if zones could be tagged
  with a particular customer, then accounts can be limited to zones tagged with that customer.
-
+ 
+ 
+**Update: [You can now tag hosted zones, although you can't create IAM policies using them](http://aws.amazon.com/about-aws/whats-new/2015/02/11/amazon-route-53-announces-aws-cloudtrail-integration-tagging-health-check-features/)**
+  
 # Worth a mention
 
 Here are some other features I'd love to see but didn't make it into my top 5.
@@ -96,6 +103,8 @@ Here are some other features I'd love to see but didn't make it into my top 5.
 
 **Trigger Lambda functions with SQS and SNS** - Being able to process SQS and SNS messages with Lambda would be great too,
  although if you could trigger a Lambda function with a HTTP endpoint then you could subscribe that to SNS instead.
+ 
+ **Update: [You can now trigger Lambda functions via SNS](http://docs.aws.amazon.com/sns/latest/dg/sns-lambda.html)**
 
 **HTTP request routing via ELB** - I can live without this, but many users would find it useful to route certain paths
  to different sets of back end instances. [Google Cloud](https://cloud.google.com/compute/docs/load-balancing/http/content-based-example)
