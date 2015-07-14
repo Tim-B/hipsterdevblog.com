@@ -74,7 +74,7 @@ grunt.initConfig({
     },
     lambda_deploy: {
         default: {
-            function: 'link-scraper'
+            arn: 'arn:aws:lambda:us-east-1:123456781234:function:my-function'
         }
     },
     lambda_package: {
@@ -154,7 +154,7 @@ Update your package.json file with the following:
 },
 "devDependencies": {
     "grunt": "0.4.*",
-    "grunt-aws-lambda": "0.3.0",
+    "grunt-aws-lambda": "0.8.0",
     "aws-sdk": "2.0.23"
 },
 "bundledDependencies": [
@@ -293,7 +293,7 @@ Then, if we look in our target bucket there should be a file called links.html, 
 # Deploying to Lambda
 
 Before running the deploy task in grunt, go to the Lambda section of the AWS console and create a function which matches
- the name in the lambda_deploy section of your Gruntfile. In the example above the function name is `link-scraper`.
+ the name in the lambda_deploy section of your Gruntfile. In the example above the function ARN is `arn:aws:lambda:us-east-1:123456781234:function:my-function`.
 
 When creating the function select the "Hello World" template, as the code will be overwritten when we deploy a zip.
 
