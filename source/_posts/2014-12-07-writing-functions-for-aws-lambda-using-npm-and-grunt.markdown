@@ -54,7 +54,7 @@ Your package.json should looks something like the following.
   "private": "true",
   "devDependencies": {
       "grunt": "0.4.*",
-      "grunt-aws-lambda": "0.3.0"
+      "grunt-aws-lambda": "0.8.0"
   },
   "author": "",
   "license": "BSD"
