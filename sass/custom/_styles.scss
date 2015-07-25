@@ -425,6 +425,14 @@ body {
       color: $accent-color;
     }
   }
+
+  a.green-btn {
+    @extend .button;
+    border-radius: $border-radius-size;
+    padding: 4.722px 12.361px;
+    padding: 0.236rem 0.618rem;
+    font-weight: normal;
+  }
   
   // ----- blog footer -----
   
