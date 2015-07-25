@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Grunt | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/grunt/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-07-14T21:18:04+10:00</updated>
+  <updated>2015-07-25T22:09:21+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -506,7 +506,7 @@
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>Running &ldquo;lambda_package:default&rdquo; (lambda_package) task
-</span><span class='line'>&lt;a href="&#x6d;&#97;&#105;&#108;&#116;&#111;&#x3a;&#x6c;&#105;&#x6e;&#x6b;&#x2d;&#x73;&#99;&#x72;&#97;&#112;&#x65;&#x72;&#64;&#x31;&#46;&#48;&#x2e;&#x30;">&#108;&#x69;&#x6e;&#107;&#45;&#115;&#x63;&#114;&#x61;&#x70;&#101;&#x72;&#x40;&#x31;&#x2e;&#48;&#46;&#x30;&lt;/a> ../../../../../../tmp/1417936030856.854/node_modules/link-scraper
+</span><span class='line'>&lt;a href="&#109;&#x61;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#x6c;&#x69;&#110;&#107;&#45;&#x73;&#x63;&#114;&#97;&#x70;&#x65;&#x72;&#x40;&#49;&#46;&#x30;&#x2e;&#x30;">&#x6c;&#x69;&#110;&#107;&#45;&#115;&#99;&#x72;&#97;&#112;&#x65;&#x72;&#x40;&#49;&#46;&#48;&#46;&#x30;&lt;/a> ../../../../../../tmp/1417936030856.854/node_modules/link-scraper
 </span><span class='line'>Created package at dist/link-scraper_1-0-0_2014-11-7-17-7-10.zip&lt;/p>
 </span><span class='line'>
 </span><span class='line'>&lt;p>Running &ldquo;lambda_deploy:default&rdquo; (lambda_deploy) task
