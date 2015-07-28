@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Opsworks | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/opsworks/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-07-25T22:09:21+10:00</updated>
+  <updated>2015-07-28T21:52:08+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -12,6 +12,423 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Deploying From CodePipeline to OpsWorks Using a Custom Action and Lambda]]></title>
+    <link href="http://hipsterdevblog.com/blog/2015/07/28/deploying-from-codepipeline-to-opsworks-using-a-custom-action-and-lambda/"/>
+    <updated>2015-07-28T20:40:42+10:00</updated>
+    <id>http://hipsterdevblog.com/blog/2015/07/28/deploying-from-codepipeline-to-opsworks-using-a-custom-action-and-lambda</id>
+    <content type="html"><![CDATA[<p>AWS recently released <a href="http://aws.amazon.com/codepipeline/">CodePipeline</a> after announcing it last year. After doing the
+<a href="http://docs.aws.amazon.com/codepipeline/latest/userguide/getting-started-w.html">setup walkthrough</a> I was surprised
+to see only the following deployment options!</p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/deployopts.jpg"></p>
+
+<p>I&rsquo;m sure other integrations are in the works, but fortunately
+ CodePipeline supports <a href="http://docs.aws.amazon.com/codepipeline/latest/userguide/how-to-create-custom-action.html">custom actions</a>
+ allowing you to build your own integrations in the mean time.</p>
+
+<p>If you were hoping to see this:</p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/actionopts.png"></p>
+
+<p>Then read on!</p>
+
+<p>I&rsquo;ve implemented a custom action to deploy to OpsWorks using Lambda, you can find the full source of the Lambda
+function <a href="https://github.com/Tim-B/codepipeline-opsworks-deployer">on GitHub</a>. It leverages the fact that CodePipeline
+uses S3 to store artifacts between stages to trigger the Lambda function, and SNS retry behaviour for polling.</p>
+
+<p>This blog posts explains how to configure your pipleine and the Lambda function to deploy to OpsWorks using CodePipeline.</p>
+
+<!-- more -->
+
+
+<h1>Overview</h1>
+
+<p>Here&rsquo;s a sequence diagram of how this Lambda powered CodePipeline action works:</p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/codepipelineopsworks-diagram.png"></p>
+
+<h1>Getting started</h1>
+
+<h2>Create an initial pipeline</h2>
+
+<p>If you haven&rsquo;t done so already, I&rsquo;d recommend creating an initial pipeline in CodePipeline. This will setup a bucket
+such as <code>codepipeline-us-east-1-1234567890</code> which you&rsquo;ll need to configure later.</p>
+
+<h2>Create an SNS topic</h2>
+
+<p>You&rsquo;ll need an SNS topic which is used to poll both the CodePipeline task queue and the OpsWorks deployment status.</p>
+
+<p>Once created, edit the &ldquo;Topic Delivery Policy&rdquo;, go to &ldquo;Advanced View&rdquo; and set the following JSON policy:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'> <span class="p">{</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;http&amp;rdquo;:</span> <span class="err">{</span>
+</span><span class='line'>     <span class="err">&amp;ldquo;defaultHealthyRetryPolicy&amp;rdquo;:</span> <span class="err">{</span>
+</span><span class='line'>       <span class="err">&amp;ldquo;minDelayTarget&amp;rdquo;:</span> <span class="err">30,</span>
+</span><span class='line'>       <span class="err">&amp;ldquo;maxDelayTarget&amp;rdquo;:</span> <span class="err">30,</span>
+</span><span class='line'>       <span class="err">&amp;ldquo;numRetries&amp;rdquo;:</span> <span class="err">20,</span>
+</span><span class='line'>       <span class="err">&amp;ldquo;numMaxDelayRetries&amp;rdquo;:</span> <span class="err">0,</span>
+</span><span class='line'>       <span class="err">&amp;ldquo;numNoDelayRetries&amp;rdquo;:</span> <span class="err">0,</span>
+</span><span class='line'>       <span class="err">&amp;ldquo;numMinDelayRetries&amp;rdquo;:</span> <span class="err">0,</span>
+</span><span class='line'>       <span class="err">&amp;ldquo;backoffFunction&amp;rdquo;:</span> <span class="err">&amp;ldquo;linear&amp;rdquo;</span>
+</span><span class='line'>     <span class="p">}</span><span class="err">,</span>
+</span><span class='line'>     <span class="err">&amp;ldquo;disableSubscriptionOverrides&amp;rdquo;:</span> <span class="kc">false</span>
+</span><span class='line'>   <span class="err">}</span>
+</span><span class='line'> <span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>This will retry (poll) every 30 seconds up to 20 times (10 minutes).</p>
+
+<h2>Create OpsWorks artifact bucket</h2>
+
+<p>Create a new S3 bucket where you&rsquo;ll store the final artifacts which will be deployed to OpsWorks. You could use the
+ CodePipeline bucket, but I&rsquo;d recommend making a separate one to simplify things. Mine is called <code>opsworks-artifacts</code>.</p>
+
+<h2>Configure your OpsWorks stack</h2>
+
+<p>Create an OpsWorks stack with an application that deploys from an S3 archive in your OpsWorks artifact bucket.
+The zip file name will be the name of the artifact in CodePipeline, I&rsquo;ve called mine <code>opsworks.zip</code>.</p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/opsworks_app.png"></p>
+
+<h2>Create Lambda IAM role</h2>
+
+<p>From the IAM console create a new role, select &ldquo;AWS Lambda&rdquo; as the type.</p>
+
+<p>Skip adding a managed policy, but add the following policy as an inline policy:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Version&amp;rdquo;:&amp;ldquo;2012-10-17&amp;rdquo;,</span>
+</span><span class='line'>   <span class="err">&amp;ldquo;Statement&amp;rdquo;:[</span>
+</span><span class='line'>      <span class="err">{</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;Effect&amp;rdquo;:&amp;ldquo;Allow&amp;rdquo;,</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;Action&amp;rdquo;:[</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;s3:Put&lt;em&gt;&amp;rdquo;</span>
+</span><span class='line'>         <span class="err">],</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;Resource&amp;rdquo;:[</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;arn:aws:s3:::{OpsWorks</span> <span class="err">artifact</span> <span class="err">bucket</span><span class="p">}</span><span class="err">/&lt;/em&gt;&amp;rdquo;</span>
+</span><span class='line'>         <span class="err">]</span>
+</span><span class='line'>      <span class="err">},</span>
+</span><span class='line'>      <span class="p">{</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;Effect&amp;rdquo;:&amp;ldquo;Allow&amp;rdquo;,</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;Action&amp;rdquo;:[</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;opsworks:CreateDeployment&amp;rdquo;,</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;opsworks:DescribeDeployments&amp;rdquo;,</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;opsworks:DescribeLayers&amp;rdquo;,</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;opsworks:DescribeInstances&amp;rdquo;</span>
+</span><span class='line'>         <span class="err">],</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;Resource&amp;rdquo;:[</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;{OpsWorks</span> <span class="err">stack</span> <span class="err">ARN</span><span class="p">}</span><span class="err">&amp;rdquo;</span>
+</span><span class='line'>         <span class="err">]</span>
+</span><span class='line'>      <span class="err">},</span>
+</span><span class='line'>      <span class="p">{</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;Effect&amp;rdquo;:&amp;ldquo;Allow&amp;rdquo;,</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;Action&amp;rdquo;:[</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;SNS:Publish&amp;rdquo;</span>
+</span><span class='line'>         <span class="err">],</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;Resource&amp;rdquo;:[</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;{SNS</span> <span class="err">poll</span> <span class="err">topic</span> <span class="err">ARN</span><span class="p">}</span><span class="err">&amp;rdquo;</span>
+</span><span class='line'>         <span class="err">]</span>
+</span><span class='line'>      <span class="err">},</span>
+</span><span class='line'>      <span class="p">{</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;Effect&amp;rdquo;:&amp;ldquo;Allow&amp;rdquo;,</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;Action&amp;rdquo;:[</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;codepipeline:PollForJobs&amp;rdquo;,</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;codepipeline:PutJob&lt;em&gt;&amp;rdquo;,</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;codepipeline:AcknowledgeJob&amp;rdquo;</span>
+</span><span class='line'>         <span class="err">],</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;Resource&amp;rdquo;:[</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;&lt;/em&gt;&amp;rdquo;</span>
+</span><span class='line'>         <span class="err">]</span>
+</span><span class='line'>      <span class="p">}</span><span class="err">,</span>
+</span><span class='line'>      <span class="p">{</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;Effect&amp;rdquo;:&amp;ldquo;Allow&amp;rdquo;,</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;Action&amp;rdquo;:[</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;logs:&lt;em&gt;&amp;rdquo;</span>
+</span><span class='line'>         <span class="err">],</span>
+</span><span class='line'>         <span class="err">&amp;ldquo;Resource&amp;rdquo;:&amp;ldquo;arn:aws:logs:&lt;/em&gt;:&lt;em&gt;:&lt;/em&gt;&amp;rdquo;</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>   <span class="err">]</span>
+</span><span class='line'><span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Be sure to replace <code>{OpsWorks artifact bucket}</code>, <code>{OpsWorks stack ARN}</code> and <code>{SNS Topic ARN}</code> with appropriate values
+for the resources created above.</p>
+
+<h2>Create a new Lambda function</h2>
+
+<p>Create a new Lambda function from the Lambda console and select the &ldquo;Hello World&rdquo; template.</p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/lambda_top.png"></p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/lambda_bottom.png"></p>
+
+<p>Select the IAM role you created above. I set the memory and timeout as 128MB and 30s, but keep in mind the Lambda
+function needs to copy a zip file between buckets so you might need to increase this if you have a large artifact.</p>
+
+<h2>Link SNS event source</h2>
+
+<p>Once you&rsquo;ve created the lambda function, click the &ldquo;Event sources&rdquo; tab, click &ldquo;Add event source&rdquo; and link the SNS
+topic you created above.</p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/lambda_sns.png"></p>
+
+<p>You can leave it disabled for the moment.</p>
+
+<h2>Subscribe SNS to events for CodePipeline bucket</h2>
+
+<p>Go to the S3 bucket automatically created by CodePipeline, it should be named like <code>codepipeline-us-east-1-1234567890</code>.
+Under the events section of the properties, subscribe the SNS topic you created above:</p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/snss3subscribe.png"></p>
+
+<h2>Create pipeline</h2>
+
+<p>Now you can actually create your pipeline in CodePipeline. You may need to create a dummy CodeDeploy stage otherwise
+ the CodePipeline wizard won&rsquo;t let you finish:</p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/empty_pipeline.png"></p>
+
+<h1>Create Custom Action</h1>
+
+<p>Custom actions don&rsquo;t seem to be editable via the console yet, so you&rsquo;ll have to add the action via the CLI.</p>
+
+<p>Save the following to a file:</p>
+
+<p><figure class='code'><figcaption><span>input.json </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;category&amp;rdquo;:</span> <span class="err">&amp;ldquo;Deploy&amp;rdquo;,</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;provider&amp;rdquo;:</span> <span class="err">&amp;ldquo;OpsWorks-Via-Lambda&amp;rdquo;,</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;version&amp;rdquo;:</span> <span class="err">&amp;ldquo;1&amp;rdquo;,</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;settings&amp;rdquo;:</span> <span class="err">{</span>
+</span><span class='line'>    <span class="p">}</span><span class="err">,</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;configurationProperties&amp;rdquo;:</span> <span class="p">[</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;name&amp;rdquo;:</span> <span class="err">&amp;ldquo;Deploy-Bucket&amp;rdquo;,</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;required&amp;rdquo;:</span> <span class="err">true,</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;key&amp;rdquo;:</span> <span class="err">false,</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;secret&amp;rdquo;:</span> <span class="err">false</span>
+</span><span class='line'>        <span class="p">},</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;name&amp;rdquo;:</span> <span class="err">&amp;ldquo;OpsWorks-Stack-ID&amp;rdquo;,</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;required&amp;rdquo;:</span> <span class="err">true,</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;key&amp;rdquo;:</span> <span class="err">false,</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;secret&amp;rdquo;:</span> <span class="err">false</span>
+</span><span class='line'>        <span class="p">},</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;name&amp;rdquo;:</span> <span class="err">&amp;ldquo;OpsWorks-App-ID&amp;rdquo;,</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;required&amp;rdquo;:</span> <span class="err">true,</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;key&amp;rdquo;:</span> <span class="err">true,</span>
+</span><span class='line'>            <span class="err">&amp;ldquo;secret&amp;rdquo;:</span> <span class="err">false</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">]</span><span class="err">,</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;inputArtifactDetails&amp;rdquo;:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;minimumCount&amp;rdquo;:</span> <span class="err">1,</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;maximumCount&amp;rdquo;:</span> <span class="err">1</span>
+</span><span class='line'>    <span class="p">}</span><span class="err">,</span>
+</span><span class='line'>    <span class="err">&amp;ldquo;outputArtifactDetails&amp;rdquo;:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;minimumCount&amp;rdquo;:</span> <span class="err">0,</span>
+</span><span class='line'>        <span class="err">&amp;ldquo;maximumCount&amp;rdquo;:</span> <span class="err">0</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Then run the following command:</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>aws codepipeline create-custom-action-type <span class="p">&amp;</span>ndash<span class="p">;</span>cli-input-json file://input.json
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p>Now when you reload the console and edit the pipeline you should be able to select the new <code>OpsWorks-Via-Lambda</code> deployment
+ action in the list.</p>
+
+<p>Fill out the details and save the pipeline:</p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/action-settings.png"></p>
+
+<h1>Uploading Lambda function</h1>
+
+<p>Download or fork my Lambda function on GitHub: <a href="https://github.com/Tim-B/codepipeline-opsworks-deployer">https://github.com/Tim-B/codepipeline-opsworks-deployer</a>.</p>
+
+<p>Open the <code>Gruntfile.js</code> and update the specified <code>lambda_deploy</code> arn value with the ARN of your lambda function.</p>
+
+<p>Run an <code>npm install</code>.</p>
+
+<p>Then run <code>grunt deploy</code>.</p>
+
+<p>You should see something like:</p>
+
+<pre><code>Running "lambda_package:default" (lambda_package) task
+codepipeline-opsworks-deployer@0.0.0 ../../../../../tmp/1438081544032.7822/node_modules/codepipeline-opsworks-deployer
+Created package at ./dist/codepipeline-opsworks-deployer_0-0-0_2015-6-28-21-5-44.zip
+
+Running "lambda_deploy:default" (lambda_deploy) task
+Uploading...
+Package deployed.
+No config updates to make.
+
+Done, without errors.
+</code></pre>
+
+<p>If you go back to the Lambda console you should see the code has been uploaded:</p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/code_uploaded.png"></p>
+
+<p>Finally, go back to the &ldquo;Event sources&rdquo; tab of the Lambda and update the SNS source state to Enabled.</p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/enable-sns.png"></p>
+
+<h1>Testing pipeline</h1>
+
+<p>You should now be ready to test the pipeline! Click &ldquo;Release change&rdquo;.</p>
+
+<p>After a minute or so your OpsWorks deployment should change to &ldquo;In Progress&rdquo;:</p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/deploying.png"></p>
+
+<p>You should soon see a new deployment in OpsWorks:</p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/opsworks-status.png"></p>
+
+<p>When that changes to done:</p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/opsworks_running.png"></p>
+
+<p>The status in CodePipeline should change to &ldquo;Succeeded&rdquo;:</p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/deploy_done.png"></p>
+
+<p>It&rsquo;s normal for there to be a 30 second - 1 minute delay between events showing up in CodePipeline due to the polling
+involved.</p>
+
+<h2>Failures</h2>
+
+<p>The Lambda function should pass most failures back to CodePipeline too, if you see a failure:</p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/failed.png"></p>
+
+<p>Click the &ldquo;Details&rdquo; link and you should see a message:</p>
+
+<p style="text-align:center;"> <img src="/images/posts/opsworks_codepipeline/failed_message.png"></p>
+
+<p>You can of course also check the Lambda status. By default it should also automatically fail deployments that take
+longer than 9 minutes.</p>
+
+<h1>Taking it further</h1>
+
+<p>You should be able to run multiple of these custom actions in a single pipeline, allowing you to deploy to your beta
+then production stack.</p>
+
+<p>You should also be able to adapt this technique to other deployment and build processes besides OpsWorks. You could even
+use CodePipeline to deploy your OpsWorks Chef code by adapting the Lambda function to create a Kitchen test action,
+then a run setup command action.</p>
+
+<p>As usual, feedback and pull request are welcomed!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Automated HAProxy Failover on OpsWorks]]></title>
@@ -1148,273 +1565,6 @@ aws-sdk gem or move to a version with compatibility breaking changes any time so
 
 <p>Alternatively you could use your configure recipe to trigger a deployment automatically using the CodeDeploy API,
  however you would need to know which specific applications are relevant to the instance.</p>
-
-<h2>Integrating OpsWorks and CodeDeploy</h2>
-
-<ul>
-<li><a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Part 1</a> - Introduction and getting started.</li>
-<li><a href="/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/">Part 2</a> - OpsWorks configuration and recipes.</li>
-<li><a href="/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/">Part 3</a> - Deployment and results.</li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Part 2: Integrating OpsWorks and CodeDeploy]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/"/>
-    <updated>2014-11-24T11:43:29+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy</id>
-    <content type="html"><![CDATA[<p>This is part 2 of <a href="/blog/categories/integrating-opsworks-and-codedeploy/">integrating OpsWorks and CodeDeploy</a>.</p>
-
-<p>This section covers creating the OpsWorks Chef recipes to deploy your application via CodeDeploy.
- <a href="/blog/2014/11/23/integrating-opsworks-and-codedeploy/">Click here</a> for Part 1.</p>
-
-<!-- more -->
-
-
-<h1>Installing CodeDeploy agent via Chef</h1>
-
-<p>Next we need to write a custom chef recipe to install the CodeDeploy agent and perform our desired configuration.</p>
-
-<p>Checkout your cookbooks repository and create the following files:</p>
-
-<p><figure class='code'><figcaption><span>File Structure </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Berksfile
-</span><span class='line'>myrecipe/metadata.rb
-</span><span class='line'>myrecipe/recipes/agent-install.rb
-</span><span class='line'>myrecipe/recipes/vhost.rb
-</span><span class='line'>myrecipe/templates/default/myapp_vhost.erb</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Populate these files with the following:</p>
-
-<p><figure class='code'><figcaption><span>Berksfile </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">source</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;https://supermarket.getchef.com&quot;</span><span class="o">&gt;</span><span class="ss">https</span><span class="p">:</span><span class="sr">//su</span><span class="n">permarket</span><span class="o">.</span><span class="n">getchef</span><span class="o">.</span><span class="n">com</span><span class="o">&lt;</span><span class="sr">/a&gt;&amp;rdquo;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>(We won&rsquo;t be using <a href="http://docs.aws.amazon.com/opsworks/latest/userguide/cookbooks-101-opsworks-berkshelf.html">Berkshelf</a>
- in this tutorial, however you&rsquo;ll probably want to create this file any way if you&rsquo;re planning to extend this tutorial
-  with your own configuration)</p>
-
-<p><figure class='code'><figcaption><span>myrecipe/metadata.rb </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">name</span>    <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">myrecipe</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
-</span><span class='line'><span class="n">recipe</span>  <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">myrecipe</span><span class="o">::</span><span class="n">agent</span><span class="o">-</span><span class="n">install</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;,</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="no">Fetches</span><span class="p">,</span> <span class="n">installs</span><span class="p">,</span> <span class="ow">and</span> <span class="n">starts</span> <span class="n">the</span> <span class="no">AWS</span> <span class="no">CodeDeploy</span> <span class="n">host</span> <span class="n">agent</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>This is the code which downloads, installs and starts the CodeDeploy agent service:</p>
-
-<p><figure class='code'><figcaption><span>myrecipe/recipes/agent-install.rb </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">remote_file</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="c1">#{Chef::Config[:file_cache_path]}/codedeploy-install.sh&amp;rdquo; do</span>
-</span><span class='line'>    <span class="n">source</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;https://s3.amazonaws.com/aws-codedeploy-us-east-1/latest/install&quot;</span><span class="o">&gt;</span><span class="ss">https</span><span class="p">:</span><span class="sr">//s</span><span class="mi">3</span><span class="o">.</span><span class="n">amazonaws</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">aws</span><span class="o">-</span><span class="n">codedeploy</span><span class="o">-</span><span class="n">us</span><span class="o">-</span><span class="n">east</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="n">latest</span><span class="o">/</span><span class="n">install</span><span class="o">&lt;</span><span class="sr">/a&gt;&amp;rdquo;</span>
-</span><span class='line'><span class="sr">    mode &amp;ldquo;0744&amp;rdquo;</span>
-</span><span class='line'><span class="sr">    owner &amp;ldquo;root&amp;rdquo;</span>
-</span><span class='line'><span class="sr">    group &amp;ldquo;root&amp;rdquo;</span>
-</span><span class='line'><span class="sr">end&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="n">execute</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">install_codedeploy_agent</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span> <span class="k">do</span>
-</span><span class='line'>  <span class="n">command</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="c1">#{Chef::Config[:file_cache_path]}/codedeploy-install.sh auto&amp;rdquo;</span>
-</span><span class='line'>  <span class="n">user</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
-</span><span class='line'><span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sr">&lt;p&gt;service &amp;ldquo;codedeploy-agent&amp;rdquo; do</span>
-</span><span class='line'><span class="sr">    action [:enable, :start]</span>
-</span><span class='line'><span class="sr">end</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>This code creates a directory for the CodeDeploy to deploy to, creates the vhost and enables it.</p>
-
-<p><figure class='code'><figcaption><span>myrecipe/recipes/vhost.rb </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">directory</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="o">/</span><span class="n">srv</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">my_app</span><span class="o">/</span><span class="kp">public</span><span class="o">/&amp;</span><span class="n">rsquo</span><span class="p">;</span> <span class="k">do</span>
-</span><span class='line'>  <span class="n">owner</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">deploy</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">group</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">www</span><span class="o">-</span><span class="n">data</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">recursive</span> <span class="kp">true</span>
-</span><span class='line'><span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sr">&lt;p&gt;directory &amp;lsquo;/e</span><span class="n">tc</span><span class="o">/</span><span class="n">apache2</span><span class="o">/</span><span class="n">sites</span><span class="o">-</span><span class="n">available</span><span class="o">/</span><span class="n">my_app</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">d</span><span class="o">/&amp;</span><span class="n">rsquo</span><span class="p">;</span> <span class="k">do</span>
-</span><span class='line'>    <span class="n">owner</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">group</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">mode</span> <span class="mo">0644</span>
-</span><span class='line'>    <span class="n">recursive</span> <span class="kp">true</span>
-</span><span class='line'><span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sr">&lt;p&gt;template &amp;lsquo;myapp_vhost&amp;rsquo; do</span>
-</span><span class='line'><span class="sr">    path  &amp;lsquo;/e</span><span class="n">tc</span><span class="o">/</span><span class="n">apache2</span><span class="o">/</span><span class="n">sites</span><span class="o">-</span><span class="n">available</span><span class="o">/</span><span class="n">my_app</span><span class="o">.</span><span class="n">conf</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">owner</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">group</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">root</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">mode</span> <span class="mo">0644</span>
-</span><span class='line'><span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="sr">&lt;p&gt;link &amp;ldquo;/e</span><span class="n">tc</span><span class="o">/</span><span class="n">apache2</span><span class="o">/</span><span class="n">sites</span><span class="o">-</span><span class="n">enabled</span><span class="o">/</span><span class="n">my_app</span><span class="o">.</span><span class="n">conf</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span> <span class="k">do</span>
-</span><span class='line'>  <span class="n">to</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">apache2</span><span class="o">/</span><span class="n">sites</span><span class="o">-</span><span class="n">available</span><span class="o">/</span><span class="n">my_app</span><span class="o">.</span><span class="n">conf</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>This is a standard Apache vhost configuration based on the default OpsWorks template:
-<figure class='code'><figcaption><span>myrecipe/templates/default/myapp_vhost.erb </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-</pre></td><td class='code'><pre><code class='apacheconf'><span class='line'><span class="nt">&lt;VirtualHost</span> <span class="s">*:80</span><span class="nt">&gt;</span>
-</span><span class='line'>  <span class="nb">ServerName</span> myapp.com
-</span><span class='line'>  <span class="nb">DocumentRoot</span> <span class="sx">/srv/www/my_app/public/</span>&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nt">&lt;Directory</span> <span class="s">/srv/www/my_app/public/</span><span class="nt">&gt;</span>
-</span><span class='line'>    <span class="nb">Options</span> FollowSymLinks
-</span><span class='line'>    <span class="nb">AllowOverride</span> <span class="k">All</span>
-</span><span class='line'>    <span class="nb">Order</span> allow,deny
-</span><span class='line'>    <span class="nb">Allow</span> from <span class="k">all</span>
-</span><span class='line'>  <span class="nt">&lt;/Directory&gt;&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nt">&lt;Directory</span> <span class="s">~ &quot;\.svn&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>    <span class="nb">Order</span> allow,deny
-</span><span class='line'>    <span class="nb">Deny</span> from <span class="k">all</span>
-</span><span class='line'>  <span class="nt">&lt;/Directory&gt;&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nt">&lt;Directory</span> <span class="s">~ &quot;\.git&quot;</span><span class="nt">&gt;</span>
-</span><span class='line'>    <span class="nb">Order</span> allow,deny
-</span><span class='line'>    <span class="nb">Deny</span> from <span class="k">all</span>
-</span><span class='line'>  <span class="nt">&lt;/Directory&gt;&lt;/p&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nb">LogLevel</span> <span class="k">info</span>
-</span><span class='line'>  <span class="nb">ErrorLog</span> <span class="sx">/var/log/apache2/my_app-error.log</span>
-</span><span class='line'>  <span class="nb">CustomLog</span> <span class="sx">/var/log/apache2/my_app-access.log</span> combined
-</span><span class='line'>  <span class="nb">CustomLog</span> <span class="sx">/var/log/apache2/my_app-ganglia.log</span> ganglia&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nb">FileETag</span> <span class="k">none</span>&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nb">RewriteEngine</span> <span class="k">On</span>
-</span><span class='line'>  <span class="nb">IncludeOptional</span> <span class="sx">/etc/apache2/sites-available/my_app.conf.d/rewrite</span>*&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nb">IncludeOptional</span> <span class="sx">/etc/apache2/sites-available/my_app.conf.d/local</span>*
-</span><span class='line'><span class="nt">&lt;/VirtualHost&gt;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>In this step you may also like to create additional recipes for other configuration tasks, such as installing dependencies
-or configuring your HTTP server.</p>
-
-<h1>Adding recipes and packages to layer via OpsWorks</h1>
-
-<p>Once you&rsquo;ve committed and pushed your recipes, go to OpsWorks and add the agent recipe to the configure lifecycle event
-of your application server layer. Also add <code>ruby2.0</code> and <code>awscli</code> to the OS packages.</p>
-
-<p> <img src="/images/posts/opsworks_codedeploy/recipes.png"></p>
-
-<h1>Creating placeholder deployment</h1>
-
-<p>Because OpsWorks doesn&rsquo;t perform certain default configuration tasks (such as creating a www-data group) until
- a deployment occurs it&rsquo;s easiest to create a placeholder OpsWorks deployment with a holding page which will be replaced
- by CodeDeploy. You could of course skip this step and manually configure everything via custom recipes.</p>
-
-<p>In this instance we&rsquo;ll create a new repository for the placeholder which contains nothing but an index.php file containing
- a placeholder message.</p>
-
-<p><figure class='code'><figcaption><span>index.php </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="o">&lt;/</span><span class="nx">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="nx">h1</span><span class="o">&gt;</span><span class="k">This</span> <span class="nx">server</span> <span class="nx">is</span> <span class="nx">undergoing</span> <span class="nx">maintenance</span><span class="p">,</span> <span class="nx">please</span> <span class="k">try</span> <span class="nx">reloading</span> <span class="nx">the</span> <span class="nx">page</span><span class="o">&lt;/</span><span class="nx">h1</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span>
-</span></code></pre></td></tr></table></div></figure></p>
-
-<p>Create this deployment in OpsWorks:</p>
-
-<p><img src="/images/posts/opsworks_codedeploy/opsworksdeploy.png"></p>
-
-<h1>Starting an instance</h1>
-
-<p>You can now start an instance in OpsWorks. It usually takes at least 20 minutes to boot and execute the setup and configure
- recipes. After this has complete your instance should have a status of online:</p>
-
-<p><img src="/images/posts/opsworks_codedeploy/online.png"></p>
-
-<p>You should also see the placeholder message when you visit the IP in a browser:</p>
-
-<p><img src="/images/posts/opsworks_codedeploy/holding.png"></p>
-
-<p>This should also have installed and started the CodeDeploy agent.</p>
 
 <h2>Integrating OpsWorks and CodeDeploy</h2>
 

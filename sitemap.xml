@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://hipsterdevblog.com/blog/2015/07/28/deploying-from-codepipeline-to-opsworks-using-a-custom-action-and-lambda/</loc>
+    <lastmod>2015-07-28T20:40:42+10:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>http://hipsterdevblog.com/blog/2015/05/30/analysing-dynamodb-index-usage-in-hive-queries/</loc>
     <lastmod>2015-05-30T19:55:11+10:00</lastmod>
     <priority>0.8</priority>
@@ -92,19 +97,19 @@
   </url>
   <url>
     <loc>http://hipsterdevblog.com/</loc>
-    <lastmod>2015-07-25T22:09:21+10:00</lastmod>
+    <lastmod>2015-07-28T21:52:08+10:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>http://hipsterdevblog.com/blog/archives/</loc>
-    <lastmod>2015-07-25T22:09:21+10:00</lastmod>
+    <lastmod>2015-07-28T21:52:08+10:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>http://hipsterdevblog.com/hire-me/</loc>
-    <lastmod>2015-07-25T22:09:21+10:00</lastmod>
+    <lastmod>2015-07-28T21:52:08+10:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
