@@ -313,8 +313,9 @@ longer than 9 minutes.
 
 # Taking it further
 
-You should be able to run multiple of these custom actions in a single pipeline, allowing you to deploy to your beta
-then production stack.
+The next step would be to add additional build or testing stages between Source and Production. For example, you could
+deploy to a staging stack, then run load tests against the staging stack, before deploying to your production stack
+if the load tests pass.
 
 You should also be able to adapt this technique to other deployment and build processes besides OpsWorks. You could even
 use CodePipeline to deploy your OpsWorks Chef code by adapting the Lambda function to create a Kitchen test action,
