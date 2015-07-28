@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Codepipeline | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/codepipeline/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-07-28T21:52:08+10:00</updated>
+  <updated>2015-07-28T22:05:55+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -419,8 +419,9 @@ longer than 9 minutes.</p>
 
 <h1>Taking it further</h1>
 
-<p>You should be able to run multiple of these custom actions in a single pipeline, allowing you to deploy to your beta
-then production stack.</p>
+<p>The next step would be to add additional build or testing stages between Source and Production. For example, you could
+deploy to a staging stack, then run load tests against the staging stack, before deploying to your production stack
+if the load tests pass.</p>
 
 <p>You should also be able to adapt this technique to other deployment and build processes besides OpsWorks. You could even
 use CodePipeline to deploy your OpsWorks Chef code by adapting the Lambda function to create a Kitchen test action,

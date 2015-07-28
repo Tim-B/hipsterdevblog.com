@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Lambda | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/lambda/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-07-28T21:52:08+10:00</updated>
+  <updated>2015-07-28T22:05:55+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -419,8 +419,9 @@ longer than 9 minutes.</p>
 
 <h1>Taking it further</h1>
 
-<p>You should be able to run multiple of these custom actions in a single pipeline, allowing you to deploy to your beta
-then production stack.</p>
+<p>The next step would be to add additional build or testing stages between Source and Production. For example, you could
+deploy to a staging stack, then run load tests against the staging stack, before deploying to your production stack
+if the load tests pass.</p>
 
 <p>You should also be able to adapt this technique to other deployment and build processes besides OpsWorks. You could even
 use CodePipeline to deploy your OpsWorks Chef code by adapting the Lambda function to create a Kitchen test action,
@@ -1030,7 +1031,7 @@ other than the ability to filter by time!
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>Running &ldquo;lambda_package:default&rdquo; (lambda_package) task
-</span><span class='line'>&lt;a href="&#109;&#97;&#105;&#108;&#x74;&#111;&#x3a;&#108;&#105;&#x6e;&#107;&#x2d;&#115;&#99;&#x72;&#x61;&#x70;&#x65;&#114;&#x40;&#49;&#46;&#48;&#46;&#x30;">&#x6c;&#105;&#x6e;&#107;&#x2d;&#x73;&#99;&#x72;&#x61;&#112;&#x65;&#x72;&#64;&#x31;&#x2e;&#x30;&#x2e;&#x30;&lt;/a> ../../../../../../tmp/1417936030856.854/node_modules/link-scraper
+</span><span class='line'>&lt;a href="&#109;&#x61;&#x69;&#108;&#116;&#111;&#58;&#x6c;&#x69;&#110;&#x6b;&#45;&#115;&#x63;&#x72;&#x61;&#x70;&#101;&#x72;&#64;&#49;&#46;&#48;&#x2e;&#48;">&#x6c;&#105;&#x6e;&#107;&#45;&#115;&#x63;&#x72;&#x61;&#x70;&#x65;&#x72;&#64;&#49;&#46;&#48;&#x2e;&#x30;&lt;/a> ../../../../../../tmp/1417936030856.854/node_modules/link-scraper
 </span><span class='line'>Created package at dist/link-scraper_1-0-0_2014-11-7-17-7-10.zip&lt;/p>
 </span><span class='line'>
 </span><span class='line'>&lt;p>Running &ldquo;lambda_deploy:default&rdquo; (lambda_deploy) task
