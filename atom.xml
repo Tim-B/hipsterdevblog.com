@@ -4,7 +4,7 @@
   <title><![CDATA[:HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-07-28T22:05:55+10:00</updated>
+  <updated>2015-10-24T12:00:12+10:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -3238,7 +3238,7 @@ request is about 50 kB the approximate limit should be <code>(180 * 1024 * 1024)
 </span><span class='line'>  <span class="nt">&quot;private&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
 </span><span class='line'>  <span class="nt">&quot;devDependencies&quot;</span><span class="p">:</span> <span class="p">{</span>
 </span><span class='line'>      <span class="nt">&quot;grunt&quot;</span><span class="p">:</span> <span class="s2">&quot;0.4.*&quot;</span><span class="p">,</span>
-</span><span class='line'>      <span class="nt">&quot;grunt-aws-lambda&quot;</span><span class="p">:</span> <span class="s2">&quot;0.8.0&quot;</span>
+</span><span class='line'>      <span class="nt">&quot;grunt-aws-lambda&quot;</span><span class="p">:</span> <span class="s2">&quot;0.*.*&quot;</span>
 </span><span class='line'>  <span class="p">},</span>
 </span><span class='line'>  <span class="nt">&quot;author&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
 </span><span class='line'>  <span class="nt">&quot;license&quot;</span><span class="p">:</span> <span class="s2">&quot;BSD&quot;</span>
@@ -3408,7 +3408,7 @@ request is about 50 kB the approximate limit should be <code>(180 * 1024 * 1024)
 </span><span class='line'><span class="p">}</span><span class="err">,</span>
 </span><span class='line'><span class="s2">&quot;devDependencies&quot;</span><span class="err">:</span> <span class="p">{</span>
 </span><span class='line'>    <span class="nt">&quot;grunt&quot;</span><span class="p">:</span> <span class="s2">&quot;0.4.*&quot;</span><span class="p">,</span>
-</span><span class='line'>    <span class="nt">&quot;grunt-aws-lambda&quot;</span><span class="p">:</span> <span class="s2">&quot;0.8.0&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nt">&quot;grunt-aws-lambda&quot;</span><span class="p">:</span> <span class="s2">&quot;0.*.*&quot;</span><span class="p">,</span>
 </span><span class='line'>    <span class="nt">&quot;aws-sdk&quot;</span><span class="p">:</span> <span class="s2">&quot;2.0.23&quot;</span>
 </span><span class='line'><span class="p">}</span><span class="err">,</span>
 </span><span class='line'><span class="s2">&quot;bundledDependencies&quot;</span><span class="err">:</span> <span class="p">[</span>
