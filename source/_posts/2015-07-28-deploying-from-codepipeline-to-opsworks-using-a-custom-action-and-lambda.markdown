@@ -10,6 +10,14 @@ categories:
  - SNS
 ---
 
+<p>
+**Update: CodePipeline now has built-in support for both [Lambda](https://docs.aws.amazon.com/codepipeline/latest/userguide/how-to-lambda-integration.html)
+ and [OpsWorks](https://docs.aws.amazon.com/opsworks/latest/userguide/other-services-cp.html). I'd now recommend using the built-in functionality
+ rather than the method described in this post.**
+<p>
+
+Original post:
+
 AWS recently released [CodePipeline](http://aws.amazon.com/codepipeline/) after announcing it last year. After doing the
 [setup walkthrough](http://docs.aws.amazon.com/codepipeline/latest/userguide/getting-started-w.html) I was surprised
 to see only the following deployment options!
