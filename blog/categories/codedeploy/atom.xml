@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Codedeploy | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/codedeploy/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-10-24T12:00:12+10:00</updated>
+  <updated>2016-06-04T11:54:43-07:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Part 3: Integrating OpsWorks and CodeDeploy]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/"/>
-    <updated>2014-11-25T11:43:36+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy</id>
+    <link href="http://hipsterdevblog.com/blog/2014/11/24/part-3-integrating-opsworks-and-codedeploy/"/>
+    <updated>2014-11-24T17:43:36-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/11/24/part-3-integrating-opsworks-and-codedeploy</id>
     <content type="html"><![CDATA[<p>This is part 3 of <a href="/blog/categories/integrating-opsworks-and-codedeploy/">integrating OpsWorks and CodeDeploy</a>.</p>
 
 <p>This section covers creating the CodeDeploy deployment, deploying it to the configured OpsWorks stack and demonstrating the results of the integration.
@@ -129,9 +129,9 @@
   
   <entry>
     <title type="html"><![CDATA[Part 2: Integrating OpsWorks and CodeDeploy]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/"/>
-    <updated>2014-11-24T11:43:29+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy</id>
+    <link href="http://hipsterdevblog.com/blog/2014/11/23/part-2-integrating-opsworks-and-codedeploy/"/>
+    <updated>2014-11-23T17:43:29-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/11/23/part-2-integrating-opsworks-and-codedeploy</id>
     <content type="html"><![CDATA[<p>This is part 2 of <a href="/blog/categories/integrating-opsworks-and-codedeploy/">integrating OpsWorks and CodeDeploy</a>.</p>
 
 <p>This section covers creating the OpsWorks Chef recipes to deploy your application via CodeDeploy.
@@ -396,9 +396,9 @@ of your application server layer. Also add <code>ruby2.0</code> and <code>awscli
   
   <entry>
     <title type="html"><![CDATA[Part 1: Integrating OpsWorks and CodeDeploy]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/11/23/integrating-opsworks-and-codedeploy/"/>
-    <updated>2014-11-23T11:09:28+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/11/23/integrating-opsworks-and-codedeploy</id>
+    <link href="http://hipsterdevblog.com/blog/2014/11/22/integrating-opsworks-and-codedeploy/"/>
+    <updated>2014-11-22T17:09:28-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/11/22/integrating-opsworks-and-codedeploy</id>
     <content type="html"><![CDATA[<p>Amazon <a href="http://aws.amazon.com/blogs/aws/code-management-and-deployment/">recently announced</a> a new deployment service
 called <a href="http://aws.amazon.com/codedeploy/">CodeDeploy</a>. <a href="http://aws.amazon.com/opsworks/">OpsWorks</a> is another application
  management product which provides excellent configuration management via <a href="https://www.getchef.com/">Chef</a>, however it

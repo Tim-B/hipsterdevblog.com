@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Codepipeline | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/codepipeline/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-10-24T12:00:12+10:00</updated>
+  <updated>2016-06-04T11:54:43-07:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -16,9 +16,17 @@
   <entry>
     <title type="html"><![CDATA[Deploying From CodePipeline to OpsWorks Using a Custom Action and Lambda]]></title>
     <link href="http://hipsterdevblog.com/blog/2015/07/28/deploying-from-codepipeline-to-opsworks-using-a-custom-action-and-lambda/"/>
-    <updated>2015-07-28T20:40:42+10:00</updated>
+    <updated>2015-07-28T03:40:42-07:00</updated>
     <id>http://hipsterdevblog.com/blog/2015/07/28/deploying-from-codepipeline-to-opsworks-using-a-custom-action-and-lambda</id>
-    <content type="html"><![CDATA[<p>AWS recently released <a href="http://aws.amazon.com/codepipeline/">CodePipeline</a> after announcing it last year. After doing the
+    <content type="html"><![CDATA[<p><p>
+<strong>Update: CodePipeline now has built-in support for both <a href="https://docs.aws.amazon.com/codepipeline/latest/userguide/how-to-lambda-integration.html">Lambda</a>
+ and <a href="https://docs.aws.amazon.com/opsworks/latest/userguide/other-services-cp.html">OpsWorks</a>. I&rsquo;d now recommend using the built-in functionality
+ rather than the method described in this post.</strong>
+<p></p>
+
+<p>Original post:</p>
+
+<p>AWS recently released <a href="http://aws.amazon.com/codepipeline/">CodePipeline</a> after announcing it last year. After doing the
 <a href="http://docs.aws.amazon.com/codepipeline/latest/userguide/getting-started-w.html">setup walkthrough</a> I was surprised
 to see only the following deployment options!</p>
 
@@ -40,8 +48,7 @@ uses S3 to store artifacts between stages to trigger the Lambda function, and SN
 
 <p>This blog posts explains how to configure your pipleine and the Lambda function to deploy to OpsWorks using CodePipeline.</p>
 
-<!-- more -->
-
+<p><!-- more --></p>
 
 <h1>Overview</h1>
 

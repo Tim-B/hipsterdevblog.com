@@ -4,7 +4,7 @@
   <title><![CDATA[Category: High Availability | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/high-availability/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-10-24T12:00:12+10:00</updated>
+  <updated>2016-06-04T11:54:43-07:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Automated HAProxy Failover on OpsWorks]]></title>
-    <link href="http://hipsterdevblog.com/blog/2015/01/23/automated-haproxy-failover-on-opsworks/"/>
-    <updated>2015-01-23T11:27:10+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2015/01/23/automated-haproxy-failover-on-opsworks</id>
+    <link href="http://hipsterdevblog.com/blog/2015/01/22/automated-haproxy-failover-on-opsworks/"/>
+    <updated>2015-01-22T17:27:10-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2015/01/22/automated-haproxy-failover-on-opsworks</id>
     <content type="html"><![CDATA[<p>Without a doubt ELB is the simplest load balancing solution on AWS, however it may not be suitable for all users
  given it doesn&rsquo;t support features such as a static IP. Fortunately OpsWorks makes it only marginally more complicated
  to <a href="http://docs.aws.amazon.com/opsworks/latest/userguide/workinglayers-load.html">set up HAProxy</a> as an alternative.</p>

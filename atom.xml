@@ -4,7 +4,7 @@
   <title><![CDATA[:HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-10-24T12:00:12+10:00</updated>
+  <updated>2016-06-04T11:54:43-07:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -16,9 +16,17 @@
   <entry>
     <title type="html"><![CDATA[Deploying From CodePipeline to OpsWorks Using a Custom Action and Lambda]]></title>
     <link href="http://hipsterdevblog.com/blog/2015/07/28/deploying-from-codepipeline-to-opsworks-using-a-custom-action-and-lambda/"/>
-    <updated>2015-07-28T20:40:42+10:00</updated>
+    <updated>2015-07-28T03:40:42-07:00</updated>
     <id>http://hipsterdevblog.com/blog/2015/07/28/deploying-from-codepipeline-to-opsworks-using-a-custom-action-and-lambda</id>
-    <content type="html"><![CDATA[<p>AWS recently released <a href="http://aws.amazon.com/codepipeline/">CodePipeline</a> after announcing it last year. After doing the
+    <content type="html"><![CDATA[<p><p>
+<strong>Update: CodePipeline now has built-in support for both <a href="https://docs.aws.amazon.com/codepipeline/latest/userguide/how-to-lambda-integration.html">Lambda</a>
+ and <a href="https://docs.aws.amazon.com/opsworks/latest/userguide/other-services-cp.html">OpsWorks</a>. I&rsquo;d now recommend using the built-in functionality
+ rather than the method described in this post.</strong>
+<p></p>
+
+<p>Original post:</p>
+
+<p>AWS recently released <a href="http://aws.amazon.com/codepipeline/">CodePipeline</a> after announcing it last year. After doing the
 <a href="http://docs.aws.amazon.com/codepipeline/latest/userguide/getting-started-w.html">setup walkthrough</a> I was surprised
 to see only the following deployment options!</p>
 
@@ -40,8 +48,7 @@ uses S3 to store artifacts between stages to trigger the Lambda function, and SN
 
 <p>This blog posts explains how to configure your pipleine and the Lambda function to deploy to OpsWorks using CodePipeline.</p>
 
-<!-- more -->
-
+<p><!-- more --></p>
 
 <h1>Overview</h1>
 
@@ -62,7 +69,7 @@ such as <code>codepipeline-us-east-1-1234567890</code> which you&rsquo;ll need t
 
 <p>Once created, edit the &ldquo;Topic Delivery Policy&rdquo;, go to &ldquo;Advanced View&rdquo; and set the following JSON policy:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -90,8 +97,7 @@ such as <code>codepipeline-us-east-1-1234567890</code> which you&rsquo;ll need t
 </span><span class='line'>     <span class="nt">&quot;disableSubscriptionOverrides&quot;</span><span class="p">:</span> <span class="kc">false</span>
 </span><span class='line'>   <span class="p">}</span>
 </span><span class='line'> <span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>This will retry (poll) every 30 seconds up to 20 times (10 minutes).</p>
 
@@ -113,7 +119,7 @@ The zip file name will be the name of the artifact in CodePipeline, I&rsquo;ve c
 
 <p>Skip adding a managed policy, but add the following policy as an inline policy:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -172,10 +178,10 @@ The zip file name will be the name of the artifact in CodePipeline, I&rsquo;ve c
 </span><span class='line'>      <span class="p">{</span>
 </span><span class='line'>         <span class="nt">&quot;Effect&quot;</span><span class="p">:</span><span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
 </span><span class='line'>         <span class="nt">&quot;Action&quot;</span><span class="p">:[</span>
-</span><span class='line'>            <span class="s2">&quot;s3:Put*&quot;</span>
+</span><span class='line'>            <span class="s2">&quot;s3:Put<em>&quot;</span>
 </span><span class='line'>         <span class="p">],</span>
 </span><span class='line'>         <span class="nt">&quot;Resource&quot;</span><span class="p">:[</span>
-</span><span class='line'>            <span class="s2">&quot;arn:aws:s3:::{OpsWorks artifact bucket}/*&quot;</span>
+</span><span class='line'>            <span class="s2">&quot;arn:aws:s3:::{OpsWorks artifact bucket}/</em>&quot;</span>
 </span><span class='line'>         <span class="p">]</span>
 </span><span class='line'>      <span class="p">},</span>
 </span><span class='line'>      <span class="p">{</span>
@@ -203,24 +209,23 @@ The zip file name will be the name of the artifact in CodePipeline, I&rsquo;ve c
 </span><span class='line'>         <span class="nt">&quot;Effect&quot;</span><span class="p">:</span><span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
 </span><span class='line'>         <span class="nt">&quot;Action&quot;</span><span class="p">:[</span>
 </span><span class='line'>            <span class="s2">&quot;codepipeline:PollForJobs&quot;</span><span class="p">,</span>
-</span><span class='line'>            <span class="s2">&quot;codepipeline:PutJob*&quot;</span><span class="p">,</span>
+</span><span class='line'>            <span class="s2">&quot;codepipeline:PutJob<em>&quot;</span><span class="p">,</span>
 </span><span class='line'>            <span class="s2">&quot;codepipeline:AcknowledgeJob&quot;</span>
 </span><span class='line'>         <span class="p">],</span>
 </span><span class='line'>         <span class="nt">&quot;Resource&quot;</span><span class="p">:[</span>
-</span><span class='line'>            <span class="s2">&quot;*&quot;</span>
+</span><span class='line'>            <span class="s2">&quot;</em>&quot;</span>
 </span><span class='line'>         <span class="p">]</span>
 </span><span class='line'>      <span class="p">},</span>
 </span><span class='line'>      <span class="p">{</span>
 </span><span class='line'>         <span class="nt">&quot;Effect&quot;</span><span class="p">:</span><span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
 </span><span class='line'>         <span class="nt">&quot;Action&quot;</span><span class="p">:[</span>
-</span><span class='line'>            <span class="s2">&quot;logs:*&quot;</span>
+</span><span class='line'>            <span class="s2">&quot;logs:<em>&quot;</span>
 </span><span class='line'>         <span class="p">],</span>
-</span><span class='line'>         <span class="nt">&quot;Resource&quot;</span><span class="p">:</span><span class="s2">&quot;arn:aws:logs:*:*:*&quot;</span>
+</span><span class='line'>         <span class="nt">&quot;Resource&quot;</span><span class="p">:</span><span class="s2">&quot;arn:aws:logs:</em>:<em>:</em>&quot;</span>
 </span><span class='line'>      <span class="p">}</span>
 </span><span class='line'>   <span class="p">]</span>
 </span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>Be sure to replace <code>{OpsWorks artifact bucket}</code>, <code>{OpsWorks stack ARN}</code> and <code>{SNS Topic ARN}</code> with appropriate values
 for the resources created above.</p>
@@ -265,7 +270,7 @@ Under the events section of the properties, subscribe the SNS topic you created 
 
 <p>Save the following to a file:</p>
 
-<figure class='code'><figcaption><span>input.json </span></figcaption>
+<p><figure class='code'><figcaption><span>input.json </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
@@ -336,15 +341,13 @@ Under the events section of the properties, subscribe the SNS topic you created 
 </span><span class='line'>        <span class="nt">&quot;maximumCount&quot;</span><span class="p">:</span> <span class="mi">0</span>
 </span><span class='line'>    <span class="p">}</span>
 </span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>Then run the following command:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>aws codepipeline create-custom-action-type --cli-input-json file://input.json
-</span></code></pre></td></tr></table></div></figure>
-
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>aws codepipeline create-custom-action-type &ndash;cli-input-json file://input.json
+</span></code></pre></td></tr></table></div></figure></p>
 
 <p>Now when you reload the console and edit the pipeline you should be able to select the new <code>OpsWorks-Via-Lambda</code> deployment
  action in the list.</p>
@@ -365,7 +368,7 @@ Under the events section of the properties, subscribe the SNS topic you created 
 
 <p>You should see something like:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -375,17 +378,16 @@ Under the events section of the properties, subscribe the SNS topic you created 
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
 <span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Running "lambda_package:default" (lambda_package) task
-</span><span class='line'>codepipeline-opsworks-deployer@0.0.0 ../../../../../tmp/1438081544032.7822/node_modules/codepipeline-opsworks-deployer
+</pre></td><td class='code'><pre><code class=''><span class='line'>Running &ldquo;lambda_package:default&rdquo; (lambda_package) task
+</span><span class='line'><a href="&#x6d;&#x61;&#105;&#x6c;&#116;&#111;&#x3a;&#x63;&#x6f;&#x64;&#101;&#x70;&#105;&#x70;&#101;&#x6c;&#105;&#110;&#x65;&#x2d;&#x6f;&#x70;&#115;&#119;&#x6f;&#114;&#x6b;&#115;&#45;&#100;&#x65;&#x70;&#x6c;&#111;&#x79;&#101;&#114;&#64;&#x30;&#x2e;&#x30;&#46;&#48;">&#99;&#x6f;&#x64;&#x65;&#x70;&#x69;&#x70;&#101;&#x6c;&#105;&#x6e;&#x65;&#x2d;&#x6f;&#112;&#x73;&#x77;&#111;&#114;&#x6b;&#x73;&#45;&#100;&#x65;&#112;&#108;&#x6f;&#x79;&#101;&#x72;&#64;&#48;&#46;&#x30;&#x2e;&#48;</a> ../../../../../tmp/1438081544032.7822/node_modules/codepipeline-opsworks-deployer
 </span><span class='line'>Created package at ./dist/codepipeline-opsworks-deployer_0-0-0_2015-6-28-21-5-44.zip
 </span><span class='line'>
-</span><span class='line'>Running "lambda_deploy:default" (lambda_deploy) task
-</span><span class='line'>Uploading...
+</span><span class='line'>Running &ldquo;lambda_deploy:default&rdquo; (lambda_deploy) task
+</span><span class='line'>Uploading&hellip;
 </span><span class='line'>Package deployed.
 </span><span class='line'>No config updates to make.
 </span><span class='line'>
-</span><span class='line'>Done, without errors.</span></code></pre></td></tr></table></div></figure>
-
+</span><span class='line'>Done, without errors.</span></code></pre></td></tr></table></div></figure></p>
 
 <p>If you go back to the Lambda console you should see the code has been uploaded:</p>
 
@@ -448,7 +450,7 @@ then a run setup command action.</p>
   <entry>
     <title type="html"><![CDATA[Analysing DynamoDB Index Usage in Hive Queries]]></title>
     <link href="http://hipsterdevblog.com/blog/2015/05/30/analysing-dynamodb-index-usage-in-hive-queries/"/>
-    <updated>2015-05-30T19:55:11+10:00</updated>
+    <updated>2015-05-30T02:55:11-07:00</updated>
     <id>http://hipsterdevblog.com/blog/2015/05/30/analysing-dynamodb-index-usage-in-hive-queries</id>
     <content type="html"><![CDATA[<p>Elastic Map Reduce allows you to conveniently <a href="http://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/EMRforDynamoDB.html">run SQL-like queries against DynamoDB using Hive</a>.
 This overcomes many of the limitations of the built-in DynamoDB query functionality and makes it significantly
@@ -1154,7 +1156,7 @@ is a more convenient way to view the raw DynamoDB request than inspecting the ne
   <entry>
     <title type="html"><![CDATA[Building ZeroC Ice 3.5 Projects With Gradle and IntelliJ]]></title>
     <link href="http://hipsterdevblog.com/blog/2015/04/21/building-zeroc-ice-projects-with-gradle-and-intellij/"/>
-    <updated>2015-04-21T19:35:35+10:00</updated>
+    <updated>2015-04-21T02:35:35-07:00</updated>
     <id>http://hipsterdevblog.com/blog/2015/04/21/building-zeroc-ice-projects-with-gradle-and-intellij</id>
     <content type="html"><![CDATA[<p><a href="https://zeroc.com/">ZeroC Ice</a> is a distributed computing platform supporting many languages including Java. Building
 an Ice project requires compiling &ldquo;slice&rdquo; data structure definitions into a compatible Java interface. Most often
@@ -1408,9 +1410,9 @@ solutions mentioned in the links above.</p>
   
   <entry>
     <title type="html"><![CDATA[Part 2: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR]]></title>
-    <link href="http://hipsterdevblog.com/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/"/>
-    <updated>2015-03-01T16:54:54+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr</id>
+    <link href="http://hipsterdevblog.com/blog/2015/02/28/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/"/>
+    <updated>2015-02-28T22:54:54-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2015/02/28/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr</id>
     <content type="html"><![CDATA[<p>If you followed <a href="http://hipsterdevblog.com/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Part 1</a>
 you&rsquo;ll now have your CloudWatch logs sitting conveniently in S3 to be analysed. You could now download them
 and search each file individually using grep or a similar tool, but it would be much nicer to be able to search
@@ -1595,7 +1597,7 @@ to build a Pipeline which automatically exports the logs then runs then analyses
   <entry>
     <title type="html"><![CDATA[Part 1: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR]]></title>
     <link href="http://hipsterdevblog.com/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/"/>
-    <updated>2015-02-24T19:47:52+10:00</updated>
+    <updated>2015-02-24T01:47:52-08:00</updated>
     <id>http://hipsterdevblog.com/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr</id>
     <content type="html"><![CDATA[<p>You&rsquo;ve just discovered one of your instances has been <em>hacked</em>! A new instance is being launched to replace it,
  but you have no idea how the attacker got access in the first place and you need to stop it happening again. The clues
@@ -1835,9 +1837,9 @@ Part 2.</p>
   
   <entry>
     <title type="html"><![CDATA[Automated HAProxy Failover on OpsWorks]]></title>
-    <link href="http://hipsterdevblog.com/blog/2015/01/23/automated-haproxy-failover-on-opsworks/"/>
-    <updated>2015-01-23T11:27:10+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2015/01/23/automated-haproxy-failover-on-opsworks</id>
+    <link href="http://hipsterdevblog.com/blog/2015/01/22/automated-haproxy-failover-on-opsworks/"/>
+    <updated>2015-01-22T17:27:10-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2015/01/22/automated-haproxy-failover-on-opsworks</id>
     <content type="html"><![CDATA[<p>Without a doubt ELB is the simplest load balancing solution on AWS, however it may not be suitable for all users
  given it doesn&rsquo;t support features such as a static IP. Fortunately OpsWorks makes it only marginally more complicated
  to <a href="http://docs.aws.amazon.com/opsworks/latest/userguide/workinglayers-load.html">set up HAProxy</a> as an alternative.</p>
@@ -2133,9 +2135,9 @@ failure (SPOF). HAProxy will give you many additional features over ELB, however
   
   <entry>
     <title type="html"><![CDATA[Revisited: Retrieving Files From S3 Using Chef on OpsWorks]]></title>
-    <link href="http://hipsterdevblog.com/blog/2015/01/03/revisited-retrieving-files-from-s3-using-chef-on-opsworks/"/>
-    <updated>2015-01-03T09:13:42+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2015/01/03/revisited-retrieving-files-from-s3-using-chef-on-opsworks</id>
+    <link href="http://hipsterdevblog.com/blog/2015/01/02/revisited-retrieving-files-from-s3-using-chef-on-opsworks/"/>
+    <updated>2015-01-02T15:13:42-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2015/01/02/revisited-retrieving-files-from-s3-using-chef-on-opsworks</id>
     <content type="html"><![CDATA[<p>One of my earliest and most popular posts is <a href="http://hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/">Retrieving Files From S3 Using Chef on OpsWorks</a>.
  That posts uses the <a href="https://github.com/opscode-cookbooks/aws">Opscode AWS cookbook</a> which in turn uses the <a href="https://github.com/rightscale/right_aws">right_aws</a>
  gem. While this method is fine - particularly if you&rsquo;re not using OpsWorks - there are some situations where it&rsquo;s not ideal.</p>
@@ -2425,7 +2427,7 @@ aws-sdk gem or move to a version with compatibility breaking changes any time so
   <entry>
     <title type="html"><![CDATA[My 2015 AWS Wish List]]></title>
     <link href="http://hipsterdevblog.com/blog/2015/01/01/my-2015-aws-wish-list/"/>
-    <updated>2015-01-01T22:53:23+10:00</updated>
+    <updated>2015-01-01T04:53:23-08:00</updated>
     <id>http://hipsterdevblog.com/blog/2015/01/01/my-2015-aws-wish-list</id>
     <content type="html"><![CDATA[<p>As a new year dawns it occurred to me how much AWS functionality I now use heavily wasn&rsquo;t available only a year ago.
  Almost every day I check the <a href="http://aws.amazon.com/blogs/aws/">AWS blog</a> to find some new feature is available. This
@@ -2531,9 +2533,9 @@ other than the ability to filter by time!
   
   <entry>
     <title type="html"><![CDATA[Monitoring Per Application Metrics With CloudWatch Logs and OpsWorks]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/12/21/monitoring-per-application-metrics-with-cloudwatch-logs-and-opsworks/"/>
-    <updated>2014-12-21T10:53:24+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/12/21/monitoring-per-application-metrics-with-cloudwatch-logs-and-opsworks</id>
+    <link href="http://hipsterdevblog.com/blog/2014/12/20/monitoring-per-application-metrics-with-cloudwatch-logs-and-opsworks/"/>
+    <updated>2014-12-20T16:53:24-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/12/20/monitoring-per-application-metrics-with-cloudwatch-logs-and-opsworks</id>
     <content type="html"><![CDATA[<p><a href="http://aws.amazon.com/about-aws/whats-new/2014/07/10/introducing-amazon-cloudwatch-logs/">CloudWatch logs</a> is a cheap and
  easy to set up centralised logging solution. At the moment it lacks several valuable features such as a convenient way
  to search logs, however it does an <em>excellent</em> job at providing graphing and alerting on aggregated metrics pulled from
@@ -2974,9 +2976,9 @@ other than the ability to filter by time!
   
   <entry>
     <title type="html"><![CDATA[How Far Can You Go With HAProxy and a t2.micro]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/12/19/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro/"/>
-    <updated>2014-12-19T09:56:13+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/12/19/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro</id>
+    <link href="http://hipsterdevblog.com/blog/2014/12/18/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro/"/>
+    <updated>2014-12-18T15:56:13-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/12/18/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro</id>
     <content type="html"><![CDATA[<p>Load balancing is critical to any scalable and highly available cloud application. The obvious choice for load balancing
  on AWS is <a href="http://aws.amazon.com/elasticloadbalancing/">ELB</a>, but unfortunately if you require features such as a static
  IP or URL based request routing then ELB isn&rsquo;t an option.</p>
@@ -3179,9 +3181,9 @@ request is about 50 kB the approximate limit should be <code>(180 * 1024 * 1024)
   
   <entry>
     <title type="html"><![CDATA[Writing Functions for AWS Lambda Using NPM and Grunt]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/12/07/writing-functions-for-aws-lambda-using-npm-and-grunt/"/>
-    <updated>2014-12-07T11:51:16+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/12/07/writing-functions-for-aws-lambda-using-npm-and-grunt</id>
+    <link href="http://hipsterdevblog.com/blog/2014/12/06/writing-functions-for-aws-lambda-using-npm-and-grunt/"/>
+    <updated>2014-12-06T17:51:16-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/12/06/writing-functions-for-aws-lambda-using-npm-and-grunt</id>
     <content type="html"><![CDATA[<p>AWS <a href="http://aws.amazon.com/blogs/aws/run-code-cloud/">recently announced</a> a new compute product called <a href="http://aws.amazon.com/lambda/">Lambda</a>
  allowing users to run Node.js functions on full managed infrastructure while paying only for the actual compute time
  used.</p>
@@ -3690,9 +3692,9 @@ request is about 50 kB the approximate limit should be <code>(180 * 1024 * 1024)
   
   <entry>
     <title type="html"><![CDATA[Part 3: Integrating OpsWorks and CodeDeploy]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/"/>
-    <updated>2014-11-25T11:43:36+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy</id>
+    <link href="http://hipsterdevblog.com/blog/2014/11/24/part-3-integrating-opsworks-and-codedeploy/"/>
+    <updated>2014-11-24T17:43:36-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/11/24/part-3-integrating-opsworks-and-codedeploy</id>
     <content type="html"><![CDATA[<p>This is part 3 of <a href="http://hipsterdevblog.com/blog/categories/integrating-opsworks-and-codedeploy/">integrating OpsWorks and CodeDeploy</a>.</p>
 
 <p>This section covers creating the CodeDeploy deployment, deploying it to the configured OpsWorks stack and demonstrating the results of the integration.
@@ -3799,9 +3801,9 @@ request is about 50 kB the approximate limit should be <code>(180 * 1024 * 1024)
   
   <entry>
     <title type="html"><![CDATA[Part 2: Integrating OpsWorks and CodeDeploy]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/"/>
-    <updated>2014-11-24T11:43:29+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy</id>
+    <link href="http://hipsterdevblog.com/blog/2014/11/23/part-2-integrating-opsworks-and-codedeploy/"/>
+    <updated>2014-11-23T17:43:29-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/11/23/part-2-integrating-opsworks-and-codedeploy</id>
     <content type="html"><![CDATA[<p>This is part 2 of <a href="http://hipsterdevblog.com/blog/categories/integrating-opsworks-and-codedeploy/">integrating OpsWorks and CodeDeploy</a>.</p>
 
 <p>This section covers creating the OpsWorks Chef recipes to deploy your application via CodeDeploy.
@@ -4064,9 +4066,9 @@ of your application server layer. Also add <code>ruby2.0</code> and <code>awscli
   
   <entry>
     <title type="html"><![CDATA[Part 1: Integrating OpsWorks and CodeDeploy]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/11/23/integrating-opsworks-and-codedeploy/"/>
-    <updated>2014-11-23T11:09:28+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/11/23/integrating-opsworks-and-codedeploy</id>
+    <link href="http://hipsterdevblog.com/blog/2014/11/22/integrating-opsworks-and-codedeploy/"/>
+    <updated>2014-11-22T17:09:28-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/11/22/integrating-opsworks-and-codedeploy</id>
     <content type="html"><![CDATA[<p>Amazon <a href="http://aws.amazon.com/blogs/aws/code-management-and-deployment/">recently announced</a> a new deployment service
 called <a href="http://aws.amazon.com/codedeploy/">CodeDeploy</a>. <a href="http://aws.amazon.com/opsworks/">OpsWorks</a> is another application
  management product which provides excellent configuration management via <a href="https://www.getchef.com/">Chef</a>, however it
@@ -4153,9 +4155,9 @@ opsworks:stack</code> and <code>opsworks:layer:php-app</code> to the name of you
   
   <entry>
     <title type="html"><![CDATA[NY Taxi Data Visualized]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/06/27/ny-taxi-data-visualized/"/>
-    <updated>2014-06-27T11:58:54+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/06/27/ny-taxi-data-visualized</id>
+    <link href="http://hipsterdevblog.com/blog/2014/06/26/ny-taxi-data-visualized/"/>
+    <updated>2014-06-26T18:58:54-07:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/06/26/ny-taxi-data-visualized</id>
     <content type="html"><![CDATA[<p>Recently a massive dataset of <a href="http://chriswhong.com/open-data/foil_nyc_taxi/">NYC Taxi Data</a> was made public. There are torrents available but at 19gb the data can be quite unwieldy to manage on a home machine. /r/BigQuery have <a href="http://www.reddit.com/r/bigquery/comments/28ialf/173_million_2013_nyc_taxi_rides_shared_on_bigquery/">uploaded</a> the dataset to Google&rsquo;s BigQuery service.</p>
 
 <p>BQ provides a simple way to get insights out of this dataset without tearing through your internet usage or waiting for your home machine to query 173 million records. For example on reddit they have already discovered some <a href="https://medium.com/@vijayp/of-taxis-and-rainbows-f6bc289679a1">anonymization issues</a>.</p>
@@ -4823,7 +4825,7 @@ opsworks:stack</code> and <code>opsworks:layer:php-app</code> to the name of you
   <entry>
     <title type="html"><![CDATA[PDF's in Ruby]]></title>
     <link href="http://hipsterdevblog.com/blog/2014/06/25/pdfs-in-ruby/"/>
-    <updated>2014-06-25T21:18:36+10:00</updated>
+    <updated>2014-06-25T04:18:36-07:00</updated>
     <id>http://hipsterdevblog.com/blog/2014/06/25/pdfs-in-ruby</id>
     <content type="html"><![CDATA[<p>Avoid using PDF&rsquo;s in your application. There are no great solutions to PDF generation in general, and Ruby does not have any perfect options. If you really need PDF&rsquo;s, this is the landscape of options, and my suggestion.</p>
 
@@ -4866,7 +4868,7 @@ opsworks:stack</code> and <code>opsworks:layer:php-app</code> to the name of you
   <entry>
     <title type="html"><![CDATA[Automatic DNS Records Using Route53 on OpsWorks]]></title>
     <link href="http://hipsterdevblog.com/blog/2014/06/23/automatic-dns-records-using-route53/"/>
-    <updated>2014-06-23T18:28:23+10:00</updated>
+    <updated>2014-06-23T01:28:23-07:00</updated>
     <id>http://hipsterdevblog.com/blog/2014/06/23/automatic-dns-records-using-route53</id>
     <content type="html"><![CDATA[<p>
     Lets say you have a load balanced web application managed with OpsWorks – your application traffic will be addressed
@@ -5100,7 +5102,7 @@ opsworks:stack</code> and <code>opsworks:layer:php-app</code> to the name of you
   <entry>
     <title type="html"><![CDATA[Lazy Processing Images Using S3 and Redirection Rules]]></title>
     <link href="http://hipsterdevblog.com/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules/"/>
-    <updated>2014-06-22T19:14:44+10:00</updated>
+    <updated>2014-06-22T02:14:44-07:00</updated>
     <id>http://hipsterdevblog.com/blog/2014/06/22/lazy-processing-images-using-s3-and-redirection-rules</id>
     <content type="html"><![CDATA[<p>
     In a system dealing with user generated images it&#8217;s common to have to resize images before they can be served to the web.
@@ -5238,7 +5240,7 @@ opsworks:stack</code> and <code>opsworks:layer:php-app</code> to the name of you
   <entry>
     <title type="html"><![CDATA[Retrieving Files From S3 Using Chef on OpsWorks]]></title>
     <link href="http://hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/"/>
-    <updated>2014-06-22T17:44:02+10:00</updated>
+    <updated>2014-06-22T00:44:02-07:00</updated>
     <id>http://hipsterdevblog.com/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks</id>
     <content type="html"><![CDATA[<p><p>
 <strong>You may also be interested in my new post <a href="http://hipsterdevblog.com/blog/2015/01/03/revisited-retrieving-files-from-s3-using-chef-on-opsworks/">Revisited: Retrieving Files From S3 Using Chef on OpsWorks</a>

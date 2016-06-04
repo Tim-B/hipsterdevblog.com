@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Elb | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/elb/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-10-24T12:00:12+10:00</updated>
+  <updated>2016-06-04T11:54:43-07:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[My 2015 AWS Wish List]]></title>
     <link href="http://hipsterdevblog.com/blog/2015/01/01/my-2015-aws-wish-list/"/>
-    <updated>2015-01-01T22:53:23+10:00</updated>
+    <updated>2015-01-01T04:53:23-08:00</updated>
     <id>http://hipsterdevblog.com/blog/2015/01/01/my-2015-aws-wish-list</id>
     <content type="html"><![CDATA[<p>As a new year dawns it occurred to me how much AWS functionality I now use heavily wasn&rsquo;t available only a year ago.
  Almost every day I check the <a href="http://aws.amazon.com/blogs/aws/">AWS blog</a> to find some new feature is available. This
@@ -122,9 +122,9 @@ other than the ability to filter by time!
   
   <entry>
     <title type="html"><![CDATA[How Far Can You Go With HAProxy and a t2.micro]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/12/19/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro/"/>
-    <updated>2014-12-19T09:56:13+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/12/19/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro</id>
+    <link href="http://hipsterdevblog.com/blog/2014/12/18/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro/"/>
+    <updated>2014-12-18T15:56:13-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/12/18/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro</id>
     <content type="html"><![CDATA[<p>Load balancing is critical to any scalable and highly available cloud application. The obvious choice for load balancing
  on AWS is <a href="http://aws.amazon.com/elasticloadbalancing/">ELB</a>, but unfortunately if you require features such as a static
  IP or URL based request routing then ELB isn&rsquo;t an option.</p>

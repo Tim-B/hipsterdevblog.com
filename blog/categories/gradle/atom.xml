@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Gradle | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/gradle/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-10-24T12:00:12+10:00</updated>
+  <updated>2016-06-04T11:54:43-07:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Building ZeroC Ice 3.5 Projects With Gradle and IntelliJ]]></title>
     <link href="http://hipsterdevblog.com/blog/2015/04/21/building-zeroc-ice-projects-with-gradle-and-intellij/"/>
-    <updated>2015-04-21T19:35:35+10:00</updated>
+    <updated>2015-04-21T02:35:35-07:00</updated>
     <id>http://hipsterdevblog.com/blog/2015/04/21/building-zeroc-ice-projects-with-gradle-and-intellij</id>
     <content type="html"><![CDATA[<p><a href="https://zeroc.com/">ZeroC Ice</a> is a distributed computing platform supporting many languages including Java. Building
 an Ice project requires compiling &ldquo;slice&rdquo; data structure definitions into a compatible Java interface. Most often

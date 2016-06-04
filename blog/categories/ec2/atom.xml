@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ec2 | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/ec2/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-10-24T12:00:12+10:00</updated>
+  <updated>2016-06-04T11:54:43-07:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[How Far Can You Go With HAProxy and a t2.micro]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/12/19/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro/"/>
-    <updated>2014-12-19T09:56:13+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/12/19/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro</id>
+    <link href="http://hipsterdevblog.com/blog/2014/12/18/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro/"/>
+    <updated>2014-12-18T15:56:13-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/12/18/how-far-can-you-go-with-haproxy-and-a-t2-dot-micro</id>
     <content type="html"><![CDATA[<p>Load balancing is critical to any scalable and highly available cloud application. The obvious choice for load balancing
  on AWS is <a href="http://aws.amazon.com/elasticloadbalancing/">ELB</a>, but unfortunately if you require features such as a static
  IP or URL based request routing then ELB isn&rsquo;t an option.</p>
@@ -218,9 +218,9 @@ request is about 50 kB the approximate limit should be <code>(180 * 1024 * 1024)
   
   <entry>
     <title type="html"><![CDATA[Part 3: Integrating OpsWorks and CodeDeploy]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/"/>
-    <updated>2014-11-25T11:43:36+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy</id>
+    <link href="http://hipsterdevblog.com/blog/2014/11/24/part-3-integrating-opsworks-and-codedeploy/"/>
+    <updated>2014-11-24T17:43:36-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/11/24/part-3-integrating-opsworks-and-codedeploy</id>
     <content type="html"><![CDATA[<p>This is part 3 of <a href="/blog/categories/integrating-opsworks-and-codedeploy/">integrating OpsWorks and CodeDeploy</a>.</p>
 
 <p>This section covers creating the CodeDeploy deployment, deploying it to the configured OpsWorks stack and demonstrating the results of the integration.
@@ -332,9 +332,9 @@ request is about 50 kB the approximate limit should be <code>(180 * 1024 * 1024)
   
   <entry>
     <title type="html"><![CDATA[Part 2: Integrating OpsWorks and CodeDeploy]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/"/>
-    <updated>2014-11-24T11:43:29+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy</id>
+    <link href="http://hipsterdevblog.com/blog/2014/11/23/part-2-integrating-opsworks-and-codedeploy/"/>
+    <updated>2014-11-23T17:43:29-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/11/23/part-2-integrating-opsworks-and-codedeploy</id>
     <content type="html"><![CDATA[<p>This is part 2 of <a href="/blog/categories/integrating-opsworks-and-codedeploy/">integrating OpsWorks and CodeDeploy</a>.</p>
 
 <p>This section covers creating the OpsWorks Chef recipes to deploy your application via CodeDeploy.
@@ -599,9 +599,9 @@ of your application server layer. Also add <code>ruby2.0</code> and <code>awscli
   
   <entry>
     <title type="html"><![CDATA[Part 1: Integrating OpsWorks and CodeDeploy]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/11/23/integrating-opsworks-and-codedeploy/"/>
-    <updated>2014-11-23T11:09:28+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/11/23/integrating-opsworks-and-codedeploy</id>
+    <link href="http://hipsterdevblog.com/blog/2014/11/22/integrating-opsworks-and-codedeploy/"/>
+    <updated>2014-11-22T17:09:28-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/11/22/integrating-opsworks-and-codedeploy</id>
     <content type="html"><![CDATA[<p>Amazon <a href="http://aws.amazon.com/blogs/aws/code-management-and-deployment/">recently announced</a> a new deployment service
 called <a href="http://aws.amazon.com/codedeploy/">CodeDeploy</a>. <a href="http://aws.amazon.com/opsworks/">OpsWorks</a> is another application
  management product which provides excellent configuration management via <a href="https://www.getchef.com/">Chef</a>, however it
@@ -689,7 +689,7 @@ opsworks:stack</code> and <code>opsworks:layer:php-app</code> to the name of you
   <entry>
     <title type="html"><![CDATA[Automatic DNS Records Using Route53 on OpsWorks]]></title>
     <link href="http://hipsterdevblog.com/blog/2014/06/23/automatic-dns-records-using-route53/"/>
-    <updated>2014-06-23T18:28:23+10:00</updated>
+    <updated>2014-06-23T01:28:23-07:00</updated>
     <id>http://hipsterdevblog.com/blog/2014/06/23/automatic-dns-records-using-route53</id>
     <content type="html"><![CDATA[<p>
     Lets say you have a load balanced web application managed with OpsWorks – your application traffic will be addressed

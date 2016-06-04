@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Lambda | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/lambda/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-10-24T12:00:12+10:00</updated>
+  <updated>2016-06-04T11:54:43-07:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -16,9 +16,17 @@
   <entry>
     <title type="html"><![CDATA[Deploying From CodePipeline to OpsWorks Using a Custom Action and Lambda]]></title>
     <link href="http://hipsterdevblog.com/blog/2015/07/28/deploying-from-codepipeline-to-opsworks-using-a-custom-action-and-lambda/"/>
-    <updated>2015-07-28T20:40:42+10:00</updated>
+    <updated>2015-07-28T03:40:42-07:00</updated>
     <id>http://hipsterdevblog.com/blog/2015/07/28/deploying-from-codepipeline-to-opsworks-using-a-custom-action-and-lambda</id>
-    <content type="html"><![CDATA[<p>AWS recently released <a href="http://aws.amazon.com/codepipeline/">CodePipeline</a> after announcing it last year. After doing the
+    <content type="html"><![CDATA[<p><p>
+<strong>Update: CodePipeline now has built-in support for both <a href="https://docs.aws.amazon.com/codepipeline/latest/userguide/how-to-lambda-integration.html">Lambda</a>
+ and <a href="https://docs.aws.amazon.com/opsworks/latest/userguide/other-services-cp.html">OpsWorks</a>. I&rsquo;d now recommend using the built-in functionality
+ rather than the method described in this post.</strong>
+<p></p>
+
+<p>Original post:</p>
+
+<p>AWS recently released <a href="http://aws.amazon.com/codepipeline/">CodePipeline</a> after announcing it last year. After doing the
 <a href="http://docs.aws.amazon.com/codepipeline/latest/userguide/getting-started-w.html">setup walkthrough</a> I was surprised
 to see only the following deployment options!</p>
 
@@ -40,8 +48,7 @@ uses S3 to store artifacts between stages to trigger the Lambda function, and SN
 
 <p>This blog posts explains how to configure your pipleine and the Lambda function to deploy to OpsWorks using CodePipeline.</p>
 
-<!-- more -->
-
+<p><!-- more --></p>
 
 <h1>Overview</h1>
 
@@ -434,7 +441,7 @@ then a run setup command action.</p>
   <entry>
     <title type="html"><![CDATA[My 2015 AWS Wish List]]></title>
     <link href="http://hipsterdevblog.com/blog/2015/01/01/my-2015-aws-wish-list/"/>
-    <updated>2015-01-01T22:53:23+10:00</updated>
+    <updated>2015-01-01T04:53:23-08:00</updated>
     <id>http://hipsterdevblog.com/blog/2015/01/01/my-2015-aws-wish-list</id>
     <content type="html"><![CDATA[<p>As a new year dawns it occurred to me how much AWS functionality I now use heavily wasn&rsquo;t available only a year ago.
  Almost every day I check the <a href="http://aws.amazon.com/blogs/aws/">AWS blog</a> to find some new feature is available. This
@@ -540,9 +547,9 @@ other than the ability to filter by time!
   
   <entry>
     <title type="html"><![CDATA[Writing Functions for AWS Lambda Using NPM and Grunt]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/12/07/writing-functions-for-aws-lambda-using-npm-and-grunt/"/>
-    <updated>2014-12-07T11:51:16+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/12/07/writing-functions-for-aws-lambda-using-npm-and-grunt</id>
+    <link href="http://hipsterdevblog.com/blog/2014/12/06/writing-functions-for-aws-lambda-using-npm-and-grunt/"/>
+    <updated>2014-12-06T17:51:16-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/12/06/writing-functions-for-aws-lambda-using-npm-and-grunt</id>
     <content type="html"><![CDATA[<p>AWS <a href="http://aws.amazon.com/blogs/aws/run-code-cloud/">recently announced</a> a new compute product called <a href="http://aws.amazon.com/lambda/">Lambda</a>
  allowing users to run Node.js functions on full managed infrastructure while paying only for the actual compute time
  used.</p>
@@ -1031,7 +1038,7 @@ other than the ability to filter by time!
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>Running &ldquo;lambda_package:default&rdquo; (lambda_package) task
-</span><span class='line'>&lt;a href="&#109;&#97;&#x69;&#108;&#x74;&#x6f;&#58;&#108;&#105;&#x6e;&#x6b;&#45;&#115;&#99;&#114;&#97;&#x70;&#x65;&#114;&#64;&#49;&#46;&#48;&#46;&#48;">&#108;&#105;&#110;&#x6b;&#45;&#115;&#x63;&#x72;&#x61;&#112;&#101;&#114;&#64;&#49;&#46;&#x30;&#46;&#x30;&lt;/a> ../../../../../../tmp/1417936030856.854/node_modules/link-scraper
+</span><span class='line'>&lt;a href="&#x6d;&#97;&#105;&#x6c;&#x74;&#x6f;&#58;&#x6c;&#x69;&#x6e;&#107;&#45;&#115;&#99;&#114;&#x61;&#112;&#x65;&#x72;&#64;&#49;&#x2e;&#48;&#x2e;&#48;">&#108;&#x69;&#x6e;&#107;&#x2d;&#115;&#99;&#114;&#97;&#x70;&#x65;&#114;&#x40;&#49;&#x2e;&#x30;&#x2e;&#x30;&lt;/a> ../../../../../../tmp/1417936030856.854/node_modules/link-scraper
 </span><span class='line'>Created package at dist/link-scraper_1-0-0_2014-11-7-17-7-10.zip&lt;/p>
 </span><span class='line'>
 </span><span class='line'>&lt;p>Running &ldquo;lambda_deploy:default&rdquo; (lambda_deploy) task

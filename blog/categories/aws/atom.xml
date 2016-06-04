@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Aws | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/aws/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-10-24T12:00:12+10:00</updated>
+  <updated>2016-06-04T11:54:43-07:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Revisited: Retrieving Files From S3 Using Chef on OpsWorks]]></title>
-    <link href="http://hipsterdevblog.com/blog/2015/01/03/revisited-retrieving-files-from-s3-using-chef-on-opsworks/"/>
-    <updated>2015-01-03T09:13:42+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2015/01/03/revisited-retrieving-files-from-s3-using-chef-on-opsworks</id>
+    <link href="http://hipsterdevblog.com/blog/2015/01/02/revisited-retrieving-files-from-s3-using-chef-on-opsworks/"/>
+    <updated>2015-01-02T15:13:42-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2015/01/02/revisited-retrieving-files-from-s3-using-chef-on-opsworks</id>
     <content type="html"><![CDATA[<p>One of my earliest and most popular posts is <a href="/blog/2014/06/22/retrieving-files-from-s3-using-chef-on-opsworks/">Retrieving Files From S3 Using Chef on OpsWorks</a>.
  That posts uses the <a href="https://github.com/opscode-cookbooks/aws">Opscode AWS cookbook</a> which in turn uses the <a href="https://github.com/rightscale/right_aws">right_aws</a>
  gem. While this method is fine - particularly if you&rsquo;re not using OpsWorks - there are some situations where it&rsquo;s not ideal.</p>
@@ -313,7 +313,7 @@ aws-sdk gem or move to a version with compatibility breaking changes any time so
   <entry>
     <title type="html"><![CDATA[My 2015 AWS Wish List]]></title>
     <link href="http://hipsterdevblog.com/blog/2015/01/01/my-2015-aws-wish-list/"/>
-    <updated>2015-01-01T22:53:23+10:00</updated>
+    <updated>2015-01-01T04:53:23-08:00</updated>
     <id>http://hipsterdevblog.com/blog/2015/01/01/my-2015-aws-wish-list</id>
     <content type="html"><![CDATA[<p>As a new year dawns it occurred to me how much AWS functionality I now use heavily wasn&rsquo;t available only a year ago.
  Almost every day I check the <a href="http://aws.amazon.com/blogs/aws/">AWS blog</a> to find some new feature is available. This
@@ -419,9 +419,9 @@ other than the ability to filter by time!
   
   <entry>
     <title type="html"><![CDATA[Writing Functions for AWS Lambda Using NPM and Grunt]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/12/07/writing-functions-for-aws-lambda-using-npm-and-grunt/"/>
-    <updated>2014-12-07T11:51:16+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/12/07/writing-functions-for-aws-lambda-using-npm-and-grunt</id>
+    <link href="http://hipsterdevblog.com/blog/2014/12/06/writing-functions-for-aws-lambda-using-npm-and-grunt/"/>
+    <updated>2014-12-06T17:51:16-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/12/06/writing-functions-for-aws-lambda-using-npm-and-grunt</id>
     <content type="html"><![CDATA[<p>AWS <a href="http://aws.amazon.com/blogs/aws/run-code-cloud/">recently announced</a> a new compute product called <a href="http://aws.amazon.com/lambda/">Lambda</a>
  allowing users to run Node.js functions on full managed infrastructure while paying only for the actual compute time
  used.</p>
@@ -910,7 +910,7 @@ other than the ability to filter by time!
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>Running &ldquo;lambda_package:default&rdquo; (lambda_package) task
-</span><span class='line'>&lt;a href="&#x6d;&#97;&#x69;&#108;&#116;&#111;&#x3a;&#x6c;&#105;&#110;&#x6b;&#45;&#115;&#99;&#x72;&#97;&#112;&#101;&#x72;&#x40;&#x31;&#x2e;&#x30;&#46;&#x30;">&#x6c;&#x69;&#x6e;&#107;&#x2d;&#115;&#x63;&#x72;&#97;&#112;&#x65;&#114;&#x40;&#49;&#46;&#x30;&#46;&#48;&lt;/a> ../../../../../../tmp/1417936030856.854/node_modules/link-scraper
+</span><span class='line'>&lt;a href="&#109;&#x61;&#x69;&#108;&#x74;&#111;&#58;&#108;&#x69;&#110;&#x6b;&#x2d;&#x73;&#99;&#114;&#97;&#x70;&#x65;&#114;&#x40;&#x31;&#x2e;&#x30;&#x2e;&#48;">&#108;&#105;&#x6e;&#x6b;&#45;&#115;&#99;&#x72;&#x61;&#112;&#101;&#x72;&#64;&#49;&#x2e;&#48;&#46;&#48;&lt;/a> ../../../../../../tmp/1417936030856.854/node_modules/link-scraper
 </span><span class='line'>Created package at dist/link-scraper_1-0-0_2014-11-7-17-7-10.zip&lt;/p>
 </span><span class='line'>
 </span><span class='line'>&lt;p>Running &ldquo;lambda_deploy:default&rdquo; (lambda_deploy) task
@@ -936,9 +936,9 @@ other than the ability to filter by time!
   
   <entry>
     <title type="html"><![CDATA[Part 3: Integrating OpsWorks and CodeDeploy]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy/"/>
-    <updated>2014-11-25T11:43:36+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/11/25/part-3-integrating-opsworks-and-codedeploy</id>
+    <link href="http://hipsterdevblog.com/blog/2014/11/24/part-3-integrating-opsworks-and-codedeploy/"/>
+    <updated>2014-11-24T17:43:36-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/11/24/part-3-integrating-opsworks-and-codedeploy</id>
     <content type="html"><![CDATA[<p>This is part 3 of <a href="/blog/categories/integrating-opsworks-and-codedeploy/">integrating OpsWorks and CodeDeploy</a>.</p>
 
 <p>This section covers creating the CodeDeploy deployment, deploying it to the configured OpsWorks stack and demonstrating the results of the integration.
@@ -1050,9 +1050,9 @@ other than the ability to filter by time!
   
   <entry>
     <title type="html"><![CDATA[Part 2: Integrating OpsWorks and CodeDeploy]]></title>
-    <link href="http://hipsterdevblog.com/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy/"/>
-    <updated>2014-11-24T11:43:29+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2014/11/24/part-2-integrating-opsworks-and-codedeploy</id>
+    <link href="http://hipsterdevblog.com/blog/2014/11/23/part-2-integrating-opsworks-and-codedeploy/"/>
+    <updated>2014-11-23T17:43:29-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2014/11/23/part-2-integrating-opsworks-and-codedeploy</id>
     <content type="html"><![CDATA[<p>This is part 2 of <a href="/blog/categories/integrating-opsworks-and-codedeploy/">integrating OpsWorks and CodeDeploy</a>.</p>
 
 <p>This section covers creating the OpsWorks Chef recipes to deploy your application via CodeDeploy.

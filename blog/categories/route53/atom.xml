@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Route53 | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/route53/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-10-24T12:00:12+10:00</updated>
+  <updated>2016-06-04T11:54:43-07:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[My 2015 AWS Wish List]]></title>
     <link href="http://hipsterdevblog.com/blog/2015/01/01/my-2015-aws-wish-list/"/>
-    <updated>2015-01-01T22:53:23+10:00</updated>
+    <updated>2015-01-01T04:53:23-08:00</updated>
     <id>http://hipsterdevblog.com/blog/2015/01/01/my-2015-aws-wish-list</id>
     <content type="html"><![CDATA[<p>As a new year dawns it occurred to me how much AWS functionality I now use heavily wasn&rsquo;t available only a year ago.
  Almost every day I check the <a href="http://aws.amazon.com/blogs/aws/">AWS blog</a> to find some new feature is available. This
@@ -123,7 +123,7 @@ other than the ability to filter by time!
   <entry>
     <title type="html"><![CDATA[Automatic DNS Records Using Route53 on OpsWorks]]></title>
     <link href="http://hipsterdevblog.com/blog/2014/06/23/automatic-dns-records-using-route53/"/>
-    <updated>2014-06-23T18:28:23+10:00</updated>
+    <updated>2014-06-23T01:28:23-07:00</updated>
     <id>http://hipsterdevblog.com/blog/2014/06/23/automatic-dns-records-using-route53</id>
     <content type="html"><![CDATA[<p>
     Lets say you have a load balanced web application managed with OpsWorks – your application traffic will be addressed

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Exporting and Analysing Cloudwatch Logs With Data Pipeline and Emr | :HIPSTER_DEV_BLOG]]></title>
   <link href="http://hipsterdevblog.com/blog/categories/exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/atom.xml" rel="self"/>
   <link href="http://hipsterdevblog.com/"/>
-  <updated>2015-10-24T12:00:12+10:00</updated>
+  <updated>2016-06-04T11:54:43-07:00</updated>
   <id>http://hipsterdevblog.com/</id>
   <author>
     <name><![CDATA[Tim B.]]></name>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Part 2: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR]]></title>
-    <link href="http://hipsterdevblog.com/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/"/>
-    <updated>2015-03-01T16:54:54+10:00</updated>
-    <id>http://hipsterdevblog.com/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr</id>
+    <link href="http://hipsterdevblog.com/blog/2015/02/28/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/"/>
+    <updated>2015-02-28T22:54:54-08:00</updated>
+    <id>http://hipsterdevblog.com/blog/2015/02/28/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr</id>
     <content type="html"><![CDATA[<p>If you followed <a href="/blog/2015/03/01/part-2-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/">Part 1</a>
 you&rsquo;ll now have your CloudWatch logs sitting conveniently in S3 to be analysed. You could now download them
 and search each file individually using grep or a similar tool, but it would be much nicer to be able to search
@@ -200,7 +200,7 @@ to build a Pipeline which automatically exports the logs then runs then analyses
   <entry>
     <title type="html"><![CDATA[Part 1: Exporting and Analysing CloudWatch Logs With Data Pipeline and EMR]]></title>
     <link href="http://hipsterdevblog.com/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr/"/>
-    <updated>2015-02-24T19:47:52+10:00</updated>
+    <updated>2015-02-24T01:47:52-08:00</updated>
     <id>http://hipsterdevblog.com/blog/2015/02/24/part-1-exporting-and-analysing-cloudwatch-logs-with-data-pipeline-and-emr</id>
     <content type="html"><![CDATA[<p>You&rsquo;ve just discovered one of your instances has been <em>hacked</em>! A new instance is being launched to replace it,
  but you have no idea how the attacker got access in the first place and you need to stop it happening again. The clues
